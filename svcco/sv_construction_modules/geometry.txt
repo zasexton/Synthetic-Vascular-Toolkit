@@ -1,0 +1,7 @@
+num_samples = {}
+use_distance_alignment_method = {}
+for contour_polydata_list in contour_polydata:
+    for idx in range(len(contour_polydata_list)):
+        contour_polydata_list[idx] = geometry.interpolate_closed_curve(polydata=contour_polydata_list[idx],number_of_points=num_samples)
+        if idx != 0:
+            contour_polydata_list[idx] = geometry.align_profile(contour_polydata_list[idx-1],contour_polydata_list[idx],use_distance_alignment_method)

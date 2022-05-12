@@ -1,0 +1,12 @@
+contour_polydata = []
+contour_list = []
+contour_set_{} = []
+contour_polydata_list_{} = []
+contour_set_{}.append(segmentation.Circle({},center={},normal={}))
+contour_polydata_list_{}.append(contour_set_{}[-1].get_polydata())
+contour_list.append(contour_set_{})
+contour_polydata.append(contour_polydata_list_{})
+if {}:
+    dmg.add_segmentation('vessel_{}','vessel_{}',contour_set_{})
+
+
