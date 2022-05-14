@@ -430,37 +430,38 @@ class forest:
             for ATr in range(self.trees_per_network[AN]):
                 self.networks[AN][ATr].rng_points,_ = self.boundary.pick(size=40*number_of_branches,homogeneous=True)
                 self.networks[AN][ATr].rng_points = self.networks[AN][ATr].rng_points.tolist()
-                # new
-                self.networks[AN][ATr].rng_points,_ = self.boundary.pick(size=len(self.boundary.tet_verts),homogeneous=True,replacement=False)
-                self.networks[AN][ATr].rng_points = self.networks[AN][ATr].rng_points.tolist()
-                for n in tqdm(range(len(self.networks[AN][ATr].rng_points))):
-                    pt = np.array(self.networks[AN][ATr].rng_points.pop(0))
-                    if exact:
-                        other_vessels,distances = close_exact(self.networks[AN][ATr].data,pt)
-                    else:
-                        other_vessels,distances = close(self.networks[AN][ATr].data,pt)
-                    minimum_distance = min(distances)
-                    #if minimum_distance < 4*forest.networks[nid][njd].data[other_vessels[0],21]:
-                    #    continue
-                    retry = False
-                    for idx in active_networks:
-                        for jdx in list(range(self.trees_per_network[idx])):
-                            if idx == AN:
-                                continue
-                            if exact:
-                                other_vessels,distances = close_exact(self.networks[idx][jdx].data,pt)
-                            else:
-                                other_vessels,distances = close(self.networks[idx][jdx].data,pt)
-                            if min(distances) < minimum_distance:
-                                retry = True
+                if self.compete:
+                    # new
+                    #self.networks[AN][ATr].rng_points,_ = self.boundary.pick(size=len(self.boundary.tet_verts),homogeneous=True,replacement=False)
+                    #self.networks[AN][ATr].rng_points = self.networks[AN][ATr].rng_points.tolist()
+                    for n in tqdm(range(len(self.networks[AN][ATr].rng_points))):
+                        pt = np.array(self.networks[AN][ATr].rng_points.pop(0))
+                        if exact:
+                            other_vessels,distances = close_exact(self.networks[AN][ATr].data,pt)
+                        else:
+                            other_vessels,distances = close(self.networks[AN][ATr].data,pt)
+                        minimum_distance = min(distances)
+                        #if minimum_distance < 4*forest.networks[nid][njd].data[other_vessels[0],21]:
+                        #    continue
+                        retry = False
+                        for idx in active_networks:
+                            for jdx in list(range(self.trees_per_network[idx])):
+                                if idx == AN:
+                                    continue
+                                if exact:
+                                    other_vessels,distances = close_exact(self.networks[idx][jdx].data,pt)
+                                else:
+                                    other_vessels,distances = close(self.networks[idx][jdx].data,pt)
+                                if min(distances) < minimum_distance:
+                                    retry = True
+                                    break
+                            if retry:
                                 break
                         if retry:
-                            break
-                    if retry:
-                        continue
-                    else:
-                        self.networks[AN][ATr].rng_points.insert(-1,pt.tolist())
-                #new
+                            continue
+                        else:
+                            self.networks[AN][ATr].rng_points.insert(-1,pt.tolist())
+                    #new
         if not self.compete:
             while len(active_networks) > 0:
                 for nid in active_networks:
