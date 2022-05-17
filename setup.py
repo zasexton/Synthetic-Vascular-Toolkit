@@ -25,6 +25,7 @@ VERSION = re.search(
     r'__version__ = "(.+?)"', (here / "svcco" / "__init__.py").read_text("utf8")
 ).group(1)
 
+
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'License :: OSI Approved :: MIT License',
                'Programming Language :: Python',
@@ -37,6 +38,7 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Operating System :: POSIX',
                'Operating System :: Unix',
                'Operating System :: MacOS']
+
 ALL_FILE_LIST = glob.glob("./**/*.py",recursive=True)
 ALL_FILE_LIST = [file for file in ALL_FILE_LIST if "__init__" not in file and "CCO_" not in file and "."+os.sep+"svcco" not in file]
 MODULES = []

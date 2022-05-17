@@ -1,10 +1,11 @@
 # Script for determining the general waveform from Kassab
+# Am J Physiol Heart Circ Physiol291: H1074–H1087, 2006
 # Time in seconds
 # Flow in mL/min
 import numpy as np
-from scipy.interpolate import splprep, splev, interp2d, interp1d, bisplrep, bisplev,LinearNDInterpolator
+from scipy.interpolate import splprep, splev, interp2d, interp1d, bisplrep, bisplev, LinearNDInterpolator, NearestNDInterpolator
 import matplotlib.pyplot as plt
-LAD_4500_time = [0.001991459, 0.012707403, 0.022236425, 0.028206212, 0.03536751,
+LAD_4500_time = [0, 0.012707403, 0.022236425, 0.028206212, 0.03536751,
                  0.044919475, 0.054459204, 0.064003522, 0.074737821, 0.083081451,
                  0.090232042, 0.097373455, 0.105698731, 0.11639785, 0.123523968,
                  0.1330224, 0.138957008, 0.143698576, 0.150818576, 0.156751654,
@@ -60,7 +61,7 @@ LAD_4500_flow = [30.40501077, 31.15657663, 31.96620486, 33.00793503, 34.16534744
                  24.10187707, 23.8684477, 24.09848477, 24.38673169, 24.90693307,
                  25.54325916, 26.23764761, 26.93188858, 27.85778901, 28.43634773]
 
-LAD_66_7_time = [0.001812503, 0.01132623, 0.020844545, 0.025610586, 0.030378156,
+LAD_66_7_time = [0, 0.01132623, 0.020844545, 0.025610586, 0.030378156,
                  0.036338766, 0.041109396, 0.047066947, 0.054216008, 0.060181207,
                  0.067328738, 0.07447627, 0.080432291, 0.087581352, 0.093535844,
                  0.101865709, 0.114944789, 0.128017751, 0.136332321, 0.144642301,
@@ -112,7 +113,7 @@ LAD_66_7_flow = [23.6289712, 23.85945074, 24.26367489, 24.72640387, 25.24704772,
                  18.71505688, 18.53954238, 18.59583485, 18.88437675, 19.40457813,
                  19.98284186, 20.61902046, 21.31281895]
 
-LAD_22_2_time = [0.001495888, 0.015764949, 0.027660167, 0.037181542, 0.046699858,
+LAD_22_2_time = [0, 0.015764949, 0.027660167, 0.037181542, 0.046699858,
                  0.057409684, 0.065744137, 0.076453963, 0.087162259, 0.100247457,
                  0.112136557, 0.125211049, 0.137092501, 0.150160875, 0.162040797,
                  0.171540758, 0.183419151, 0.195294485, 0.205982898, 0.21667131,
@@ -152,7 +153,7 @@ LAD_22_2_flow = [11.6405935, 11.92839795, 12.33232712, 12.852381, 13.25660515,
                  10.26656572, 9.974484027, 9.566425109, 9.332258287, 9.272721016,
                  9.32886599, 9.674732795, 10.02089458, 10.59842086]
 
-LAD_16_1_time = [0.001341405, 0.01798278, 0.035815664, 0.052466216, 0.066736807,
+LAD_16_1_time = [0, 0.01798278, 0.035815664, 0.052466216, 0.066736807,
                  0.081007398, 0.09765642, 0.115487775, 0.132126091, 0.153513622,
                  0.177278056, 0.198660999, 0.223613883, 0.250942141, 0.275895026,
                  0.303224813, 0.338872228, 0.373335781, 0.408981666, 0.448194435,
@@ -174,7 +175,7 @@ LAD_16_1_flow = [5.791191827, 5.904956687, 6.134403792, 6.59565786, 6.941377174,
                  5.946549198, 5.709285061, 5.415433477, 5.293704093, 5.173007148,
                  4.993952862, 4.6423339, 4.638056656, 5.096360901]
 
-LAD_9_time = [0.00122363, 0.027369555, 0.052328558, 0.079667522, 0.110573369,
+LAD_9_time = [0, 0.027369555, 0.052328558, 0.079667522, 0.110573369,
               0.146228432, 0.183065828, 0.225848539, 0.261502072, 0.309033998,
               0.349442866, 0.394602479, 0.433821365, 0.488485528, 0.536025102,
               0.579997793, 0.629908151, 0.673880842, 0.719046573, 0.760653069,
@@ -197,7 +198,6 @@ def generate_physiologic_wave(flow_value,diameter,time=LAD_time,
                               one_cycle=True,n_time_points=50,min_buffer=0.05):
     LAD_diam = [0.45,0.00667,0.00222,0.00161,0.0009]
     for i,vessel in enumerate(time):
-        time[i][0] = 0
         time[i] = np.array(vessel)
     for i,vessel in enumerate(flow):
         flow[i] = np.array(vessel)
@@ -211,21 +211,28 @@ def generate_physiologic_wave(flow_value,diameter,time=LAD_time,
     time_interp = []
     diam_interp = []
     interp = []
+
     for i,_ in enumerate(time):
-        f = interp1d(time[i],flow[i])
+        f = interp1d(time[i],flow[i],fill_value='extrapolate')
         flow_tmp = f(t)
         interp.append(f)
         diam_interp.extend(np.ones(len(flow_tmp))*LAD_diam[i])
         flow_interp.extend(flow_tmp)
         time_interp.extend(t)
+
+    #for i in range(len(t)):
+    #    fd = interp1d(LAD_diam,[flo[i] for flo in flow_interp],fill_value='extrapolate')
     diam_interp = np.array(diam_interp)
     flow_interp = np.array(flow_interp)
     time_interp = np.array(time_interp)
 
     ND_interp = LinearNDInterpolator(list(zip(time_interp,diam_interp)),flow_interp)
+    KND_interp = NearestNDInterpolator(list(zip(time_interp,diam_interp)),flow_interp)
     t = np.linspace(0,t[-1],num=n_time_points)
     d = np.ones(len(t))*diameter
     wave = ND_interp(t,d)/60
+    if np.any(np.isnan(wave)):
+        wave = KND_interp(t,d)/60
     #wave_max = np.max(wave)
     wave_min = np.min(wave)
     wave_mean = np.mean(wave)
@@ -235,4 +242,4 @@ def generate_physiologic_wave(flow_value,diameter,time=LAD_time,
         wave_return = abs(wave_diff_min) + wave_diff + flow_value*min_buffer
     else:
         wave_return = flow_value + wave_diff
-    return t, wave_return 
+    return t, wave_return

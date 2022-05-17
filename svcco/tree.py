@@ -18,11 +18,19 @@ from .sv_interface.get_sv_data import *
 from .sv_interface.options import *
 from .sv_interface.build_files import *
 from .sv_interface.waveform import generate_physiologic_wave
+from .sv_interface.build_results import make_results
+from .sv_interface.view_0d_result_plots import view_plots
+from .sv_interface.build_0d_run_script import run_0d_script
+from .sv_interface.locate import locate_0d_solver, locate_1d_solver
 from copy import deepcopy
 from itertools import combinations
 from tqdm import tqdm
 import pickle
+import tetgen
+import json
+from scipy.interpolate import splev
 import matplotlib.pyplot as plt
+import platform
 
 class tree:
     """
@@ -306,7 +314,7 @@ class tree:
         self.boundary = pickle.loads(file)
         file.close()
 
-    def export(self,steady=True,apply_distal_resistance=True,gui=True,cylinders=False):
+    def export(self,steady=True,apply_distal_resistance=True,gui=True,cylinders=False,make=True):
         if cylinders:
             pv_data = []
             models = self.show(show=False)
@@ -328,9 +336,185 @@ class tree:
             R = self.parameters['Pterm']/self.data[0,22]
         else:
             R = 0
-        options = file_options(time=time,flow=flow,gui=gui,distal_resistance=R)
-        build(points,radii,normals,options)
+        if make:
+            options = file_options(time=time,flow=flow,gui=gui,distal_resistance=R)
+            build(points,radii,normals,options)
+        return interp_xyz,interp_r
 
+    def new_export(self):
+        def polyline_from_points(pts,r):
+            poly = pv.PolyData()
+            poly.points = pts
+            cell = np.arange(0,len(pts),dtype=np.int_)
+            cell = np.insert(cell,0,len(pts))
+            poly.lines = cell
+            poly.scalars = r/r[0]
+            return poly
+        interp_xyz,interp_r = self.export(make=False)
+        vessels = []
+        tets = []
+        t_list = np.linspace(0,1,num=1000)
+        for vessel_id in range(len(interp_xyz)):
+            x,y,z = splev(t_list,interp_xyz[vessel_id][0])
+            _,r = splev(t_list,interp_r[vessel_id][0])
+            points = np.zeros((len(t_list),3))
+            points[:,0] = x
+            points[:,1] = y
+            points[:,2] = z
+            polyline = polyline_from_points(points,r)
+            vessel = polyline.tube(radius=r[0])
+            vessels.append(vessel)
+            tets.append(tetgen.TetGen(vessel.triangulate()))
+        for i in tqdm(range(len(tets)),desc="Tetrahedralizing"):
+            tets[i].tetrahedralize(minratio=1.2)
+        surfs = []
+        for i in tqdm(range(len(tets)),desc="Extracting Surfaces"):
+            surfs.append(tets[i].grid.extract_surface().triangulate())
+        unioned = surfs[0].boolean_union(surfs[1])
+        unioned = unioned.clean()
+        for i in tqdm(range(2,len(surfs)),desc="Unioning"):
+            unioned = unioned.boolean_union(surfs[i])
+            unioned = unioned.clean()
+        return vessels,tets,unioned
+
+    def new_export_0d(self,steady=True,outdir=None,folder="tmp",number_cardiac_cycles=1,
+                      number_time_pts_per_cycle=5,density=1.06,viscosity=0.04,material="olufsen",
+                      olufsen={'k1':0.0,'k2':-22.5267,'k3':1.0e7,'material exponent':1.0,'material pressure':0.0},
+                      linear={'material ehr':1e7,'material pressure':0.0},path_to_0d_solver=None):
+        """
+        This script builds the 0D input file for running 0D simulation.
+        Parameters:
+        -----------
+        steady: bool, optional, [default=True]
+        outdir: str, optional, [default=None]
+        folder: str, optional, [default="tmp"]
+        number_cardiac_cycles: int, optional, [default=1]
+        """
+        if outdir is None:
+            outdir = os.getcwd()+os.sep+folder
+        else:
+            outdir = outdir+os.sep+folder
+        if not os.path.isdir(outdir):
+            os.mkdir(folder)
+        if path_to_0d_solver is None:
+            path_to_0d_solver = locate_0d_solver()
+        else:
+            path_to_0d_solver = locate_0d_solver(windows_drive=path_to_0d_solver,linux_drive=path_to_0d_solver)
+        input_file = {'description':{'description of case':None,
+                                     'analytical results':None},
+                      'boundary_conditions':[],
+                      'junctions':[],
+                      'simulation_parameters':{},
+                      'vessels':[]}
+        simulation_parameters = {}
+        simulation_parameters["number_of_cardiac_cycles"] = number_cardiac_cycles
+        simulation_parameters["number_of_time_pts_per_cardiac_cycle"] = number_time_pts_per_cycle
+        input_file['simulation_parameters'] = simulation_parameters
+        for vessel in range(self.data.shape[0]):
+            tmp = {}
+            tmp['vessel_id'] = vessel
+            tmp['vessel_length'] = self.data[vessel,20]
+            tmp['vessel_name'] = 'branch'+str(vessel)+"_seg0"
+            tmp['zero_d_element_type'] = "BloodVessel"
+            if material == "olufsen":
+                material_stiffness = olufsen['k1']*np.exp(olufsen['k2']*self.data[vessel,21])+olufsen['k3']
+            else:
+                material_stiffness = linear['material ehr']
+            zero_d_element_values = {}
+            zero_d_element_values["R_poiseuille"] = ((8*self.parameters['nu']/np.pi)*self.data[vessel,20])/self.data[vessel,21]**4
+            zero_d_element_values["C"] = (3*self.data[vessel,20]*np.pi*self.data[vessel,21]**2)/(2*material_stiffness)
+            zero_d_element_values["L"] = (self.data[vessel,20]*density)/(np.pi*self.data[vessel,21]**2)
+            zero_d_element_values["stenosis_coefficient"] = 0.0
+            tmp['zero_d_element_values'] = zero_d_element_values
+            if vessel == 0:
+                bc = {}
+                bc['bc_name'] = "INFLOW"
+                bc['bc_type'] = "FLOW"
+                bc_values = {}
+                if steady:
+                    bc_values["Q"] = [self.data[vessel,22], self.data[vessel,22]]
+                    bc_values["t"] = [0, 1]
+                    with open(outdir+os.sep+"inflow.flow","w") as file:
+                        for i in range(len(bc_values["t"])):
+                            file.write("{}  {}\n".format(bc_values["t"][i],bc_values["Q"][i]))
+                    file.close()
+                else:
+                    time,flow = generate_physiologic_wave(self.data[vessel,22],self.data[vessel,21]*2)
+                    bc_values["Q"] = flow.tolist()
+                    bc_values["t"] = time.tolist()
+                    bc_values["Q"][-1] = bc_values["Q"][0]
+                    simulation_parameters["number_of_time_pts_per_cardiac_cycle"] = len(bc_values["Q"])
+                    with open(outdir+os.sep+"inflow.flow","w") as file:
+                        for i in range(len(bc_values["t"])):
+                            file.write("{}  {}\n".format(bc_values["t"][i],bc_values["Q"][i]))
+                    file.close()
+                bc['bc_values'] = bc_values
+                input_file['boundary_conditions'].append(bc)
+                tmp['boundary_conditions'] = {'inlet':"INFLOW"}
+                if self.data[vessel,15] > 0 and self.data[vessel,16] > 0:
+                    junction = {}
+                    junction['inlet_vessels'] = [vessel]
+                    junction['junction_name'] = "J"+str(vessel)
+                    junction['junction_type'] = "NORMAL_JUNCTION"
+                    junction['outlet_vessels'] = [int(self.data[vessel,15]), int(self.data[vessel,16])]
+                    input_file['junctions'].append(junction)
+            elif self.data[vessel,15] < 0 and self.data[vessel,16] < 0:
+                bc = {}
+                bc['bc_name'] = "OUT"+str(vessel)
+                bc['bc_type'] = "RESISTANCE"
+                bc_values = {}
+                bc_values["Pd"] = self.parameters["Pterm"]
+                bc_values["R"] = 0
+                bc['bc_values'] = bc_values
+                input_file['boundary_conditions'].append(bc)
+                tmp['boundary_conditions'] = {'outlet':'OUT'+str(vessel)}
+            else:
+                junction = {}
+                junction['inlet_vessels'] = [vessel]
+                junction['junction_name'] = "J"+str(vessel)
+                junction['junction_type'] = "NORMAL_JUNCTION"
+                junction['outlet_vessels'] = [int(self.data[vessel,15]), int(self.data[vessel,16])]
+                input_file['junctions'].append(junction)
+            input_file['vessels'].append(tmp)
+        obj = json.dumps(input_file,indent=4)
+        with open(outdir+os.sep+"solver_0d.in","w") as file:
+            file.write(obj)
+        file.close()
+
+        with open(outdir+os.sep+"plot_0d_results_to_3d.py","w") as file:
+            file.write(make_results)
+        file.close()
+
+        with open(outdir+os.sep+"plot_0d_results_at_slices.py","w") as file:
+            file.write(view_plots)
+        file.close()
+
+        with open(outdir+os.sep+"run.py","w") as file:
+            if platform.system() == "Windows":
+                if path_to_0d_solver is not None:
+                    solver_path = path_to_0d_solver.replace(os.sep,os.sep+os.sep)
+                else:
+                    solver_path = path_to_0d_solver
+                    print("WARNING: Solver location will have to be given manually")
+                    print("Current solver path is: {}".format(solver_path))
+                solver_file = (outdir+os.sep+"solver_0d.in").replace(os.sep,os.sep+os.sep)
+            else:
+                if path_to_0d_solver is not None:
+                    solver_path = path_to_0d_solver
+                else:
+                    solver_path = path_to_0d_solver
+                    print("WARNING: Solver location will have to be given manually")
+                    print("Current solver path is: {}".format(solver_path))
+                solver_file = outdir+os.sep+"solver_0d.in"
+            file.write(run_0d_script.format(solver_path,solver_file))
+        file.close()
+
+        geom = np.zeros((self.data.shape[0],8))
+        geom[:,0:3] = self.data[:,0:3]
+        geom[:,3:6] = self.data[:,3:6]
+        geom[:,6]   = self.data[:,20]
+        geom[:,7]   = self.data[:,21]
+        np.savetxt(outdir+os.sep+"geom.csv",geom,delimiter=",")
     def collision_free(self,outside_vessels,radius_buffer=0.01):
         return no_outside_collision(self,outside_vessels,radius_buffer=radius_buffer)
 
