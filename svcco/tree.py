@@ -341,7 +341,13 @@ class tree:
             build(points,radii,normals,options)
         return interp_xyz,interp_r
 
-    def new_export(self):
+    def export_3d_solid(self,outdir=None,folder="3d_tmp"):
+        if outdir is None:
+            outdir = os.getcwd()+os.sep+folder
+        else:
+            outdir = outdir+os.sep+folder
+        if not os.path.isdir(outdir):
+            os.mkdir(folder)
         def polyline_from_points(pts,r):
             poly = pv.PolyData()
             poly.points = pts
@@ -375,9 +381,10 @@ class tree:
         for i in tqdm(range(2,len(surfs)),desc="Unioning"):
             unioned = unioned.boolean_union(surfs[i])
             unioned = unioned.clean()
+        unioned.save(outdir+os.sep+"unioned_solid.vtp")
         return vessels,tets,unioned
 
-    def new_export_0d(self,steady=True,outdir=None,folder="tmp",number_cardiac_cycles=1,
+    def export_0d_simulation(self,steady=True,outdir=None,folder="0d_tmp",number_cardiac_cycles=1,
                       number_time_pts_per_cycle=5,density=1.06,viscosity=0.04,material="olufsen",
                       olufsen={'k1':0.0,'k2':-22.5267,'k3':1.0e7,'material exponent':1.0,'material pressure':0.0},
                       linear={'material ehr':1e7,'material pressure':0.0},path_to_0d_solver=None):
