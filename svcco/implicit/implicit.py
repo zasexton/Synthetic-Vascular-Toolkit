@@ -20,7 +20,7 @@ from scipy.spatial import cKDTree
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import shortest_path
 from scipy.interpolate import splprep,splev
-from gekko import GEKKO
+#from gekko import GEKKO
 import marshal, types
 
 import pyvista as pv
@@ -406,7 +406,7 @@ class surface:
                                 patch_x=np.array([self.patch_x[idx]]),patch_y=np.array([self.patch_y[idx]]),
                                 patch_z=np.array([self.patch_z[idx]]))
         return func_marching
-        
+
     def within(self,x,y,z,k):
         return self.DD[0]([x,y,z,k]) < 0
 

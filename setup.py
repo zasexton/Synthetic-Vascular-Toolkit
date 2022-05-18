@@ -21,10 +21,10 @@ here = Path(__file__).parent
 
 long_description = (here / "README.md").read_text("utf8")
 
-VERSION = re.search(
-    r'__version__ = "(.+?)"', (here / "svcco" / "__init__.py").read_text("utf8")
-).group(1)
-
+#VERSION = re.search(
+#    r'__version__ = "(.+?)"', (here / "svcco" / "__init__.py").read_text("utf8")
+#).group(1)
+VERSION = '0.5.32'
 
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'License :: OSI Approved :: MIT License',
@@ -40,7 +40,7 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Operating System :: MacOS']
 
 ALL_FILE_LIST = glob.glob("./**/*.py",recursive=True)
-ALL_FILE_LIST = [file for file in ALL_FILE_LIST if "__init__" not in file and "CCO_" not in file and "."+os.sep+"svcco" not in file]
+ALL_FILE_LIST = [file for file in ALL_FILE_LIST if "__init__" not in file and "CCO_" not in file]
 MODULES = []
 for filename in tqdm(ALL_FILE_LIST):
     file = open(filename,'r')
@@ -52,14 +52,19 @@ for filename in tqdm(ALL_FILE_LIST):
                 mod = words[1].split(".")[0].replace('\n','')
                 if mod not in MODULES:
                     MODULES.append(mod)
+print(MODULES)
 INSTALL_REQUIREMENTS = []
 for mod in MODULES:
+    if mod == 'svcco' or mod == 'importlib_metadata':
+        continue
     try:
         install_version = version(mod)
         INSTALL_REQUIREMENTS.append(mod+'>='+install_version)
     except:
         pass
+print(INSTALL_REQUIREMENTS)
 PACKAGES = find_packages(include=["svcco","svcco.*"]) #['svcco']+['svcco.'+ pkg for pkg in find_packages('svcco')]
+print(PACKAGES)
 OPTIONS  = None
 """
 INSTALL_REQUIREMENTS = ['numpy>=1.16.0',
@@ -92,7 +97,7 @@ setup_info = dict(
     python_requires='>=3.7',
     classifiers=CLASSIFIERS,
     install_requires=INSTALL_REQUIREMENTS,
-    packages=PROJECT_URLS
+    packages=PACKAGES
     )
 
 setup(**setup_info)
