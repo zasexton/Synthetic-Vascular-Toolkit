@@ -40,18 +40,22 @@ def build(paths,radii,normals,options,setup_file=setup_file,
         contour_file = ''
     if options.file_constructor['solid']:
         #geometry_file = open(os.path.dirname(__file__)+'/geometry.txt','r').read()
-        geometry_file = geometry_file.format(options.geometry_options['number_samples'],
-                                             options.geometry_options['use_distance_alignment_method'])
+        #geometry_file = geometry_file.format(options.geometry_options['number_samples'],
+        #                                     options.geometry_options['use_distance_alignment_method'])
         #loft_file = open(os.path.dirname(__file__)+'/loft.txt','r').read()
-        loft_file = loft_file.format(options.loft_options['changes'],
-                                     options.loft_options['angle'])
+        #loft_file = loft_file.format(options.loft_options['changes'],
+        #                             options.loft_options['angle'])
         #solid_file = open(os.path.dirname(__file__)+'/solid.txt','r').read()
-        solid_file = solid_file.format(options.solid_options['minimum_face_cells'],
-                                       options.solid_options['hmin'],
-                                       options.solid_options['hmax'],
-                                       options.solid_options['face_edge_size'],
-                                       options.solid_options['face_edge_size'],
-                                       options.solid_options['angle'],
+        #solid_file = solid_file.format(options.solid_options['minimum_face_cells'],
+        #                               options.solid_options['hmin'],
+        #                               options.solid_options['hmax'],
+        #                               options.solid_options['face_edge_size'],
+        #                               options.solid_options['face_edge_size'],
+        #                               options.solid_options['angle'],
+        #                               options.file_constructor['gui'],
+        #                               options.name)
+        loft_file = loft_file
+        solid_file = solid_file.format(options.solid_options['num_caps'],options.solid_options['angle'],
                                        options.file_constructor['gui'],
                                        options.name)
     else:
@@ -212,7 +216,7 @@ def build(paths,radii,normals,options,setup_file=setup_file,
     ############################################################
     # COMPUTING GEOMETRY
     ############################################################
-    cco_file_text += geometry_file
+    #cco_file_text += geometry_file
     ############################################################
     ############################################################
 

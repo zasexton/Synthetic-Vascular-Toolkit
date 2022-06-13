@@ -1,6 +1,112 @@
 solid="""###############################
 # INITIALIZE MODELING KERNEL
 ###############################
+def robust_union(model_1,model_2):
+    modeler = modeling.Modeler(modeling.Kernel.POLYDATA)
+    model_1_be = bad_edges(model_1)
+    model_2_be = bad_edges(model_2)
+    print("Model 1 Bad Edges: {{}}\\n Model 2 Bad Edges: {{}}".format(model_1_be,model_2_be))
+    if model_1_be == 0 and model_2_be == 0:
+        unioned_model = modeler.union(model_1,model_2)
+        unioned_model = clean(unioned_model)
+        unioned_model = norm(unioned_model)
+        if bad_edges(unioned_model) > 0:
+            print('Unioned Model Bad Edges: {{}}'.format(bad_edges(unioned_model)))
+            print('Filling')
+            unioned_model = fill(unioned_model)
+            print('Unioned Model Bad Edges: {{}}'.format(bad_edges(unioned_model)))
+            print('Cleaning')
+            unioned_model = clean(unioned_model)
+            print('Unioned Model Bad Edges: {{}}'.format(bad_edges(unioned_model)))
+            unioned_model = tri(unioned_model)
+            print('Unioned Model Bad Edges: {{}}'.format(bad_edges(unioned_model)))
+        print('union successful')
+        return unioned_model
+    else:
+        print('1 or both models have bad edges.')
+        unioned_model = modeler.union(model_1,model_2)
+        unioned_model = clean(unioned_model)
+        unioned_model = norm(unioned_model)
+        return unioned_model
+
+def union_all(solids,n_cells=100):
+    for i in range(len(solids)):
+        solids[i] = norm(solids[i])
+        solids[i] = remesh(solids[i])
+        solids[i] = remesh_caps(solids[i])
+    joined = robust_union(solids[0],solids[1])
+    for i in range(2,len(solids)):
+        print("UNION NUMBER: "+str(i)+"/"+str(len(solids)-1))
+        joined = robust_union(joined,solids[i])
+        if joined is None:
+            print("unioning failed")
+            return None
+    print("unioning passed")
+    return joined
+
+unioned_model = union_all(capped_vessels)
+model = modeling.PolyData()
+tmp = unioned_model.get_polydata()
+NUM_CAPS = {}
+############################
+# COMBINE FACES
+############################
+if not terminating:
+    model.set_surface(tmp)
+    model.compute_boundary_faces({})
+    caps = model.identify_caps()
+    ids = model.get_face_ids()
+    walls = [ids[i] for i,x in enumerate(caps) if not x]
+    while len(walls) > 1:
+        target = walls[0]
+        lose = walls[1]
+        combined = mesh_utils.combine_faces(model.get_polydata(),target,lose)
+        model.set_surface(combined)
+        ids = model.get_face_ids()
+        caps = model.identify_caps()
+        walls = [ids[i] for i,x in enumerate(caps) if not x]
+        print(walls)
+    ids = model.get_face_ids()
+    if {}:
+        dmg.add_model({},model)
+    if len(ids) > NUM_CAPS:
+        face_cells = []
+        for idx in ids:
+            face = model.get_face_polydata(idx)
+            cells = face.GetNumberOfCells()
+            print(cells)
+            face_cells.append(cells)
+        data_to_remove = len(ids) - NUM_CAPS
+        remove_list = []
+        for i in range(data_to_remove):
+            remove_list.append(ids[face_cells.index(min(face_cells))])
+            face_cells[face_cells.index(min(face_cells))] += 1000
+        print(remove_list)
+        while len(remove_list) > 0:
+            target = walls[0]
+            lose = remove_list.pop(-1)
+            combined = mesh_utils.combine_faces(model.get_polydata(),target,lose)
+            model.set_surface(combined)
+            print(remove_list)
+        print(model.get_face_ids())
+    ###############################
+    # LOCAL SMOOTHING (not included)
+    ###############################
+    #smoothing_params = {{'method':'constrained', 'num_iterations':5, 'constrain_factor':0.2, 'num_cg_solves':30}}
+    smooth_model = model.get_polydata()
+    for idx, contour_set in enumerate(contour_list):
+         if idx == 0:
+              continue
+         smoothing_params = {{'method':'constrained', 'num_iterations':3, 'constrain_factor':0.1+(0.9*(1-contour_set[0].get_radius()/contour_list[0][0].get_radius())), 'num_cg_solves':30}}
+         smooth_model = geometry.local_sphere_smooth(smooth_model,contour_set[0].get_radius()*2,contour_set[0].get_center(),smoothing_params)
+         print('local sphere smoothing {{}}'.format(idx))
+    model.set_surface(smooth_model)
+"""
+
+
+old_solid="""###############################
+# INITIALIZE MODELING KERNEL
+###############################
 modeler = modeling.Modeler(modeling.Kernel.POLYDATA)
 walls = []
 faces = []

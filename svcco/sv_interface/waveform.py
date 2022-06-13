@@ -195,8 +195,19 @@ LAD_time = [LAD_4500_time,LAD_66_7_time,LAD_22_2_time,LAD_16_1_time,LAD_9_time]
 LAD_flow = [LAD_4500_flow,LAD_66_7_flow,LAD_22_2_flow,LAD_16_1_flow,LAD_9_flow]
 def generate_physiologic_wave(flow_value,diameter,time=LAD_time,
                               flow=LAD_flow,normalize_time=False,
-                              one_cycle=True,n_time_points=50,min_buffer=0.05):
+                              one_cycle=True,n_time_points=50,min_buffer=0.05,
+                              pulse_by_diameter=False):
     LAD_diam = [0.45,0.00667,0.00222,0.00161,0.0009]
+    LAD_amp_d  = [abs(max(flow[0])-min(flow[0]))/60,abs(max(flow[1])-min(flow[1]))/60,
+                abs(max(flow[2])-min(flow[2]))/60,abs(max(flow[3])-min(flow[3]))/60,
+                abs(max(flow[4])-min(flow[4]))/60]
+    LAD_amp_ff  = [(np.mean(flow[0])/60),(np.mean(flow[1])/60),(np.mean(flow[2])/60),
+                   (np.mean(flow[3])/60),(np.mean(flow[4])/60)]
+    LAD_amp_f  = [LAD_amp_d[0]/(np.mean(flow[0])/60),LAD_amp_d[1]/(np.mean(flow[1])/60),LAD_amp_d[2]/(np.mean(flow[2])/60),
+                  LAD_amp_d[3]/(np.mean(flow[3])/60),LAD_amp_d[4]/(np.mean(flow[4])/60)]
+
+    amp_d = interp1d(LAD_diam,LAD_amp_d,fill_value='extrapolate')
+    amp_f = interp1d(LAD_amp_ff,LAD_amp_f,fill_value='extrapolate')
     for i,vessel in enumerate(time):
         time[i] = np.array(vessel)
     for i,vessel in enumerate(flow):
@@ -233,6 +244,25 @@ def generate_physiologic_wave(flow_value,diameter,time=LAD_time,
     wave = ND_interp(t,d)/60
     if np.any(np.isnan(wave)):
         wave = KND_interp(t,d)/60
+        print(wave)
+        if pulse_by_diameter:
+            post_wave_amp = amp_d(diameter)
+            pre_wave_min = np.min(wave)
+            pre_wave_max = np.max(wave)
+            pre_wave_amp = pre_wave_max - pre_wave_min
+            wave_amp_scale = post_wave_amp/pre_wave_amp
+            wave = wave*wave_amp_scale
+        else:
+            wave_amp_ratio = amp_f(flow_value)
+            print("ratio: {}".format(wave_amp_ratio))
+            pre_wave_min = np.min(wave)
+            pre_wave_max = np.max(wave)
+            pre_wave_amp = pre_wave_max - pre_wave_min
+            pre_amp_ratio = pre_wave_amp/flow_value
+            #wave_ratio_scale = wave_amp_ratio/pre_amp_ratio
+            post_wave_amp = flow_value*wave_amp_ratio
+            wave_amp_scale = post_wave_amp/pre_wave_amp
+            wave = wave*wave_amp_scale
     #wave_max = np.max(wave)
     wave_min = np.min(wave)
     wave_mean = np.mean(wave)
