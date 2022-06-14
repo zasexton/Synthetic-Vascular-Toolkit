@@ -34,7 +34,7 @@ def separating_axis(position,plane,U1,V1,W1,U2,V2,W2,U1_scale,
                                              np.abs(np.dot(V2*V2_scale,plane))+
                                              np.abs(np.dot(W2*W2_scale,plane)))
 
-#@nb.jit(nopython=True)
+@nb.jit(nopython=True)
 def obb(data,edge):
     #C2 = (edge[0:3] + edge[3:6]) / 2
     #C1 = (data[:,0:3] + data[:,3:6]) / 2
@@ -105,10 +105,10 @@ def obb(data,edge):
         #CENTER = CENTER_ALL[i]
         #G = grid()
         # U1 axis
-        cyl1 = pv.Cylinder(center=(data[i,0:3]+data[i,3:6])/2,direction=data[i,12:15],
-                           radius=data[i,21],height=data[i,20])
-        cyl2 = pv.Cylinder(center=(edge[0:3]+edge[3:6])/2,direction=edge[12:15],
-                           radius=edge[21],height=edge[20])
+        #cyl1 = pv.Cylinder(center=(data[i,0:3]+data[i,3:6])/2,direction=data[i,12:15],
+        #                   radius=data[i,21],height=data[i,20])
+        #cyl2 = pv.Cylinder(center=(edge[0:3]+edge[3:6])/2,direction=edge[12:15],
+        #                   radius=edge[21],height=edge[20])
         #G.plot(cyl1,cyl2,plane=None,title="Objects")
         #plane = pv.Plane(center=CENTER,direction=edge[6:9])
         #G.plot(cyl1,cyl2,plane=plane,title="U1 axis")
@@ -307,6 +307,7 @@ def obb(data,edge):
 
     return False
 
+@nb.jit(nopython=True)
 def obbc(data,edge):
     C1 = (edge[0:3] + edge[3:6]) / 2
     C2 = (data[:,0:3] + data[:,3:6]) / 2
@@ -329,10 +330,10 @@ def obbc(data,edge):
     result = []
     for i in range(data.shape[0]):
         # U1 axis
-        cyl1 = pv.Cylinder(center=(data[i,0:3]+data[i,3:6])/2,direction=data[i,12:15],
-                           radius=data[i,21],height=data[i,20])
-        cyl2 = pv.Cylinder(center=(edge[0:3]+edge[3:6])/2,direction=edge[12:15],
-                           radius=edge[21],height=edge[20])
+        #cyl1 = pv.Cylinder(center=(data[i,0:3]+data[i,3:6])/2,direction=data[i,12:15],
+        #                   radius=data[i,21],height=data[i,20])
+        #cyl2 = pv.Cylinder(center=(edge[0:3]+edge[3:6])/2,direction=edge[12:15],
+        #                   radius=edge[21],height=edge[20])
         if separating_axis(Position[i,:],edge[6:9],edge[6:9],edge[9:12],edge[12:15],
                            data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],
                            edge[20]/2,data[i,21],data[i,21],data[i,20]/2):
