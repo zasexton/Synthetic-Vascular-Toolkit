@@ -833,9 +833,34 @@ class forest:
             #plot.close()
             return plot
 
-    def connect(self,network_id=-1,buffer=None,curve_sample_size_min=5,curve_sample_size_max=11,curve_degree=2):
-        self.connections,self.assignments = connect(self,network_id=network_id,buffer=buffer)
-        self.connections,self.connected_forest = smooth(self,curve_sample_size_min=curve_sample_size_min,curve_sample_size_max=curve_sample_size_max,curve_degree=curve_degree)
+    def connect(self,network_id=-1,buffer=None,curve_sample_size_min=5,curve_sample_size_max=11,curve_degree=3):
+        self.forest_copy = self.copy()
+        self.forest_copy.connections,self.forest_copy.assignments = connect(self.forest_copy,network_id=network_id,buffer=buffer)
+        self.forest_copy.connections,self.forest_copy.connected_forest = smooth(self.forest_copy,curve_sample_size_min=curve_sample_size_min,curve_sample_size_max=curve_sample_size_max,curve_degree=curve_degree)
+
+    def assign(self):
+        self.connections,self.assignments = connect(self)
+
+    def rotate(self):
+        forest_copy = self.copy()
+        forest_copy.assign()
+        comb,pts = rotate_terminals(forest_copy)
+        self.forest_copy = forest_copy
+        return comb,pts
+
+    def copy(self):
+        forest_copy = forest(boundary=self.boundary,number_of_networks=self.number_of_networks,
+                             trees_per_network=self.trees_per_network,scale=None,convex=self.convex,
+                             compete=self.compete)
+        for ndx in range(self.number_of_networks):
+            for tdx in range(self.trees_per_network[ndx]):
+                forest_copy.networks[ndx][tdx].data = deepcopy(self.networks[ndx][tdx].data)
+                forest_copy.networks[ndx][tdx].parameters = deepcopy(self.networks[ndx][tdx].parameters)
+                forest_copy.networks[ndx][tdx].sub_division_map = deepcopy(self.networks[ndx][tdx].sub_division_map)
+                forest_copy.networks[ndx][tdx].sub_division_index = deepcopy(self.networks[ndx][tdx].sub_division_index)
+        forest_copy.connections = deepcopy(self.connections)
+        forest_copy.assignments = deepcopy(self.assignments)
+        return forest_copy
 
     def export_solid(self,outdir=None,folder="3d_tmp"):
         if outdir is None:
@@ -1055,6 +1080,7 @@ class forest:
                         final_points[0][vessel].extend(list(reversed(reordered_points[tree][vessel]))[1:])
                         final_radii[0][vessel].extend(list(reversed(reordered_radii[tree][vessel]))[1:])
                         final_normals[0][vessel].extend(list(reversed(reordered_normals[tree][vessel]))[1:])
+                        #make the connecting contours have equal average radii
                 else:
                     tmp_points  = []
                     tmp_radii   = []
@@ -1063,6 +1089,7 @@ class forest:
                         tmp_points.append(list(reversed(reordered_points[tree][vessel])))
                         tmp_radii.append(list(reversed(reordered_radii[tree][vessel])))
                         tmp_normals.append(list(reversed(reordered_normals[tree][vessel])))
+                        # make sure the radii is less than the average radii of the first vessel
                     final_points.append(tmp_points)
                     final_radii.append(tmp_radii)
                     final_normals.append(tmp_normals)
