@@ -34,7 +34,7 @@ import warnings
 from pathlib import Path
 from typing import overload
 
-from svcco import implicit, collision, branch_addition, sv_interface, forest_utils
+#from svcco import implicit, collision, branch_addition, sv_interface, forest_utils, utils
 
 #@overload
 #def svcco(*modules: Path | str, output_directory: None = None,
@@ -45,6 +45,9 @@ from . import collision
 from . import branch_addition
 from . import sv_interface
 from . import forest_utils
+from . import utils
+
+from .utils.remeshing import remesh
 
 from .tree import tree, forest, perfusion_territory
 from .implicit.implicit import surface

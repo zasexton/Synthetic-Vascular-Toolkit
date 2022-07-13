@@ -90,7 +90,18 @@ class tree:
                      'add_2':[],
                      'add_3':[],
                      'add_4':[],
-                     'total':[]}
+                     'total':[],
+                     'brute_optimize': [],
+                     'method_optimize': [],
+                     'depth':[],
+                     'method_time':[],
+                     'brute_time':[],
+                     'brute_x_value':[],
+                     'brute_value':[],
+                     'method_x_value':[],
+                     'method_value':[],
+                     'truth_x_value':[],
+                     'truth_value':[]}
 
     def set_parameters(self,**kwargs):
         self.parameters = {}
@@ -143,12 +154,12 @@ class tree:
         #self.sub_division_map = [-1]
         #self.sub_division_index = np.array([0])
 
-    def add(self,low,high,isforest=False,radius_buffer=0.01,threshold=None):
+    def add(self,low,high,isforest=False,radius_buffer=0.01,threshold=None,method='L-BFGS-B'):
         vessel,data,sub_division_map,sub_division_index,threshold = add_branch(self,low,high,threshold_exponent=0.5,
                                                                      threshold_adjuster=0.75,all_max_attempts=40,
                                                                      max_attemps=3,sampling=20,max_skip=8,
                                                                      flow_ratio=None,radius_buffer=radius_buffer,
-                                                                     isforest=isforest,threshold=threshold)
+                                                                     isforest=isforest,threshold=threshold,method=method)
         if isforest:
             return vessel,data,sub_division_map,sub_division_index,threshold
         else:
@@ -157,13 +168,13 @@ class tree:
             self.sub_division_map = sub_division_map
             self.sub_division_index = sub_division_index
 
-    def n_add(self,n):
+    def n_add(self,n,method='L-BFGS-B'):
         self.rng_points,_ = self.boundary.pick(size=40*n,homogeneous=True)
         self.rng_points = self.rng_points.tolist()
         for i in tqdm(range(n),desc='Adding vessels'):
             #for i in range(n):
             #self.rng_points = self.rng_points.tolist()
-            self.add(-1,0)
+            self.add(-1,0,method=method)
 
         #plt.plot(list(range(len(self.time['search'][1:]))),self.time['search'][1:],label='search time')
         #plt.plot(list(range(len(self.time['search'][1:]))),self.time['constraints'][1:],label='constraint time')

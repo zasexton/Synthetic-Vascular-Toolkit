@@ -45,6 +45,12 @@ def update_radii(data,Pperm,Pterm):
                 tmp.append(int(data[vessel,16]))
         idx = tmp
 
+
+#def naive_radii(data,Pperm,Pterm,idx):
+#    if idx == 0:
+#        data[idx,21] = ((data[idx,25]*data[idx,22])/(Pperm-Pterm)) ** (1/4)
+#    elif data[idx,15] > 0 and data[idx,16] > 0:
+
 ##################################################################
 # UNIT TEST
 ##################################################################
