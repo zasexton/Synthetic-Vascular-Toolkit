@@ -13,6 +13,7 @@ from tqdm import tqdm
 from pickle import loads
 #import pandas as pd
 import vtk
+import plotly.graph_objects as go
 
 from ..tests.bumpy_sphere import bumpy_sphere
 
