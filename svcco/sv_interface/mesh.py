@@ -1,14 +1,24 @@
 mesh="""if not terminating:
-    faces = model.get_face_ids()
-    mesher = meshing.create_mesher(meshing.Kernel.TETGEN)
-    tet_options = meshing.TetGenOptions({},{},{})
-    tet_options.no_merge = {}
-    tet_options.optimization = {}
-    tet_options.minimum_dihedral_angle = {}
-    mesher.set_model(model)
-    mesher.set_walls(walls)
-    mesher.generate_mesh(tet_options)
-    msh = mesher.get_mesh()
+    done = False
+    min_edge = 0.001
+    edge_size = {}
+    attempt = 0
+    while edge_size > min_edge and not done:
+        try:
+            faces = model.get_face_ids()
+            mesher = meshing.create_mesher(meshing.Kernel.TETGEN)
+            tet_options = meshing.TetGenOptions(edge_size,{},{})
+            tet_options.no_merge = {}
+            tet_options.optimization = {}
+            tet_options.minimum_dihedral_angle = {}
+            mesher.set_model(model)
+            mesher.set_walls(walls)
+            mesher.generate_mesh(tet_options)
+            msh = mesher.get_mesh()
+        except:
+            done = False
+            edge_size = edge_size - 0.1*edge_size
+            attempt += 1
     if {}:
         dmg.add_mesh('{}',msh,'{}')
     if {}:

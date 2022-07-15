@@ -103,7 +103,7 @@ if not terminating:
     model.set_surface(smooth_model)
 
 model = clean(model)
-model = remesh_wall(model,walls[0])
+#model = remesh_wall(model,walls[0])
 """
 
 
