@@ -338,8 +338,8 @@ class tree:
                 pv_data.append(pv.PolyData(var_inp=m.GetOutput()))
             merge = pv_data[0].merge(pv_data[1:])
             return merge
-        interp_xyz,interp_r,interp_n,frames,branches = get_interpolated_sv_data(self.data)
-        points,radii,normals    = sv_data(interp_xyz,interp_r,radius_buffer=self.radius_buffer)
+        interp_xyz,interp_r,interp_n,frames,branches,interp_xyzr = get_interpolated_sv_data(self.data)
+        points,radii,normals    = sv_data(interp_xyzr,interp_r,radius_buffer=self.radius_buffer)
         if steady:
             time = [0, 1]
             flow = [self.data[0,22], self.data[0,22]]
@@ -353,7 +353,7 @@ class tree:
         else:
             R = 0
         if make:
-            num_caps = 1+int((self.parameters['edge_num']-1)/2)
+            num_caps = 1+2+int((self.parameters['edge_num']-1)/2)
             options = file_options(num_caps,time=time,flow=flow,gui=gui,distal_resistance=R)
             build(points,radii,normals,options)
         return interp_xyz,interp_r

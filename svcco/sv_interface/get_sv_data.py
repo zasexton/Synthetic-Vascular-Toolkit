@@ -87,8 +87,8 @@ def get_longest_path(data,seed_edge):
             else:
                 keep_digging.append(False)
         dig = any(keep_digging)
-    #if len(temp_edges) == 1:
-    #    return temp_edges
+    if len(temp_edges) == 1:
+        return temp_edges
     edge_depths = []
     for edge in temp_edges:
         edge_depths.append(data[edge,26])

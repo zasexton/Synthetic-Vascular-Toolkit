@@ -107,12 +107,12 @@ def remesh(model,radius_factor=10):
     radius = (smallest/3.14)**(1/2)
     hmin = radius/radius_factor
     hmax = radius
-    print("Remeshing Model:\nhmin: ----> {}\nhmax ----> {}".format(hmin,hmax))
+    print("Remeshing Model:\\nhmin: ----> {}\\nhmax ----> {}".format(hmin,hmax))
     remeshed_polydata = mesh_utils.remesh(model.get_polydata(),hmin=hmin,hmax=hmax)
     model.set_surface(remeshed_polydata)
     return model
 
-def remesh_face(model,face_id,radis_scale=10):
+def remesh_face(model,face_id,radius_scale=10):
     # Remesh Faces of a surface model using MMG.
     #
     # Parameters
@@ -130,6 +130,16 @@ def remesh_face(model,face_id,radis_scale=10):
     print("Remeshing Face: {} ----> Edge Size: {}".format(face_id,edge_size))
     remeshed_poly = mesh_utils.remesh_faces(model.get_polydata(),[face_id],edge_size)
     model.set_surface(remeshed_poly)
+    return model
+
+def remesh_wall(model,wall_id):
+    wall_poly = model.get_face_polydata(wall_id)
+    cell_number = wall_poly.GetNumberOfCells()
+    edge_size = ((surf_area(wall_poly)/cell_number)*0.5)**(1/2)
+    remeshed_poly = mesh_utils.remesh_faces(model.get_polydata(),[wall_id],edge_size)
+    model.set_surface(remeshed_poly)
+    new_cell_number = model.get_face_polydata(wall_id).GetNumberOfCells()
+    print("Face Elements: {} ----> Edge Size: {}".format(cell_number,new_cell_number))
     return model
 
 def remesh_caps(model):

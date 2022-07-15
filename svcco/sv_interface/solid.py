@@ -40,11 +40,11 @@ def union_all(solids,n_cells=100):
         joined = robust_union(joined,solids[i])
         if joined is None:
             print("unioning failed")
-            return None
+            return None,True
     print("unioning passed")
-    return joined
+    return joined,False
 
-unioned_model = union_all(capped_vessels)
+unioned_model,terminating = union_all(capped_vessels)
 model = modeling.PolyData()
 tmp = unioned_model.get_polydata()
 NUM_CAPS = {}
@@ -68,7 +68,7 @@ if not terminating:
         print(walls)
     ids = model.get_face_ids()
     if {}:
-        dmg.add_model({},model)
+        dmg.add_model('{}',model)
     if len(ids) > NUM_CAPS:
         face_cells = []
         for idx in ids:
@@ -101,6 +101,9 @@ if not terminating:
          smooth_model = geometry.local_sphere_smooth(smooth_model,contour_set[0].get_radius()*2,contour_set[0].get_center(),smoothing_params)
          print('local sphere smoothing {{}}'.format(idx))
     model.set_surface(smooth_model)
+
+model = clean(model)
+model = remesh_wall(model,walls[0])
 """
 
 
