@@ -72,7 +72,7 @@ def compete_add(forest,network_ids=-1,radius_buffer=0.05,exact=True):
                 ##
                 #print(len(forest.networks[nid][njd].rng_points))
                 #print("Check: {}".format(forest.networks[nid][njd].rng_points[0]))
-                vessel,data,sub_division_map,sub_division_index = forest.networks[nid][njd].add(-1,0,isforest=True,radius_buffer=radius_buffer)
+                vessel,data,sub_division_map,sub_division_index,threshold = forest.networks[nid][njd].add(-1,0,isforest=True,radius_buffer=radius_buffer)
                 point = data[-2,3:6] #new terminal point
                 #print(point)
                 closest_network = nid

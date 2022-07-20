@@ -3,7 +3,9 @@ import numba as nb
 import vtk
 import time
 from .sphere_proximity import *
-
+from copy import deepcopy
+from .obb import *
+"""
 @nb.jit(nopython=True)
 def separating_axis(position,plane,U1,V1,W1,U2,V2,W2,U1_scale,
                     V1_scale,W1_scale,U2_scale,V2_scale,W2_scale):
@@ -13,51 +15,10 @@ def separating_axis(position,plane,U1,V1,W1,U2,V2,W2,U1_scale,
                                              np.abs(np.dot(U2*U2_scale,plane))+
                                              np.abs(np.dot(V2*V2_scale,plane))+
                                              np.abs(np.dot(W2*W2_scale,plane)))
-
+"""
+"""
 #@nb.jit(nopython=True)
-def obb(data,edge):
-    #C2 = (edge[0:3] + edge[3:6]) / 2
-    #C1 = (data[:,0:3] + data[:,3:6]) / 2
-    """
-    start = time.time()
-    collision = False
-    start = time.time()
-    cyl_2 = vtk.vtkTubeFilter()
-    line2 = vtk.vtkLineSource()
-    line2.SetPoint1(edge[0],edge[1],edge[2])
-    line2.SetPoint2(edge[3],edge[4],edge[5])
-    cyl_2.SetInputConnection(line2.GetOutputPort())
-    cyl_2.SetRadius(edge[21])
-    cyl_2.SetNumberOfSides(20)
-    cyl_2.CappingOn()
-    for i in range(data.shape[0]):
-        cyl_1 = vtk.vtkTubeFilter()
-        line1 = vtk.vtkLineSource()
-        line1.SetPoint1(data[i,0],data[i,1],data[i,2])
-        line1.SetPoint2(data[i,3],data[i,4],data[i,5])
-        cyl_1.SetInputConnection(line1.GetOutputPort())
-        cyl_1.SetRadius(data[i,21])
-        cyl_1.SetNumberOfSides(20)
-        cyl_1.CappingOn()
-        collision = vtk.vtkCollisionDetectionFilter()
-        collision.SetInputConnection(0,cyl_1.GetOutputPort())
-        collision.SetInputConnection(1,cyl_2.GetOutputPort())
-        transform = vtk.vtkTransform()
-        matrix = vtk.vtkMatrix4x4()
-        collision.SetTransform(0,transform)
-        collision.SetMatrix(1,matrix)
-        collision.SetCollisionModeToAllContacts()
-        collision.GenerateScalarsOn()
-        collision.Update()
-        if collision.GetNumberOfContacts() > 0:
-            collision = True
-            break
-    #print('OBB: {}'.format(time.time()-start))
-    end = time.time() - start
-    #print(end)
-    return collision
-    """
-
+def obb2(data,edge):
     C1 = (edge[0:3] + edge[3:6]) / 2
     C2 = (data[:,0:3] + data[:,3:6]) / 2
     Position = C2 - C1
@@ -179,55 +140,10 @@ def obb(data,edge):
             result.append(False)
             continue
         else:
-            """
-            colors = vtk.vtkNamedColors()
-            background_color = 'white'
-            cyl = vtk.vtkTubeFilter()
-            line = vtk.vtkLineSource()
-            line.SetPoint1(edge[0],edge[1],edge[2])
-            line.SetPoint2(edge[3],edge[4],edge[5])
-            cyl.SetInputConnection(line.GetOutputPort())
-            cyl.SetRadius(edge[21])
-            cyl.SetNumberOfSides(100)
-            #models.append(cyl)
-            mapper = vtk.vtkPolyDataMapper()
-            actor1  = vtk.vtkActor()
-            mapper.SetInputConnection(cyl.GetOutputPort())
-            actor1.SetMapper(mapper)
-            actor1.GetProperty().SetColor(colors.GetColor3d('green'))
-            #actors.append(actor)
-            colors = vtk.vtkNamedColors()
-            cyl = vtk.vtkTubeFilter()
-            line = vtk.vtkLineSource()
-            line.SetPoint1(data[i,0],data[i,1],data[i,2])
-            line.SetPoint2(data[i,3],data[i,4],data[i,5])
-            cyl.SetInputConnection(line.GetOutputPort())
-            cyl.SetRadius(data[i,21])
-            cyl.SetNumberOfSides(100)
-            #models.append(cyl)
-            mapper = vtk.vtkPolyDataMapper()
-            actor2  = vtk.vtkActor()
-            mapper.SetInputConnection(cyl.GetOutputPort())
-            actor2.SetMapper(mapper)
-            actor2.GetProperty().SetColor(colors.GetColor3d('green'))
-            #actors.append(actor)
-            renderer = vtk.vtkRenderer()
-            renderer.SetBackground(colors.GetColor3d(background_color))
-
-            render_window = vtk.vtkRenderWindow()
-            render_window.AddRenderer(renderer)
-            render_window.SetWindowName('SimVascular Vessel Collision')
-
-            interactor = vtk.vtkRenderWindowInteractor()
-            interactor.SetRenderWindow(render_window)
-            renderer.AddActor(actor1)
-            renderer.AddActor(actor2)
-            render_window.Render()
-            interactor.Start()
-            """
-            return True
-
+            pass
+            #return True
     return False
+"""
 
 def collision_free(data,results,idx,terminal,vessel,radius_buffer):
     # proximal = 0
@@ -650,3 +566,35 @@ def find_minimum(edge,M,b=None,c=None,e=None,
             parameters[0] = mk*M[0,0]+k*M[1,0]
             parameters[1] = mk*M[0,1]+k*M[1,1]
     return parameters
+
+def pairwise_tree_collisions(tree1_data,tree2_data,radius_buffer=0):
+    outside_vessels = deepcopy(tree2_data)
+    outside_vessels[:,21] += radius_buffer
+    pairs = []
+    for i in range(outside_vessels.shape[0]):
+        n = sphere_proximity(tree1_data,outside_vessels[i,:])
+        if len(n) == 0:
+            continue
+        else:
+            results = obbc(tree1_data[n,:],outside_vessels[i,:])
+            if len(results) == 0:
+                continue
+            else:
+                for r in results:
+                    pairs.append([r,i])
+    return pairs
+
+def fix_suggestions(tree1_data,tree2_data,radius_buffer=0):
+    pairs = pairwise_tree_collisions(tree1_data,tree2_data,radius_buffer=radius_buffer)
+    pair_points     = []
+    pair_lengths    = []
+    pair_adjustment = []
+    pair_vectors    = []
+    for pr in pairs:
+        p0,p1,length = line_distance(tree1_data[pr[0],:].reshape(1,-1),tree2_data[pr[1],:])
+        pair_points.append([p0,p1])
+        pair_lengths.append(length)
+        pair_adjustment.append([abs(tree1_data[pr[0],21]+tree2_data[pr[1],21]+radius_buffer)/2,
+                                abs(tree1_data[pr[0],21]+tree2_data[pr[1],21]+radius_buffer)/2])
+        pair_vectors.append([(p0-p1)/np.linalg.norm(p0-p1),(p1-p0)/np.linalg.norm(p1-p0)])
+    return pairs,pair_points,pair_lengths,pair_adjustment,pair_vectors

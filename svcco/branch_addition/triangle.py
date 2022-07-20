@@ -6,8 +6,11 @@ def get_local_points(data,vessel,terminal,num,isclamped):
     proximal = data[vessel,0:3]
     distal   = data[vessel,3:6]
     direction = distal - proximal
+    direction = direction/np.linalg.norm(direction)
+    #length = np.linalg.norm(direction)
     if np.all(vessel == 0) and isclamped:
         length = data[vessel,20]
+        #print(length*np.linspace(0,1,num))
         shift = direction.reshape(-1,1)*length*np.linspace(0,1,num)
         points = proximal.reshape(1,-1) + shift.T
     else:

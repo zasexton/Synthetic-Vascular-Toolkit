@@ -1,5 +1,5 @@
 import numpy as np
-from .update import update
+from .update import update,naive
 from .calculate_radii import radii
 from .calculate_length import length
 from .add_depths import add_depths
@@ -126,4 +126,59 @@ def finite_difference(data,precomputed,terminal,vessel,gamma,nu,Qterm,Pperm,Pter
     render_window.Render()
     interactor.Start()
     """
+    return precomputed[idx,:],idx,volumes,trials[idx]
+
+def finite_difference_naive(data,precomputed,terminal,vessel,gamma,nu,Qterm,Pperm,Pterm):
+    volumes =  []
+    trials = []
+    #print('parents initial: {}'.format(data[:,17]))
+    for i in range(precomputed.shape[0]):
+        trial_data = np.vstack((data,np.zeros((2,data.shape[1]))))
+        trial_data[-1,0:3] = precomputed[i,:]
+        trial_data[-2,0:3] = precomputed[i,:]
+        trial_data[-2,3:6] = terminal
+        trial_data[-1,3:6] = trial_data[vessel,3:6]
+        trial_data[vessel,3:6] = precomputed[i,:]
+        trial_data[-2,15] = -1.0
+        trial_data[-2,16] = -1.0
+        trial_data[-2,18] = max(trial_data[:,19]) + 1
+        trial_data[-2,19] = max(trial_data[:,19]) + 2
+        trial_data[-1,18] = trial_data[-2,18]
+        trial_data[-1,19] = trial_data[vessel,19]
+        trial_data[-1,15] = trial_data[vessel,15]
+        trial_data[-1,16] = trial_data[vessel,16]
+        trial_data[-2,17] = vessel
+        trial_data[-1,17] = vessel
+        trial_data[vessel,15] = trial_data.shape[0]-2
+        trial_data[vessel,16] = trial_data.shape[0]-1
+        trial_data[vessel,19] = trial_data[-2,18]
+        trial_data[-2,22] = Qterm
+        trial_data[-1,22] = trial_data[vessel,22]
+        trial_data[-2,-1] = trial_data.shape[0] - 2
+        trial_data[-1,-1] = trial_data.shape[0] - 1
+        trial_data[-2,26] = trial_data[vessel,26]
+        trial_data[-1,26] = trial_data[vessel,26]
+        if trial_data[-1,15] >= 0:
+            child = int(trial_data[-1,15])
+            trial_data[child,17] = trial_data[-1,-1]
+        if trial_data[-1,16] >= 0:
+            child = int(trial_data[-1,16])
+            trial_data[child,17] = trial_data[-1,-1]
+        length(trial_data,-1)
+        length(trial_data,-2)
+        length(trial_data,vessel)
+        basis(trial_data,-1)
+        basis(trial_data,-2)
+        basis(trial_data,vessel)
+        add_depths(trial_data,vessel)
+        updated_flows = add_flow(trial_data,vessel,Qterm)
+        naive(trial_data,gamma,nu,0)
+        updated_radii = radii(trial_data,Pperm,Pterm)
+        # calculate tree volume
+        volumes.append(np.sum(np.pi*trial_data[:,21]**2*trial_data[:,20]))
+        trials.append(trial_data)
+    idx = np.argmin(volumes)
+    flow_check = []
+    fd_data = trials[idx]
+
     return precomputed[idx,:],idx,volumes,trials[idx]

@@ -207,10 +207,13 @@ def set_root(data, boundary, Qterm, gamma, nu,
 
         else:
             p1_tmp = start + direction*required_length + direction*distance*np.random.random(1)
+            L = np.linalg.norm(p1_tmp - start)
             while not boundary.within(p1_tmp[0],p1_tmp[1],p1_tmp[2],2):
-                p1_tmp = start + direction*distance*np.random.random(1)
+                p1_tmp = p1_tmp - direction*(L/100)
+                L = np.linalg.norm(p1_tmp - start)
             p1 = p1_tmp
             lengths = [np.linalg.norm(p1-p0)]
+            #print(lengths)
     if len(path) == 0:
         #print('linear root')
         data[0, 0:3] = p0

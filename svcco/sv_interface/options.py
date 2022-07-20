@@ -5,14 +5,14 @@ import glob
 
 class file_options:
 
-    def __init__(self,time=[0,1],flow=[1,1],gui=True,distal_resistance=0):
+    def __init__(self,num_caps,time=[0,1],flow=[1,1],gui=True,distal_resistance=0):
         """
         Set the parameters for vascular construction
         and simulation for SimVascular python interface.
         """
         self.set_geometry_options()
         self.set_loft_options()
-        self.set_solid_options()
+        self.set_solid_options(num_caps)
         self.set_mesh_options()
         self.set_pipeline_steps(gui=gui)
         self.set_directories()
@@ -83,7 +83,7 @@ class file_options:
                     loft_options['changes'] += 'options.u_degree = {}\n'.format(u_degree)
         self.loft_options = loft_options
         return
-    def set_solid_options(self,minimum_face_cells=200,hmin=0.02,hmax=0.02,
+    def set_solid_options(self,num_caps,minimum_face_cells=200,hmin=0.02,hmax=0.02,
                           face_edge_size=0.02,boundary_face_angle=45):
         #Check input types
         if not isinstance(minimum_face_cells,int):
@@ -110,7 +110,8 @@ class file_options:
                          'hmin':                             hmin,
                          'hmax':                             hmax,
                          'face_edge_size':          face_edge_size,
-                         'angle':              boundary_face_angle}
+                         'angle':              boundary_face_angle,
+                         'num_caps':                      num_caps}
         self.solid_options = solid_options
         return
     def set_mesh_options(self,global_edge_size=0.01,surface_mesh_flag=True,

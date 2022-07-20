@@ -22,12 +22,16 @@ from scipy.sparse.csgraph import shortest_path
 from .add_geodesic_path import *
 import pyvista as pv
 import random
+from scipy.interpolate import griddata
+from time import perf_counter
 
 def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                all_max_attempts=40,max_attemps=10,sampling=20,max_skip=8,
-               flow_ratio=None,radius_buffer=0,isforest=False):
+               flow_ratio=None,radius_buffer=0,isforest=False,threshold=None,radius_scale=4,
+               method='L-BFGS-B'):
     number_edges       = tree.parameters['edge_num']
-    threshold = ((tree.boundary.volume)**(1/3)/(number_edges**threshold_exponent))
+    if threshold is None:
+        threshold = ((tree.boundary.volume)**(1/3)/(number_edges**threshold_exponent))
     mu                 = tree.parameters['mu']
     lam                = tree.parameters['lambda']
     gamma              = tree.parameters['gamma']
@@ -53,7 +57,7 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
         start_rng = time.time()
         nonconvex_solve = True
         if len(tree.rng_points) == 0:
-            print('repick')
+            #print('repick')
             rng_points,_ = tree.boundary.pick(size=len(tree.boundary.tet_verts),homogeneous=True,replacement=False)
             rng_points = rng_points.tolist()
         else:
@@ -71,7 +75,7 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                 #point,_ = tree.boundary.pick(homogeneous=True)
                 #time1 += time.time() - start1
                 if len(rng_points) == 1:
-                    print('repick_low')
+                    #print('repick_low')
                     rng_points,_ = tree.boundary.pick(size=len(tree.boundary.tet_verts),homogeneous=True,replacement=False)
                     rng_points = rng_points.tolist()
                 point = np.array(rng_points.pop(0))
@@ -135,11 +139,13 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                         random.shuffle(rng_points)
                     threshold *= threshold_adjuster
                     attempt = 0
-
+                    #print(threshold)
                 ##################
                 ##################
+                #print("Below Threshold: {}".format(line_distances_below_threshold))
+                #print("Minimum Distances: {}  Threshold: {}".format(minimum_line_distance,radius_scale*tree.data[vessel[0],21]))
                 if (line_distances_below_threshold == 0 and
-                    minimum_line_distance > 4*tree.data[vessel[0],21]):
+                    minimum_line_distance > radius_scale*tree.data[vessel[0],21]):
                     escape = False
                     start3 = time.time()
                     for i in range(max_skip):
@@ -176,12 +182,14 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                         attempt = 0
                     """
                 else:
+                    #print('line distance')
                     start4 = time.time()
                     if attempt < max_attemps:
                         attempt += 1
                         total_attempts += 1
                     else:
                         #print('adjusting threshold')
+                        attempt = 0
                         threshold *= threshold_adjuster
                         continue
                         #attempt = 0
@@ -201,29 +209,49 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
             if np.all(terminal.shape != distal.shape):
                 terminal = terminal.flatten()
             points   = get_local_points(tree.data,vessel,terminal,sampling,tree.clamped_root)
+            #high_res_points = get_local_points(tree.data,vessel,terminal,10*sampling,tree.clamped_root)
+            #points   = np.array(relative_length_constraint(points,proximal,distal,terminal,0.25))
+            #P = forest.show()
+            #P.add_points(points,render_points_as_spheres=True,point_size=20)
+            #P.add_points(terminal,render_points_as_spheres=True,point_size=20,color='g')
+            #P.show()
             points   = np.array(relative_length_constraint(points,proximal,distal,terminal,0.25))
+            #high_res_points = np.array(relative_length_constraint(high_res_points,proximal,distal,terminal,0.25))
+            #P = forest.show()
+            #P.add_points(points,render_points_as_spheres=True,point_size=20)
+            #P.add_points(terminal,render_points_as_spheres=True,point_size=20,color='g')
+            #P.show()
             if not tree.convex:
                 points = boundary_constraint(points,tree.boundary,2)
+                #high_res_points = boundary_constraint(high_res_points,tree.boundary,2)
             if len(points) == 0:
                 attempt += 1
                 #print('constraint 1')
                 continue
-            points = np.array(angle_constraint(points,terminal,distal,-0.4,True))
+            if vessel != 0 and not tree.clamped_root:
+                points = np.array(angle_constraint(points,terminal,distal,-0.4,True))
+                #high_res_points = np.array(angle_constraint(high_res_points,terminal,distal,-0.4,True))
             if len(points) == 0:
                 attempt += 1
                 #print('constraint 2')
                 continue
-            points = np.array(angle_constraint(points,terminal,distal,0.75,False))
+            if vessel != 0 and not tree.clamped_root:
+               points = np.array(angle_constraint(points,terminal,distal,0.75,False))
+               #high_res_points = np.array(angle_constraint(high_res_points,terminal,distal,0.75,False))
             if len(points) == 0:
                 attempt += 1
                 #print('constraint 3')
                 continue
-            points = np.array(angle_constraint(points,terminal,proximal,0.2,False))
+            if vessel != 0 and not tree.clamped_root:
+                points = np.array(angle_constraint(points,terminal,proximal,0.2,False))
+                #high_res_points = np.array(angle_constraint(high_res_points,terminal,proximal,0.2,False))
             if len(points) == 0:
                 attempt += 1
                 #print('constraint 4')
                 continue
-            points = np.array(angle_constraint(points,distal,proximal,0.2,False))
+            if vessel != 0 and not tree.clamped_root:
+                points = np.array(angle_constraint(points,distal,proximal,0.2,False))
+                #high_res_points = np.array(angle_constraint(high_res_points,distal,proximal,0.2,False))
             if len(points) == 0:
                 attempt += 1
                 #print('constraint 5')
@@ -232,8 +260,11 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                 p_vessel = int(tree.data[vessel,17])
                 vector_1 = -tree.data[p_vessel,12:15]
                 vector_2 = (points - proximal)/np.linalg.norm(points - proximal,axis=1).reshape(-1,1)
+                #vector_3 = (high_res_points - proximal)/np.linalg.norm(high_res_points - proximal,axis=1).reshape(-1,1)
                 angle = np.array([np.dot(vector_1,vector_2[i]) for i in range(len(vector_2))])
+                #high_res_angle = np.array([np.dot(vector_1,vector_3[i]) for i in range(len(vector_3))])
                 points = points[angle<0]
+                #high_res_points = high_res_points[high_res_angle<0]
                 if len(points) == 0:
                     attempt += 1
                     #print('constraint 6')
@@ -241,14 +272,20 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
 
 
             tmp_points = []
-            for pt in range(points.shape[0]):
-                if tree.boundary.within(points[pt,0],points[pt,1],points[pt,2],2):
-                    tmp_points.append(points[pt,:])
-            points = np.array(tmp_points)
-            if len(points) == 0:
-                attempt += 1
-                #print('constraint 7')
-                continue
+            #high_res_tmp_points = []
+            if not tree.convex:
+                for pt in range(points.shape[0]):
+                    if tree.boundary.within(points[pt,0],points[pt,1],points[pt,2],2):
+                        tmp_points.append(points[pt,:])
+                points = np.array(tmp_points)
+                #for pt in range(high_res_points.shape[0]):
+                #    if tree.boundary.within(high_res_points[pt,0],high_res_points[pt,1],high_res_points[pt,2],2):
+                #        high_res_tmp_points.append(high_res_points[pt,:])
+                #high_res_points = np.array(high_res_tmp_points)
+                if len(points) == 0:
+                    attempt += 1
+                    #print('constraint 7')
+                    continue
             tmp_points = []
             subdivision = 5
             #plotter = pv.Plotter()
@@ -303,13 +340,36 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
             #print('passed all constraints')
 
             constraint_time += time.time()-start
-            start = time.time()
+            start = perf_counter()
+            #construct_results = constructor(tree.data,terminal,
+            #                      vessel,gamma,nu,Qterm,Pperm,Pterm,lam,mu,sampling,method=method)
+            #print('Constructor Time: {}'.format(perf_counter()-start))
+            construct_time=perf_counter()-start
+            #print("Minimize x: {} Value: {}".format(results[5],np.pi*results[0]**lam*results[1]**mu))
+            #start = perf_counter()
+            #fd_point,fd_idx,fd_volume,fd_trial = finite_difference(tree.data,points,terminal,
+            #                                                       vessel,gamma,nu,Qterm,Pperm,Pterm)
+            #fd_time = perf_counter()
+            #print('Finite Difference Time: {}'.format(perf_counter()-start))
+            #print("Finite difference: {} Value: {}".format(fd_point,fd_volume[fd_idx]))
+            #start = time.time()
+            start = perf_counter()
             results = fast_local_function(tree.data,points,terminal,
                                           vessel,gamma,nu,Qterm,Pperm,Pterm)
+            brute_time = perf_counter()-start
+            #truth_results = fast_local_function(tree.data,high_res_points,terminal,
+            #                                    vessel,gamma,nu,Qterm,Pperm,Pterm)
+            #print('Brute Time: {}'.format(perf_counter()-start))
             local_time += time.time()-start
             volume  = np.pi*(results[0]**lam)*(results[1]**mu)
+            brute = volume
             idx     = np.argmin(volume)
             bif     = results[5][idx]
+            #truth_volume = np.pi*(truth_results[0]**lam)*(truth_results[1]**mu)
+            #truth_idx = np.argmin(truth_volume)
+            #truth_bif = truth_results[5][truth_idx]
+            #truth_best_vol = truth_volume[truth_idx]
+            #print("Brute x: {} Value: {}".format(bif,min(volume)))
             start = time.time()
             no_collision = collision_free(tree.data,results,idx,terminal,
                                           vessel,radius_buffer)
@@ -320,6 +380,24 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                 start = time.time()
                 data,sub_division_map,sub_division_index = add_bifurcation(tree,vessel,terminal,
                                                                            results,idx,isforest=isforest)
+                #brute = np.sum(np.pi*data[:,21]**lam*data[:,20]**mu)
+                #print("Brute x: {} Value: {}".format(bif,brute[idx]))
+                #fig = plt.figure()
+                #ax1 = fig.add_subplot(121)
+                #x = np.linspace(min(points[:,0]),max(points[:,0]),100)
+                #y =  np.linspace(min(points[:,1]),max(points[:,1]),100)
+                #X, Y = np.meshgrid(x,y)
+                #fd_Ti = griddata((points[:,0],points[:,1]),fd_volume,(X,Y),method='linear')
+                #ax1.contour(X,Y,fd_Ti,linewidths=0.5,colors='k')
+                #ax1.pcolormesh(X,Y,fd_Ti,shading='auto',cmap=plt.get_cmap('rainbow'))
+                #ax1.colorbar()
+                #brute_Ti = griddata((points[:,0],points[:,1]),brute,(X,Y),method='linear')
+                #ax2 = fig.add_subplot(122)
+                #ax2.contour(X,Y,brute_Ti,linewidths=0.5,colors='k')
+                #ax2.pcolormesh(X,Y,brute_Ti,shading='auto',cmap=plt.get_cmap('rainbow'))
+                #ax2.colorbar()
+                #plt.colorbar()
+                #plt.show()
                 add_time += time.time()-start
                 total_time += time.time()-start_total
                 tree.time['search'].append(search_time)
@@ -333,6 +411,15 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                 tree.time['search_4'].append(time4)
                 tree.time['add_time'].append(add_time)
                 tree.time['total'].append(total_time)
+                #tree.time['brute_time'].append(brute_time)
+                #tree.time['method_time'].append(construct_time)
+                #tree.time['depth'].append(data[vessel,26])
+                #tree.time['method_x_value'].append(construct_results[5].flatten())
+                #tree.time['method_value'].append(np.pi*construct_results[0]**lam*construct_results[1]**mu)
+                #tree.time['brute_x_value'].append(bif)
+                #tree.time['brute_value'].append(brute[idx])
+                #tree.time['truth_x_value'].append(truth_bif)
+                #tree.time['truth_value'].append(truth_best_vol)
                 if nonconvex_solve:
                     tree.nonconvex_counter += 1
                 else:
@@ -341,8 +428,10 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                     tree.convex =True
                 else:
                     tree.convex =False
-                return vessel,data,sub_division_map,sub_division_index
+                #print("returning")
+                return vessel,data,sub_division_map,sub_division_index,threshold
             else:
+                #print('collision')
                 attempt += 1
                 continue
     else:

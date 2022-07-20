@@ -322,6 +322,7 @@ class surface:
         if len(self.patches) > 1:
             functions = []
             KDTree = spatial.KDTree(np.array([patch_x,patch_y,patch_z]).T)
+            self.patch_KDTree = KDTree
             preassembled_functions,function_strings = construct(d_num)
             foo = imp.new_module("foo")
             sys.modules["foo"] = foo

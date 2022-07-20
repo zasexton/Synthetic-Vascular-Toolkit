@@ -13,11 +13,13 @@ min_pressure = np.inf
 max_pressure = -np.inf
 min_flow = np.inf
 max_flow = -np.inf
-for idx in tqdm(range(len(data['time'])),desc="Building Timeseries",position=0):
+min_wss = np.inf
+max_wss = -np.inf
+for idx in tqdm(range(len(data['time'])),desc="Building Timeseries ",position=0):
     #time_merge = None
     time = data['time'][idx]
     tmp_vessels = []
-    for jdx in tqdm(range(len(data['flow'])),desc="Building Timepoint",position=1,leave=False):
+    for jdx in tqdm(range(len(data['flow'])),desc="Building Vessel Data",position=1,leave=False):
         vessel = list(data['flow'].keys())[jdx]
         start = geom_data[vessel,0:3]
         end   = geom_data[vessel,3:6]
@@ -36,10 +38,18 @@ for idx in tqdm(range(len(data['time'])),desc="Building Timeseries",position=0):
                 min_pressure = data['pressure'][jdx][kdx+1][idx]/1333.33
             vessel.rename_array('Elevation','Pressure [mmHg]',preference='point')
             vessel.cell_data['Flow [mL/s]'] = data['flow'][jdx][kdx][idx]
+            re = (1.06*2*radius*((data['flow'][jdx][kdx][idx]/(np.pi*radius**2))/2))/0.04
+            fd = 64/re
+            wss = ((data['flow'][jdx][kdx][idx]/(np.pi*radius**2))/2)*fd*1.06
+            vessel.cell_data['WSS [dyne/cm^2]']  = wss
             if max_flow < data['flow'][jdx][kdx][idx]:
                 max_flow = data['flow'][jdx][kdx][idx]
             if min_flow > data['flow'][jdx][kdx][idx]:
                 min_flow = data['flow'][jdx][kdx][idx]
+            if max_wss < wss:
+                max_wss = wss
+            if min_wss > wss:
+                min_wss = wss
             tmp_vessels.append(vessel)
         #if time_merge is None:
         #    time_merge = vessel
@@ -59,14 +69,19 @@ if not os.path.isdir("timeseries_for_pressure_gif"):
     os.mkdir("timeseries_for_pressure_gif")
 if not os.path.isdir("timeseries_for_flow_gif"):
     os.mkdir("timeseries_for_flow_gif")
+if not os.path.isdir("timeseries_for_wss_gif"):
+    os.mkdir("timeseries_for_wss_gif")
 total = timepoints[0].merge(timepoints[1:])
 for i in tqdm(range(len(timepoints)),desc="Saving Timeseries",position=1):
     p = pv.Plotter(off_screen=True)
-    p.add_mesh(timepoints[i],scalars='Pressure [mmHg]',clim=[round(min_pressure),round(max_pressure)],cmap="coolwarm")
+    p.add_mesh(timepoints[i],scalars='Pressure [mmHg]',clim=[round(min_pressure,4),round(max_pressure,4)],cmap="coolwarm")
     p.show(auto_close=True,screenshot=os.getcwd()+os.sep+"timeseries_for_pressure_gif"+os.sep+"time_point_{}.png".format(i))
     p = pv.Plotter(off_screen=True)
-    p.add_mesh(timepoints[i],scalars='Flow [mL/s]',clim=[round(min_flow),round(max_flow)],cmap="GnBu")
+    p.add_mesh(timepoints[i],scalars='Flow [mL/s]',clim=[round(min_flow,4),round(max_flow,4)],cmap="GnBu")
     p.show(auto_close=True,screenshot=os.getcwd()+os.sep+"timeseries_for_flow_gif"+os.sep+"time_point_{}.png".format(i))
+    p = pv.Plotter(off_screen=True)
+    p.add_mesh(timepoints[i],scalars='WSS [dyne/cm^2]',clim=[round(min_wss,2),round(max_wss,2)],cmap="coolwarm")
+    p.show(auto_close=True,screenshot=os.getcwd()+os.sep+"timeseries_for_wss_gif"+os.sep+"time_point_{}.png".format(i))
     timepoints[i].save(os.getcwd()+os.sep+"timeseries"+os.sep+"time_point_{}.vtp".format(i))
 
 total.save(os.getcwd()+os.sep+"timeseries"+os.sep+"total.vtp")

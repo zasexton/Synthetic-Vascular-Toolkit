@@ -1,6 +1,7 @@
 import numpy as np
 import pyvista as pv
 import vtk
+import sys,os
 from .implicit.implicit import surface
 from .branch_addition.check import *
 from .branch_addition.close import *
@@ -22,15 +23,19 @@ from .sv_interface.build_results import make_results
 from .sv_interface.view_0d_result_plots import view_plots
 from .sv_interface.build_0d_run_script import run_0d_script
 from .sv_interface.locate import locate_0d_solver, locate_1d_solver
+from .sv_interface.export_3d_only import export_3d_only
+from .collision.collision import *
 from copy import deepcopy
 from itertools import combinations
 from tqdm import tqdm
 import pickle
 import tetgen
 import json
-from scipy.interpolate import splev
+from scipy.interpolate import splev, splprep
 import matplotlib.pyplot as plt
 import platform
+import pymeshfix
+from wrapt_timeout_decorator import *
 
 class tree:
     """
@@ -85,7 +90,18 @@ class tree:
                      'add_2':[],
                      'add_3':[],
                      'add_4':[],
-                     'total':[]}
+                     'total':[],
+                     'brute_optimize': [],
+                     'method_optimize': [],
+                     'depth':[],
+                     'method_time':[],
+                     'brute_time':[],
+                     'brute_x_value':[],
+                     'brute_value':[],
+                     'method_x_value':[],
+                     'method_value':[],
+                     'truth_x_value':[],
+                     'truth_value':[]}
 
     def set_parameters(self,**kwargs):
         self.parameters = {}
@@ -138,27 +154,27 @@ class tree:
         #self.sub_division_map = [-1]
         #self.sub_division_index = np.array([0])
 
-    def add(self,low,high,isforest=False,radius_buffer=0.01):
-        vessel,data,sub_division_map,sub_division_index = add_branch(self,low,high,threshold_exponent=0.5,
+    def add(self,low,high,isforest=False,radius_buffer=0.01,threshold=None,method='L-BFGS-B'):
+        vessel,data,sub_division_map,sub_division_index,threshold = add_branch(self,low,high,threshold_exponent=0.5,
                                                                      threshold_adjuster=0.75,all_max_attempts=40,
                                                                      max_attemps=3,sampling=20,max_skip=8,
                                                                      flow_ratio=None,radius_buffer=radius_buffer,
-                                                                     isforest=isforest)
+                                                                     isforest=isforest,threshold=threshold,method=method)
         if isforest:
-            return vessel,data,sub_division_map,sub_division_index
+            return vessel,data,sub_division_map,sub_division_index,threshold
         else:
             self.data = data
             self.parameters['edge_num'] += 2
             self.sub_division_map = sub_division_map
             self.sub_division_index = sub_division_index
 
-    def n_add(self,n):
+    def n_add(self,n,method='L-BFGS-B'):
         self.rng_points,_ = self.boundary.pick(size=40*n,homogeneous=True)
         self.rng_points = self.rng_points.tolist()
         for i in tqdm(range(n),desc='Adding vessels'):
             #for i in range(n):
             #self.rng_points = self.rng_points.tolist()
-            self.add(-1,0)
+            self.add(-1,0,method=method)
 
         #plt.plot(list(range(len(self.time['search'][1:]))),self.time['search'][1:],label='search time')
         #plt.plot(list(range(len(self.time['search'][1:]))),self.time['constraints'][1:],label='constraint time')
@@ -322,8 +338,8 @@ class tree:
                 pv_data.append(pv.PolyData(var_inp=m.GetOutput()))
             merge = pv_data[0].merge(pv_data[1:])
             return merge
-        interp_xyz,interp_r,interp_n,frames,branches = get_interpolated_sv_data(self.data)
-        points,radii,normals    = sv_data(interp_xyz,interp_r,radius_buffer=self.radius_buffer)
+        interp_xyz,interp_r,interp_n,frames,branches,interp_xyzr = get_interpolated_sv_data(self.data)
+        points,radii,normals    = sv_data(interp_xyzr,interp_r,radius_buffer=self.radius_buffer)
         if steady:
             time = [0, 1]
             flow = [self.data[0,22], self.data[0,22]]
@@ -337,7 +353,8 @@ class tree:
         else:
             R = 0
         if make:
-            options = file_options(time=time,flow=flow,gui=gui,distal_resistance=R)
+            num_caps = 1+2+int((self.parameters['edge_num']-1)/2)
+            options = file_options(num_caps,time=time,flow=flow,gui=gui,distal_resistance=R)
             build(points,radii,normals,options)
         return interp_xyz,interp_r
 
@@ -382,12 +399,15 @@ class tree:
             unioned = unioned.boolean_union(surfs[i])
             unioned = unioned.clean()
         unioned.save(outdir+os.sep+"unioned_solid.vtp")
+        with open(outdir+os.sep+"simvascular_python_script.py","w") as file:
+            file.write(export_3d_only.format(outdir+os.sep+"unioned_solid.vtp"))
         return vessels,tets,unioned
 
     def export_0d_simulation(self,steady=True,outdir=None,folder="0d_tmp",number_cardiac_cycles=1,
                       number_time_pts_per_cycle=5,density=1.06,viscosity=0.04,material="olufsen",
                       olufsen={'k1':0.0,'k2':-22.5267,'k3':1.0e7,'material exponent':1.0,'material pressure':0.0},
-                      linear={'material ehr':1e7,'material pressure':0.0},path_to_0d_solver=None):
+                      linear={'material ehr':1e7,'material pressure':0.0},path_to_0d_solver=None,
+                      viscosity_model='constant',vivo=True):
         """
         This script builds the 0D input file for running 0D simulation.
         Parameters:
@@ -428,7 +448,25 @@ class tree:
             else:
                 material_stiffness = linear['material ehr']
             zero_d_element_values = {}
-            zero_d_element_values["R_poiseuille"] = ((8*self.parameters['nu']/np.pi)*self.data[vessel,20])/self.data[vessel,21]**4
+            if viscosity_model == 'constant':
+                nu = self.parameters['nu']
+            elif viscosity_model == 'modified viscosity law':
+                W  = 1.1
+                lam = 0.5
+                D  = self.data[vessel,21]*2*(10000)
+                nu_ref = self.parameters['nu']
+                Hd = 0.45 #discharge hematocrit (dimension-less)
+                C  = lambda d: (0.8+np.exp(-0.075))*(-1+(1/(1+10**(-11)*d**12)))+(1/(1+10**(-11)*d**12))
+                nu_vitro_45 = lambda d: 220*np.exp(-1.3*d) + 3.2-2.44*np.exp(-0.06*d**0.645)
+                nu_vivo_45  = lambda d: 6*np.exp(-0.085*d)+3.2-2.44*np.exp(-0.06*d**0.645)
+                if vivo == True:
+                    nu_45 = nu_vivo_45
+                else:
+                    nu_45 = nu_vitro_45
+                nu_mod   =   lambda d: (1+(nu_45 - 1)*(((1-Hd)**C-1)/((1-0.45)**C-1))*(d/(d-W))**(4*lam))*(d/(d-W))**(4*(1-lam))
+                ref = nu_ref - nu_mod(10000) # 1cm (units given in microns)
+                nu  = nu_mod(D) + ref
+            zero_d_element_values["R_poiseuille"] = ((8*nu/np.pi)*self.data[vessel,20])/self.data[vessel,21]**4
             zero_d_element_values["C"] = (3*self.data[vessel,20]*np.pi*self.data[vessel,21]**2)/(2*material_stiffness)
             zero_d_element_values["L"] = (self.data[vessel,20]*density)/(np.pi*self.data[vessel,21]**2)
             zero_d_element_values["stenosis_coefficient"] = 0.0
@@ -551,6 +589,18 @@ class forest:
         self.directions = directions
         self.root_lengths_high = root_lengths_high
         self.root_lengths_low  = root_lengths_low
+        networks = []
+        for idx in range(self.number_of_networks):
+            network = []
+            for jdx in range(self.trees_per_network[idx]):
+                tmp = tree()
+                tmp.set_assumptions(convex=self.convex)
+                tmp.set_boundary(self.boundary)
+                if self.directions[idx][jdx] is not None:
+                    tmp.clamped_root = True
+                network.append(tmp)
+            networks.append(network)
+        self.networks    = networks
 
     def set_roots(self,scale=None,bounds=None):
         if self.compete:
@@ -568,11 +618,12 @@ class forest:
                 print("trees_per_network must be list of ints"+
                       " with length equal to number_of_networks")
             for jdx in range(self.trees_per_network[idx]):
-                tmp = tree()
-                tmp.set_assumptions(convex=self.convex)
-                if self.directions[idx][jdx] is not None:
-                    tmp.clamped_root = True
-                tmp.set_boundary(self.boundary)
+                #tmp = tree()
+                tmp = self.networks[idx][jdx]
+                #tmp.set_assumptions(convex=self.convex)
+                #if self.directions[idx][jdx] is not None:
+                #    tmp.clamped_root = True
+                #tmp.set_boundary(self.boundary)
                 if scale is not None:
                     tmp.parameters['Qterm'] *= scale
                 if idx == 0 and jdx == 0:
@@ -588,9 +639,21 @@ class forest:
                     else:
                         print("Not implemented yet!")
                     collisions = []
+                    repeat = False
                     for net in networks:
                         for t in net:
-                            collisions.append(obb(t.data,tmp.data[0,:]))
+                            collisions.append(not t.collision_free(tmp.data[0,:].reshape(1,-1)))
+                            if collisions[-1]:
+                                repeat = True
+                                break
+                        if repeat:
+                            break
+                    for t in network:
+                        collisions.append(not t.collision_free(tmp.data[0,:].reshape(1,-1)))
+                        if collisions[-1]:
+                            repeat = True
+                            break
+                    #print(collisions)
                 network.append(tmp)
             networks.append(network)
             connections.append(None)
@@ -659,8 +722,9 @@ class forest:
                     number_of_trees = len(self.networks[nid])
                     for njd in range(number_of_trees):
                         success = False
+                        threshold = None
                         while not success:
-                            vessel,data,sub_division_map,sub_division_index = self.networks[nid][njd].add(-1,0,isforest=True,radius_buffer=radius_buffer)
+                            vessel,data,sub_division_map,sub_division_index,threshold = self.networks[nid][njd].add(-1,0,isforest=True,radius_buffer=radius_buffer,threshold=threshold)
                             new_vessels = np.vstack((data[vessel,:],data[-2,:],data[-1,:]))
                             repeat = False
                             for nikd in range(len(self.networks)):
@@ -676,6 +740,9 @@ class forest:
                                 if repeat:
                                     break
                             if repeat:
+                                #p = self.show()
+                                #p.show()
+                                #print("\n\ncollision\n\n")
                                 continue
                             else:
                                 success = True
@@ -706,7 +773,7 @@ class forest:
             for tree_id,network_tree in enumerate(network):
                 model = []
                 for edge in range(network_tree.parameters['edge_num']):
-                    if network_tree.data[edge,15]==-1 and network_tree.data[edge,16]==-1:
+                    if network_tree.data[edge,15]==-1 and network_tree.data[edge,16]==-1 and edge != 0:
                         dis_point = (network_tree.data[edge,0:3] + network_tree.data[edge,3:6])/2
                         vessel_length = network_tree.data[edge,20]/2
                     else:
@@ -777,41 +844,215 @@ class forest:
             #plot.close()
             return plot
 
-    def connect(self,network_id=-1,buffer=None,curve_sample_size_min=5,curve_sample_size_max=11,curve_degree=2):
-        self.connections,self.assignments = connect(self,network_id=network_id,buffer=buffer)
-        self.connections = smooth(self,curve_sample_size_min=curve_sample_size_min,curve_sample_size_max=curve_sample_size_max,curve_degree=curve_degree)
+    def connect(self,network_id=-1,buffer=None,curve_sample_size_min=5,curve_sample_size_max=11,curve_degree=3):
+        self.forest_copy = self.copy()
+        self.forest_copy.connections,self.forest_copy.assignments = connect(self.forest_copy,network_id=network_id,buffer=buffer)
+        self.forest_copy.connections,self.forest_copy.connected_forest = smooth(self.forest_copy,curve_sample_size_min=curve_sample_size_min,curve_sample_size_max=curve_sample_size_max,curve_degree=curve_degree)
+
+    def assign(self):
+        self.connections,self.assignments = connect(self)
+
+    def rotate(self):
+        forest_copy = self.copy()
+        forest_copy.assign()
+        comb,pts = rotate_terminals(forest_copy)
+        self.forest_copy = forest_copy
+        return comb,pts
+
+    def copy(self):
+        forest_copy = forest(boundary=self.boundary,number_of_networks=self.number_of_networks,
+                             trees_per_network=self.trees_per_network,scale=None,convex=self.convex,
+                             compete=self.compete)
+        for ndx in range(self.number_of_networks):
+            for tdx in range(self.trees_per_network[ndx]):
+                forest_copy.networks[ndx][tdx].data = deepcopy(self.networks[ndx][tdx].data)
+                forest_copy.networks[ndx][tdx].parameters = deepcopy(self.networks[ndx][tdx].parameters)
+                forest_copy.networks[ndx][tdx].sub_division_map = deepcopy(self.networks[ndx][tdx].sub_division_map)
+                forest_copy.networks[ndx][tdx].sub_division_index = deepcopy(self.networks[ndx][tdx].sub_division_index)
+        forest_copy.connections = deepcopy(self.connections)
+        forest_copy.assignments = deepcopy(self.assignments)
+        return forest_copy
+
+    def export_solid(self,outdir=None,folder="3d_tmp"):
+        if outdir is None:
+            outdir = os.getcwd()+os.sep+folder
+        else:
+            outdir = outdir+os.sep+folder
+        if not os.path.isdir(outdir):
+            os.mkdir(folder)
+        def polyline_from_points(pts,r):
+            poly = pv.PolyData()
+            poly.points = pts
+            cell = np.arange(0,len(pts),dtype=np.int_)
+            cell = np.insert(cell,0,len(pts))
+            poly.lines = cell
+            poly["radius"] = r #r/min(r)
+            return poly
+        final_points,final_radii,final_normals,CONNECTED_COPY,ALL_INTERP_XYZ,ALL_INTERP_RADII = self.export()
+        ALL_vessels = []
+        ALL_tets = []
+        ALL_surfs = []
+        t_list = np.linspace(0,1,num=1000)
+        P = self.show()
+        for net_id in range(len(final_points)):
+            for tree in range(self.trees_per_network[net_id]-1):
+                interp_xyz = ALL_INTERP_XYZ[net_id][tree]
+                interp_r = ALL_INTERP_RADII[net_id][tree]
+                vessels = []
+                tets = []
+                surfs = []
+                for vessel_id in range(len(self.ALL_POINTS[net_id][tree])):
+                    #x,y,z = splev(t_list,interp_xyz[vessel_id][0])
+                    #_,r = splev(t_list,interp_r[vessel_id][0])
+                    #points = np.zeros((len(t_list),3))
+                    #points[:,0] = x
+                    #points[:,1] = y
+                    #points[:,2] = z
+                    points = np.array(self.ALL_POINTS[net_id][tree][vessel_id])
+                    r = np.array(self.ALL_RADII[net_id][tree][vessel_id])
+                    #print("Points: {}".format(points))
+                    #print("Radii:  {}".format(r))
+                    polyline = polyline_from_points(points,r)
+                    vessel = polyline.tube(radius=min(r),scalars='radius',radius_factor=max(r)/min(r)).triangulate()
+                    vessels.append(vessel)
+                    P.add_mesh(vessel,show_edges=True,opacity=0.4)
+                    P.add_points(points,render_points_as_spheres=True,point_size=20)
+                    tets.append(tetgen.TetGen(vessel))
+                desc1 = 'Tetrahedralizing'
+                desc1 = desc1+' '*(40-len(desc1))
+
+                # Disable
+                def blockPrint():
+                    sys.stdout = open(os.devnull, 'w')
+
+                # Restore
+                def enablePrint():
+                    sys.stdout = sys.__stdout__
+
+                @timeout(60)
+                def tetrahedralize(tet):
+                    tet.tetrahedralize(minratio=1.2)
+                    return tet
+
+                tet_success = True
+                tet_fail_list = []
+                for i in tqdm(range(len(tets)),position=0,leave=False,bar_format='{l_bar}{bar:50}{r_bar}{bar:-10b}',desc=desc1):
+                    blockPrint()
+                    try:
+                        tets[i] = tetrahedralize(tets[i])
+                    except:
+                        try:
+                            fixed_mesh = pymeshfix.MeshFix(vessels[i])
+                            fixed_mesh.repair(verbose=False)
+                            tets[i] = tetgen.TetGen(fixed_mesh.mesh)
+                            tets[i] = tetrahedralize(tets[i])
+                        except:
+                            tet_success = False
+                            tet_fail_list.append(i)
+                    enablePrint()
+                desc2 = 'Extracting Surfaces'
+                desc2 = desc2+' '*(40-len(desc2))
+                surf_success = True
+                surf_fail_list = []
+                for i in tqdm(range(len(tets)),position=0,leave=False,bar_format='{l_bar}{bar:50}{r_bar}{bar:-10b}',desc=desc2):
+                    try:
+                        surfs.append(tets[i].grid.extract_surface().triangulate())
+                    except:
+                        surf_success = False
+                        surf_fail_list.append(i)
+                ALL_vessels.append(vessels)
+                ALL_tets.append(tets)
+                ALL_surfs.append(surfs)
+                unioned = surfs[0].boolean_union(surfs[1])
+                unioned = unioned.clean()
+                desc3 = 'Unioning'
+                desc3 = desc3+' '*(40-len(desc3))
+                union_success = True
+                union_fail_list = []
+                last_unioned = deepcopy(unioned)
+                for i in tqdm(range(2,len(surfs)),position=0,leave=False,bar_format='{l_bar}{bar:50}{r_bar}{bar:-10b}',desc=desc3):
+                    try:
+                        unioned = unioned.boolean_union(surfs[i])
+                        unioned = unioned.clean()
+                        last_unioned = deepcopy(unioned)
+                    except:
+                        union_success = False
+                        union_fail_list.append(i)
+                    unioned = last_unioned
+
+                if union_success:
+                    unioned.save(outdir+os.sep+"unioned_solid_network_{}_tree_{}.vtp".format(net_id,tree))
+                else:
+                    unioned.save(outdir+os.sep+"partial_unioned_solid_network_{}_tree_{}.vtp".format(net_id,tree))
+                if tet_success:
+                    print('Tetrahedralize    : PASS')
+                else:
+                    print('Tetrahedralize    : Fail ---> {}'.format(tet_fail_list))
+                if surf_success:
+                    print('Surface Extraction: PASS')
+                else:
+                    print('Surface Extraction: Fail ---> {}'.format(surf_fail_list))
+                if tet_success:
+                    print('Union             : PASS')
+                else:
+                    print('Union             : Fail ---> {}'.format(union_fail_list))
+        return ALL_vessels,ALL_tets,ALL_surfs,P
 
     def export(self,steady=True,apply_distal_resistance=False,gui=False):
         ALL_POINTS  = []
         ALL_RADII   = []
         ALL_NORMALS = []
+        ALL_INTERP_XYZ = []
+        ALL_INTERP_RADII = []
         CONNECTED_COPY = []
-        for network in range(self.number_of_networks):
+        desc1 = 'Extracting Data from Networks'
+        desc1 = desc1+' '*(40-len(desc1))
+        for network in tqdm(range(self.number_of_networks),bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}',position=0,leave=False,desc=desc1):
             network_points  = []
             network_radii   = []
             network_normals = []
             network_endpoints = []
             network_copy = []
-            for tree in range(self.trees_per_network[network]):
-                tree_copy = deepcopy(self.networks[network][tree].data)
+            for tr in range(self.trees_per_network[network]):
+                tree_copy = deepcopy(self.networks[network][tr].data)
                 tree_copy_terminals = tree_copy[np.argwhere(tree_copy[:,15]==-1).flatten(),:]
                 tree_copy_terminals = tree_copy_terminals[np.argwhere(tree_copy_terminals[:,16]==-1).flatten(),-1].astype(int)
                 tree_copy[tree_copy_terminals,3:6] = (tree_copy[tree_copy_terminals,0:3] + tree_copy[tree_copy_terminals,3:6])/2
                 tree_copy[tree_copy_terminals,20] = tree_copy[tree_copy_terminals,20]/2
                 max_vessel_id = max(tree_copy[:,-1])
-                conn_parents = np.argwhere(self.connections[network][tree][:,17] <= max_vessel_id).flatten()
-                tree_copy[self.connections[network][tree][conn_parents,17].astype(int),15] = self.connections[network][tree][conn_parents,-1]
-
-                tree_copy = np.vstack((tree_copy,self.connections[network][tree]))
+                conn_parents = np.argwhere(self.connections[network][tr][:,17] <= max_vessel_id).flatten()
+                tree_copy[self.connections[network][tr][conn_parents,17].astype(int),15] = self.connections[network][tr][conn_parents,-1]
+                tree_copy = np.vstack((tree_copy,self.connections[network][tr]))
                 network_copy.append(tree_copy)
-                interp_xyz,interp_r,interp_n,frames,branches = get_interpolated_sv_data(tree_copy)
-                points,radii,normals = sv_data(interp_xyz,interp_r,radius_buffer=0.01)
-                network_points.append(points)
-                network_radii.append(radii)
-                network_normals.append(normals)
-                pts = [p[-1] for p in points]
-                network_endpoints.append(pts)
+                #tmp_tree = tree()
+                #tmp_tree.data = tree_copy
+                #tmp_tree.show()
+
+            for tr,net in enumerate(network_copy):
+                update(net,self.networks[network][tr].parameters['gamma'],self.networks[network][tr].parameters['nu'])
+                update_radii(net,self.networks[network][tr].parameters['Pperm'],self.networks[network][tr].parameters['Pterm'])
+                #tmp_tree = tree()
+                #tmp_tree.data = net
+                #tmp_tree.show()
+            #P = self.show()
+            total = self.trees_per_network[network]
+            desc2 = 'Extracting Data from Network {} Trees'.format(network)
+            desc2 = desc2+' '*(40-len(desc2))
+            with tqdm(total=total,bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}',position=1,leave=False,desc=desc2) as pbar_tree:
+                for tree_copy in network_copy:
+                    interp_xyz,interp_r,interp_n,frames,branches,interp_xyzr = get_interpolated_sv_data(tree_copy)
+                    points,radii,normals = sv_data(interp_xyzr,interp_r,radius_buffer=0.01)
+                    #for p_list in points:
+                    #    P.add_points(np.array(p_list),render_points_as_spheres=True,color='g',point_size=30)
+                    network_points.append(points)
+                    network_radii.append(radii)
+                    network_normals.append(normals)
+                    pts = [p[-1] for p in points]
+                    network_endpoints.append(pts)
+                    #P.show()
+                    pbar_tree.update(1)
             CONNECTED_COPY.append(network_copy)
+
             # Calculate Vessel Reordering relative to the first vessel of the network
             order = [list(range(len(network_endpoints[0])))]
             for tree in range(1,self.trees_per_network[network]):
@@ -835,17 +1076,22 @@ class forest:
                 reordered_points.append(tmp_points)
                 reordered_radii.append(tmp_radii)
                 reordered_normals.append(tmp_normals)
-                print('reorder: {}'.format(len(reordered_points[-1])))
+                #print('reorder: {}'.format(len(reordered_points[-1])))
             # Reverse and Combine
             final_points  = [reordered_points[0]]
             final_radii   = [reordered_radii[0]]
             final_normals = [reordered_normals[0]]
+            final_interp_xyz = []
+            final_interp_radii = []
             for tree in range(1,self.trees_per_network[network]):
                 if tree == 1:
                     for vessel in range(len(reordered_points[tree])):
+                        vessel_normals_flip = np.array(reordered_normals[tree][vessel])*-1
+                        reordered_normals[tree][vessel] = vessel_normals_flip.tolist()
                         final_points[0][vessel].extend(list(reversed(reordered_points[tree][vessel]))[1:])
                         final_radii[0][vessel].extend(list(reversed(reordered_radii[tree][vessel]))[1:])
                         final_normals[0][vessel].extend(list(reversed(reordered_normals[tree][vessel]))[1:])
+                        #make the connecting contours have equal average radii
                 else:
                     tmp_points  = []
                     tmp_radii   = []
@@ -854,9 +1100,28 @@ class forest:
                         tmp_points.append(list(reversed(reordered_points[tree][vessel])))
                         tmp_radii.append(list(reversed(reordered_radii[tree][vessel])))
                         tmp_normals.append(list(reversed(reordered_normals[tree][vessel])))
+                        # make sure the radii is less than the average radii of the first vessel
                     final_points.append(tmp_points)
                     final_radii.append(tmp_radii)
                     final_normals.append(tmp_normals)
+                interp_xyz  = []
+                interp_r    = []
+                for vessel in range(len(final_points[-1])):
+                    pass
+                    #P.add_points(np.array(final_points[-1][vessel]),render_points_as_spheres=True,color='g',point_size=30)
+                    #interp_xyz.append(splprep(np.array(final_points[-1][vessel]).T,s=0))
+                    #r = np.vstack((interp_xyz[-1][1],np.array(final_radii[-1][vessel]).T))
+                    #interp_r.append(splprep(r,s=0))
+                final_interp_xyz.append(interp_xyz)
+                final_interp_radii.append(interp_r)
+            #P.show()
+            ALL_POINTS.append(final_points)
+            ALL_RADII.append(final_radii)
+            ALL_NORMALS.append(final_normals)
+            ALL_INTERP_XYZ.append(final_interp_xyz)
+            ALL_INTERP_RADII.append(final_interp_radii)
+            self.ALL_POINTS = ALL_POINTS
+            self.ALL_RADII = ALL_RADII
             # Export Components of Network to SV Builder for Code Generation
             for component in range(len(final_points)):
                 if steady:
@@ -871,9 +1136,11 @@ class forest:
                     R = self.networks[network][0].parameters['Pterm']/self.networks[network][0].data[0,22]
                 else:
                     R = 0
-                options = file_options(time=time,flow=flow,gui=gui,distal_resistance=R)
+                num_caps = self.trees_per_network[network]
+                options = file_options(num_caps,time=time,flow=flow,gui=gui,distal_resistance=R)
                 build(final_points[component],final_radii[component],final_normals[component],options)
-        return final_points,final_radii,final_normals,CONNECTED_COPY
+
+        return final_points,final_radii,final_normals,CONNECTED_COPY,ALL_INTERP_XYZ,ALL_INTERP_RADII
 
 def perfusion_territory(tree,subdivisions=0,mesh_file=None,tree_file=None):
     terminals = tree.data[tree.data[:,15]<0,:]
