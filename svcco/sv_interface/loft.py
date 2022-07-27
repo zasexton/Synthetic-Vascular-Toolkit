@@ -279,7 +279,7 @@ def check_connection(contour,contour_list=contour_list):
     check_center = np.array(contour.get_center())
     for group in contour_list:
         c = np.array(group[0].get_center())
-        if np.linalg.norm(check_center - c) < group[0].get_radius()*2:
+        if np.linalg.norm(check_center - c) < (group[0].get_radius()*2*np.pi+contour.get_radius()*2*np.pi):
             keep = True
             break
     return keep
