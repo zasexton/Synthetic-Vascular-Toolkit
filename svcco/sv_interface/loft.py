@@ -217,7 +217,8 @@ def loft_all(contour_list):
     #                       the loft is not yet capped.
     lofts = []
     for group in contour_list:
-        lofts.append(loft(group))
+        contours,polydata =  clean_contours(group)
+        lofts.append(loft(polydata))
     return lofts
 
 
@@ -254,6 +255,35 @@ def check_cap_solids(cap_solid_list):
             return False
     return True
 
+def clean_contours(contours):
+    num = len(contours)-2
+    new_contours = [contours[0]]
+    new_poly     = [contours[0].get_polydata()]
+    for i in range(1,len(contours)-1):
+        n1 = np.array(new_contours[-1].get_normal())
+        n2 = np.array(contours[i].get_normal())
+        n3 = np.array(contours[i+1].get_normal())
+        if ((np.arccos(np.dot(n1,n2.T))/np.pi)*180 > 10) or ((np.arccos(np.dot(n2,n3.T))/np.pi)*180 > 10) or check_connection(contours[i]):
+            new_contours.append(contours[i])
+            new_poly.append(contours[i].get_polydata())
+    if len(new_contours) == 1:
+        mid = len(contours)//2
+        new_contours.append(contours[mid])
+        new_poly.append(contours[mid].get_polydata())
+    new_contours.append(contours[-1])
+    new_poly.append(contours[-1].get_polydata())
+    return new_contours, new_poly
+
+def check_connection(contour,contour_list=contour_list):
+    keep = False
+    check_center = np.array(contour.get_center())
+    for group in contour_list:
+        c = np.array(group[0].get_center())
+        if np.linalg.norm(check_center - c) < group[0].get_radius()*2:
+            keep = True
+            break
+    return keep
+
 def create_vessels(contour_list,attempts=5):
     # create seperate capped vessels for all contour groups defining a model of interest.
     #
@@ -274,7 +304,29 @@ def create_vessels(contour_list,attempts=5):
         print('Lofting Failed')
     return cap_solids
 
-capped_vessels = create_vessels(contour_polydata)
+def show(model):
+    polydata = model.get_polydata()
+
+    colors = vtk.vtkNamedColors()
+    background = 'white'
+    mapper = vtk.vtkPolyDataMapper()
+    actor  = vtk.vtkActor()
+    mapper.SetInputDataObject(polydata)
+    actor.SetMapper(mapper)
+    renderer = vtk.vtkRenderer()
+    renderer.SetBackground(colors.GetColor3d(background))
+
+    render_window = vtk.vtkRenderWindow()
+    render_window.AddRenderer(renderer)
+    render_window.SetWindowName('Model View')
+
+    interactor = vtk.vtkRenderWindowInteractor()
+    interactor.SetRenderWindow(render_window)
+    renderer.AddActor(actor)
+    render_window.Render()
+    interactor.Start()
+
+capped_vessels = create_vessels(contour_list)
 """
 
 

@@ -15,6 +15,7 @@ mesh="""if not terminating:
             mesher.set_walls(walls)
             mesher.generate_mesh(tet_options)
             msh = mesher.get_mesh()
+            done = True
         except:
             done = False
             edge_size = edge_size - 0.1*edge_size
