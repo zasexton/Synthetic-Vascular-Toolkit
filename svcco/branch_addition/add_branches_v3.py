@@ -243,11 +243,26 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                 #print('constraint 3')
                 continue
             if vessel != 0 and not tree.clamped_root:
-                points = np.array(angle_constraint(points,terminal,proximal,0.2,False))
+                points = np.array(angle_constraint(points,terminal,proximal,0,False))
                 #high_res_points = np.array(angle_constraint(high_res_points,terminal,proximal,0.2,False))
             if len(points) == 0:
                 attempt += 1
                 #print('constraint 4')
+                continue
+            if vessel != 0 and not tree.clamped_root:
+                points = np.array(angle_constraint(points,distal,proximal,0,False))
+                #high_res_points = np.array(angle_constraint(high_res_points,distal,proximal,0.2,False))
+            if len(points) == 0:
+                attempt += 1
+                #print('constraint 5')
+                continue
+            """
+            if vessel != 0 and not tree.clamped_root:
+                points = np.array(angle_constraint(points,distal,proximal,0.2,False))
+                #high_res_points = np.array(angle_constraint(high_res_points,distal,proximal,0.2,False))
+            if len(points) == 0:
+                attempt += 1
+                #print('constraint 5')
                 continue
             if vessel != 0 and not tree.clamped_root:
                 points = np.array(angle_constraint(points,distal,proximal,0.2,False))
@@ -256,6 +271,7 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                 attempt += 1
                 #print('constraint 5')
                 continue
+            """
             if tree.data[vessel,17] >= 0:
                 p_vessel = int(tree.data[vessel,17])
                 vector_1 = -tree.data[p_vessel,12:15]
