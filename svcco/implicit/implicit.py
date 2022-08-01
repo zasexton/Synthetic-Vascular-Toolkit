@@ -22,6 +22,8 @@ from scipy.sparse.csgraph import shortest_path
 from scipy.interpolate import splprep,splev
 #from gekko import GEKKO
 import marshal, types
+import tkinter as tk
+from tkinter.filedialog import askopenfilename
 
 import pyvista as pv
 import tetgen
@@ -80,11 +82,40 @@ class surface:
         self.added_volumes = []
         self.polydata = None
         pass
-    def load(self,filename,subdivisions=0):
+    def load(self,*args,**kwargs):
+        subdivisions = kwargs.get('subdivisions',0)
+        if len(args) == 0:
+            root = tk.Tk()
+            root.withdraw()
+            filename = askopenfilename()
+            root.update()
+        else:
+            filename = args[0]
         points,normals,polydata = load3d(filename,subdivisions)
         self.set_data(points,normals=normals)
         self.polydata = polydata
-    def set_data(self,points,normals=None,workers=1,local_min=10,local_max=20,l=0.5,PCA_samplesize=25):
+    def set_data(self,*args,workers=1,local_min=10,local_max=20,l=0.5,PCA_samplesize=25):
+        if len(args) == 0:
+            root = tk.Tk()
+            root.withdraw()
+            point_filename = askopenfilename(filetypes=[('CSV Files','*.csv')])
+            root.update()
+            points = np.genfromtxt(point_filename,delimiter=',')
+            get_normals = input('Imput normals as well? y/n \n')
+            if get_normals == 'y':
+                root = tk.Tk()
+                root.withdraw()
+                normal_filename = askopenfilename(filetypes=[('CSV Files','*.csv')])
+                root.update()
+                normals = np.genfromtxt(normal_filename,delimiter=',')
+            else:
+                normals = None
+        elif len(args) == 1:
+            points  = args[0]
+            normals = None
+        elif len(args) == 2:
+            points  = args[0]
+            normals = args[1]
         self.points = points
         self.ddim = points.shape[1]
         self.dim_range = [0]*self.ddim*2
