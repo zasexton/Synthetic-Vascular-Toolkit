@@ -4,7 +4,7 @@ import pyvista as pv
 cube = pv.Cube().triangulate().subdivide(3)
 
 s = svcco.surface()
-s.set_data(10*cube.points,normals=cube.point_normals)
+s.set_data(cube.points,cube.point_normals)
 s.solve()
 s.build()
 

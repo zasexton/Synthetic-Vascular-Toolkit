@@ -25,6 +25,7 @@ from .sv_interface.build_0d_run_script import run_0d_script
 from .sv_interface.locate import locate_0d_solver, locate_1d_solver
 from .sv_interface.export_3d_only import export_3d_only
 from .collision.collision import *
+from .utils.gcode.gcode import *
 from copy import deepcopy
 from itertools import combinations
 from tqdm import tqdm
@@ -35,7 +36,7 @@ from scipy.interpolate import splev, splprep
 import matplotlib.pyplot as plt
 import platform
 import pymeshfix
-from wrapt_timeout_decorator import *
+#from wrapt_timeout_decorator import *
 
 class tree:
     """
@@ -113,6 +114,7 @@ class tree:
         self.parameters['Pterm']    = kwargs.get('Pterm',60)*1333.22
         self.parameters['Qterm']    = kwargs.get('Qterm',0.125)/60
         self.parameters['edge_num'] = kwargs.get('edge_num',0)
+        self.parameters['rho']      = kwargs.get('rho',1.06)
 
     def set_assumptions(self,**kwargs):
         self.homogeneous = kwargs.get('homogeneous',True)
@@ -358,6 +360,51 @@ class tree:
             build(points,radii,normals,options)
         return interp_xyz,interp_r
 
+    def export_truncated(self,steady=True,apply_distal_resistance=True,gui=True,cylinders=False,make=True):
+        if cylinders:
+            pv_data = []
+            models = self.show(show=False)
+            for m in models:
+                pv_data.append(pv.PolyData(var_inp=m.GetOutput()))
+            merge = pv_data[0].merge(pv_data[1:])
+            return merge
+        interp_xyz,interp_r,interp_n,frames,branches,interp_xyzr = get_truncated_interpolated_sv_data(self.data)
+        points,radii,normals    = sv_data(interp_xyzr,interp_r,radius_buffer=self.radius_buffer)
+        if steady:
+            time = [0, 1]
+            flow = [self.data[0,22], self.data[0,22]]
+        else:
+            time,flow = generate_physiologic_wave(self.data[0,22],self.data[0,21]*2)
+            time = time.tolist()
+            flow = flow.tolist()
+            flow[-1] = flow[0]
+        if apply_distal_resistance:
+            R = self.parameters['Pterm']/self.data[0,22]
+        else:
+            R = 0
+        if make:
+            num_caps = 1+2+int((self.parameters['edge_num']-1)/2)
+            options = file_options(num_caps,time=time,flow=flow,gui=gui,distal_resistance=R)
+            build(points,radii,normals,options)
+        return interp_xyz,interp_r
+
+    def show_truncated(self,radius=None):
+        large,small = truncate(self.data,radius=radius)
+        combined = []
+        plotter = pv.Plotter()
+        models = []
+        for i in large:
+            combined += i
+        for i in range(self.data.shape[0]):
+            center = (self.data[i,0:3] + self.data[i,3:6])/2
+            m = pv.Cylinder(center=center,direction=self.data[i,12:15],radius=self.data[i,21],height=self.data[i,20])
+            if i in combined:
+                plotter.add_mesh(m,color='red')
+            else:
+                plotter.add_mesh(m,color='blue',opacity=0.4)
+        plotter.set_background('white')
+        return plotter
+
     def export_3d_solid(self,outdir=None,folder="3d_tmp"):
         if outdir is None:
             outdir = os.getcwd()+os.sep+folder
@@ -562,6 +609,11 @@ class tree:
         np.savetxt(outdir+os.sep+"geom.csv",geom,delimiter=",")
     def collision_free(self,outside_vessels,radius_buffer=0.01):
         return no_outside_collision(self,outside_vessels,radius_buffer=radius_buffer)
+
+    def export_gcode(self):
+        interp_xyz,interp_r,interp_n,frames,branches,interp_xyzr = get_interpolated_sv_data(self.data)
+        points,radii,normals    = sv_data(interp_xyzr,interp_r,radius_buffer=self.radius_buffer)
+        generate_gcode(points)
 
 class forest:
     def __init__(self,boundary=None,number_of_networks=1,

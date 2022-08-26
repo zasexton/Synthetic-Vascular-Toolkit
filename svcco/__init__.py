@@ -27,7 +27,7 @@ pip install svcco
 '''
 #from __future__ import annotations
 
-__version__ = "0.5.29"
+__version__ = "0.5.30"
 
 import traceback
 import warnings
@@ -48,10 +48,13 @@ from . import forest_utils
 from . import utils
 
 from .utils.remeshing import remesh
+from .utils.gcode import gcode
+from .utils.fluid_analysis import reynolds, wss
 
 from .tree import tree, forest, perfusion_territory
 from .implicit.implicit import surface
 from .implicit.tests.bumpy_sphere import bumpy_sphere
+from .implicit.tests.heart import *
 from .implicit.visualize.visualize import plot_volume
 #else:
 #    implicit = _ModuleProxy('implicit')

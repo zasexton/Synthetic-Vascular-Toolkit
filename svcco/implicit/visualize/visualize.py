@@ -231,6 +231,119 @@ def plot_slice_error(mpu_object,resolution=20,k=None,workers=1,plane_axis=2,plan
 
     plt.show()
 
+def level_contour(mpu_object,resolution=20,k=2,buf=1.25,level=0,workers=1,plane_axis=2,plane_value=0.5,unit_scale='mm',name="untitled"):
+    if plane_axis == 0:
+        plane_value = (mpu_object.x_range[1]-mpu_object.x_range[0])*plane_value + mpu_object.x_range[0]
+    elif plane_axis == 1:
+        plane_value = (mpu_object.y_range[1]-mpu_object.y_range[0])*plane_value + mpu_object.y_range[0]
+    elif plane_axis == 2:
+        plane_value = (mpu_object.z_range[1]-mpu_object.z_range[0])*plane_value + mpu_object.z_range[0]
+    DIMS,results_exact = mpu_meshgrid(mpu_object,res=resolution,workers=workers,
+                                      k=k,plane_axis=plane_axis,
+                                      plane_value=plane_value,buf=buf)
+    colormap = plt.cm.RdBu
+    main_axes = list(range(len(DIMS)))
+    main_axes.remove(plane_axis)
+    fig,ax = plt.subplots()
+    CS = ax.contour(DIMS[main_axes[0]],DIMS[main_axes[1]],results_exact,levels=[level],linewidths=(2,))
+    #CS.collections[0].set_label(r"$\Gamma_{" +str(len(mpu_object.patches))+ r"}$")
+    return CS
+
+def plot_mpu_boundaries(mpu_object,resolution=20,k=[2],buf=1.25,level=0,workers=1,plane_axis=2,plane_value=0.5,test_size=100,unit_scale='mm',name="untitled"):
+    if plane_axis == 0:
+        plane_value = (mpu_object.x_range[1]-mpu_object.x_range[0])*plane_value + mpu_object.x_range[0]
+    elif plane_axis == 1:
+        plane_value = (mpu_object.y_range[1]-mpu_object.y_range[0])*plane_value + mpu_object.y_range[0]
+    elif plane_axis == 2:
+        plane_value = (mpu_object.z_range[1]-mpu_object.z_range[0])*plane_value + mpu_object.z_range[0]
+    DIMS,results_exact = mpu_meshgrid(mpu_object,res=resolution,workers=workers,
+                                      k=len(mpu_object.patches),plane_axis=plane_axis,
+                                      plane_value=plane_value,buf=buf)
+    APPROX = []
+    for ki in k:
+        DIMS,approximate = mpu_meshgrid(mpu_object,res=resolution,workers=workers,
+                                          k=ki,plane_axis=plane_axis,plane_value=plane_value)
+        APPROX.append(approximate)
+
+    colormap = plt.cm.RdBu
+    main_axes = list(range(len(DIMS)))
+    main_axes.remove(plane_axis)
+    axes_labels = ['x ({})'.format(unit_scale),'y ({})'.format(unit_scale),'z ({})'.format(unit_scale)]
+    axes_labels_all = ['x ({})'.format(unit_scale),'y ({})'.format(unit_scale),'z ({})'.format(unit_scale)]
+    axes_labels.remove(axes_labels[plane_axis])
+    fig,ax = plt.subplots()
+    #spec = gridspec.GridSpec(ncols=4, nrows=1,
+    #                         width_ratios=[1, 1, 1, 1.5])
+    #ax1 = fig.add_subplot(spec[0])
+    #ax2 = fig.add_subplot(spec[1])
+    #ax3 = fig.add_subplot(spec[2])
+    #ax4 = fig.add_subplot(spec[3],projection='3d')
+    positions = []
+    cax = ax.contourf(DIMS[main_axes[0]],DIMS[main_axes[1]],results_exact,norm=colors.TwoSlopeNorm(0),cmap="RdBu_r",alpha=0.5)
+    CS = ax.contour(DIMS[main_axes[0]],DIMS[main_axes[1]],results_exact,levels=[level],linewidths=(2,))
+    CS.collections[0].set_label(r"$\Gamma_{" +str(len(mpu_object.patches))+ r"}$")
+    #fmt = {CS.levels[0]:r"$\Gamma_{" +str(len(mpu_object.patches)) + r"}$"}
+    #ax.clabel(CS,fmt=fmt,fontsize=10)
+    for c,ap in enumerate(APPROX):
+        tmp = ax.contour(DIMS[main_axes[0]],DIMS[main_axes[1]],ap,levels=[level],linewidths=(2,),linestyles='--')
+        tmp.collections[0].set_label(r"$\Gamma_{" +str(k[c])+ r"}$")
+        #fmt = {tmp.levels[0]:r"$\Gamma_{" +str(k[c])+ r"}$"}
+        #ax.clabel(tmp,fmt=fmt,fontsize=10)
+    plt.legend()
+    pts = np.random.random((test_size,3))
+    xr = (np.min(DIMS[0].flatten()),np.max(DIMS[0].flatten()))
+    yr = (np.min(DIMS[1].flatten()),np.max(DIMS[1].flatten()))
+    zr = (np.min(DIMS[2].flatten()),np.max(DIMS[2].flatten()))
+    pts[:,0] = (pts[:,0]*2-1)*(xr[1] - xr[0])/2 + (mpu_object.x_range[0] + mpu_object.x_range[1])/2
+    pts[:,1] = (pts[:,1]*2-1)*(yr[1] - yr[0])/2 + (mpu_object.y_range[0] + mpu_object.y_range[1])/2
+    pts[:,2] = (pts[:,2]*2-1)*(zr[1] - zr[0])/2 + (mpu_object.z_range[0] + mpu_object.z_range[1])/2
+    pts[:,plane_axis] = plane_value
+    interior = []
+    exterior = []
+    interior_wrong = []
+    exterior_wrong = []
+    for i in range(pts.shape[0]):
+        if mpu_object.within(pts[i,0],pts[i,1],pts[i,2],len(mpu_object.patches),level=level)[0]:
+            if mpu_object.within(pts[i,0],pts[i,1],pts[i,2],k[0],level=level)[0]:
+                interior.append(pts[i,:].tolist())
+            else:
+                exterior_wrong.append(pts[i,:].tolist())
+        else:
+            if not mpu_object.within(pts[i,0],pts[i,1],pts[i,2],k[0],level=level)[0]:
+                exterior.append(pts[i,:].tolist())
+            else:
+                interior_wrong.append(pts[i,:].tolist())
+    interior = np.array(interior)
+    exterior = np.array(exterior)
+    interior_wrong = np.array(interior_wrong)
+    exterior_wrong = np.array(exterior_wrong)
+    if interior.shape[0] > 0:
+        if interior.shape[0] > 100:
+            stop = 99
+        else:
+            stop = None
+        ax.scatter(interior[:stop,main_axes[0]],interior[:stop,main_axes[1]],c='blue',alpha=0.7)
+    if exterior.shape[0] > 0:
+        if exterior.shape[0] > 100:
+            stop = 99
+        else:
+            stop = None
+        ax.scatter(exterior[:stop,main_axes[0]],exterior[:stop,main_axes[1]],c='red',alpha=0.7)
+    if exterior_wrong.shape[0] > 0:
+        if exterior_wrong.shape[0] > 100:
+            stop = 99
+        else:
+            stop = None
+        ax.scatter(exterior_wrong[:stop,main_axes[0]],exterior_wrong[:stop,main_axes[1]],c='red',alpha=0.7,marker='x')
+    if interior_wrong.shape[0] > 0:
+        if interior_wrong.shape[0] > 100:
+            stop = 99
+        else:
+            stop = None
+        ax.scatter(interior_wrong[:stop,main_axes[0]],interior_wrong[:stop,main_axes[1]],c='blue',alpha=0.7,marker='x')
+    plt.savefig(name+'.svg', format="svg", bbox_inches='tight')
+    return interior.shape[0],exterior.shape[0],interior_wrong.shape[0],exterior_wrong.shape[0],test_size
+
 def plot_gradient(mpu_object,workers=1,k=None,resolution=20,plane_axis=2,plane_value=0,
                   contour_overlay=True,unit_scale='mm'):
     DIMS,gradient = mpu_meshgrid(mpu_object,res=resolution,workers=workers,

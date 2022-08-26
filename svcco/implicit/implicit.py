@@ -21,6 +21,7 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import shortest_path
 from scipy.interpolate import splprep,splev
 #from gekko import GEKKO
+import pymeshfix
 import marshal, types
 import tkinter as tk
 from tkinter.filedialog import askopenfilename
@@ -28,6 +29,7 @@ from tkinter.filedialog import askopenfilename
 import pyvista as pv
 import tetgen
 import time
+import os
 
 import imp
 import sys
@@ -36,7 +38,7 @@ from .core.m_matrix import M
 from .core.n_matrix import N
 from .core.a_matrix import A
 from .core.h_matrix import H
-from .load import load3d
+from .load import load3d, load3d_pv
 from .visualize.visualize import show_mesh
 
 class patch:
@@ -45,7 +47,9 @@ class patch:
         self.ddim = points.shape[1]
         self.points = points
         self.normals = normals
+        start = time.perf_counter()
         self.A_inv,self.K00,self.K01,self.K11 = A(points)
+        self.time = time.perf_counter() - start
         self.H_0 = H(self.K00,self.K01,self.K11,0)
 
     def solve(self,local_method='L-BFGS-B',regularize=False,
@@ -84,6 +88,7 @@ class surface:
         pass
     def load(self,*args,**kwargs):
         subdivisions = kwargs.get('subdivisions',0)
+        max_points   = kwargs.get('max_points',10000)
         if len(args) == 0:
             root = tk.Tk()
             root.withdraw()
@@ -91,8 +96,8 @@ class surface:
             root.update()
         else:
             filename = args[0]
-        points,normals,polydata = load3d(filename,subdivisions)
-        self.set_data(points,normals=normals)
+        points,normals,polydata = load3d_pv(filename,subdivisions,max_points=max_points)
+        self.set_data(points,normals)
         self.polydata = polydata
     def set_data(self,*args,workers=1,local_min=10,local_max=20,l=0.5,PCA_samplesize=25):
         if len(args) == 0:
@@ -304,6 +309,7 @@ class surface:
         level      = kwargs.get('level',0)
         visualize  = kwargs.get('visualize',False)
         buffer     = kwargs.get('buffer',1)
+        verbose    = kwargs.get('verbose',False)
         self.x_range = [min(self.points[:,0]),max(self.points[:,0])]
         self.y_range = [min(self.points[:,1]),max(self.points[:,1])]
         self.z_range = [min(self.points[:,2]),max(self.points[:,2])]
@@ -352,7 +358,7 @@ class surface:
         self.patch_points_m  = patch_points_m
         if len(self.patches) > 1:
             functions = []
-            KDTree = spatial.KDTree(np.array([patch_x,patch_y,patch_z]).T)
+            KDTree = spatial.cKDTree(np.array([patch_x,patch_y,patch_z]).T)
             self.patch_KDTree = KDTree
             preassembled_functions,function_strings = construct(d_num)
             foo = imp.new_module("foo")
@@ -439,8 +445,8 @@ class surface:
                                 patch_z=np.array([self.patch_z[idx]]))
         return func_marching
 
-    def within(self,x,y,z,k):
-        return self.DD[0]([x,y,z,k]) < 0
+    def within(self,x,y,z,k,level=0):
+        return self.DD[0]([x,y,z,k]) < level
 
     def within_mesh(self,x,y,z,k):
         point = pv.PolyData(np.array([x,y,z]))
@@ -615,7 +621,7 @@ class surface:
         level      = kwargs.get('level',0)
         visualize  = kwargs.get('visualize',False)
         buffer     = kwargs.get('buffer',1)
-        self.polydata,self.tet_pts,self.tet_verts,self.ele_vol,self.tet = marching_cubes(self,resolution,k,level,visualize,buffer)
+        self.polydata,self.tet_pts,self.tet_verts,self.ele_vol,self.tet = marching_cubes_pv(self,resolution=resolution,k=k,level=level,visualize=visualize,buffer=buffer)
         self.cell_lookup = cKDTree(self.tet.grid.cell_centers().points)
         self.pv_polydata = pv.PolyData(var_inp=self.polydata)
         self.pv_polydata_surf = self.pv_polydata.extract_surface()
@@ -860,7 +866,9 @@ class surface:
         self.resample = resample
         self.total_ele_vol = sum(self.ele_vol)
         self.norm_ele_vol = self.ele_vol/self.total_ele_vol
-        volume,surface_area = properties(self.polydata)
+        #volume,surface_area = properties(self.polydata)
+        volume = self.pv_polydata.volume
+        surface_area = self.pv_polydata.area
         self.volume= volume
         self.surface_area = surface_area
 
@@ -924,6 +932,7 @@ def marching_cubes(surface_object,resolution=20,k=2,level=0,visualize=False,buff
     for i in zip(Zf,Yf,Xf,Kf):
         Vf.append(surface_object.DD[0](i))
     Vf = np.array(Vf)
+    surface_object.depth_interior_min = min(Vf)
     Vf = Vf.reshape(X.shape)
     #grid = pv.UniformGrid(dims=SHAPE,spacing=SPACING,origin=ORIGIN)
     #out = grid.contour(1,scalars=Vf,rng=[0,0],method='marching_cubes')
@@ -1010,6 +1019,51 @@ def marching_cubes(surface_object,resolution=20,k=2,level=0,visualize=False,buff
     cells = tet.grid.compute_cell_sizes()
     ele_vol = cells.cell_data["Volume"]
     return volume_polydata, nodes, verts, ele_vol, tet
+
+
+def marching_cubes_pv(surface_object,resolution=20,k=2,level=0,visualize=False,
+                      buffer=1,method='marching_cubes',compute_normals=False,
+                      compute_gradients=False,verbose=False,tetgen_verbose=0):
+    x_min = surface_object.x_range[0] - buffer
+    y_min = surface_object.y_range[0] - buffer
+    z_min = surface_object.z_range[0] - buffer
+    x_max = surface_object.x_range[1] + buffer
+    y_max = surface_object.y_range[1] + buffer
+    z_max = surface_object.z_range[1] + buffer
+    dims    = (resolution,resolution,resolution)
+    spacing = (abs(x_max-x_min)/resolution,abs(y_max-y_min)/resolution,abs(z_max-z_min)/resolution)
+    origin  = (x_min,y_min,z_min)
+    grid    = pv.UniformGrid(dims=dims,spacing=spacing,origin=origin)
+    x,y,z   = grid.points.T
+    values  = []
+    if verbose:
+        bar = trange
+    else:
+        bar = range
+    for i in bar(len(x)):
+        values.append(surface_object.DD[0]([x[i],y[i],z[i],k]))
+    values = np.array(values)
+    surface_object.depth_interior_min = min(values)
+    mesh = grid.contour([level],values,method=method,
+                        compute_gradients=compute_gradients,
+                        compute_normals=compute_normals)
+    mesh.set_active_scalars(mesh.array_names[0])
+    tet = tetgen.TetGen(mesh)
+    tet.make_manifold(verbose=verbose)
+    nodes, verts = tet.tetrahedralize(order=1,mindihedral=20,minratio=1.5,verbose=tetgen_verbose)
+    cells = tet.grid.compute_cell_sizes()
+    ele_vol = cells.cell_data["Volume"]
+    surf   = mesh.extract_surface()
+    mf = pymeshfix.MeshFix(surf)
+    mf.repair(verbose=verbose)
+    surf = mf.mesh
+    surf.save(os.getcwd()+os.sep+'temp.vtp')
+    reader = vtk.vtkXMLPolyDataReader()
+    reader.SetFileName(os.getcwd()+os.sep+'temp.vtp')
+    reader.Update()
+    surf = reader.GetOutput()
+    os.remove(os.getcwd()+os.sep+'temp.vtp')
+    return surf, nodes, verts, ele_vol, tet
 
 def properties(polydata_object):
     MASS = vtk.vtkMassProperties()

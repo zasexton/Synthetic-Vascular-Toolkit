@@ -24,7 +24,7 @@ long_description = (here / "README.md").read_text("utf8")
 #VERSION = re.search(
 #    r'__version__ = "(.+?)"', (here / "svcco" / "__init__.py").read_text("utf8")
 #).group(1)
-VERSION = '0.5.32'
+VERSION = '0.5.34'
 
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'License :: OSI Approved :: MIT License',
@@ -83,7 +83,7 @@ INSTALL_REQUIREMENTS = ['numpy>=1.16.0',
                         'tetgen>=0.6.0']
 """
 PROJECT_URLS = {}
-
+#PACKAGE_DATA = {}
 setup_info = dict(
     name='svcco',
     version=VERSION,

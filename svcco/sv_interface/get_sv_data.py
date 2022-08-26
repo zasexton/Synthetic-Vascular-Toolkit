@@ -1029,3 +1029,72 @@ def swap_contour(interp_xyz,t_list,c_idx,radius_buffer):
     if f0 < 0:
         value = t0
     return value
+
+def truncate(data,radius=None):
+    if radius is None:
+        radius = np.median(data[:,21])
+    branches = get_branches(data)
+    large = []
+    small = []
+    for branch in branches:
+        tmp_large = []
+        tmp_small = []
+        for idx,vdx in enumerate(branch):
+            if data[vdx,21] >= radius:
+                tmp_large.append(vdx)
+            else:
+                tmp_small.append(vdx)
+        if len(tmp_large) > 1:
+            large.append(tmp_large)
+        if len(tmp_small) > 0:
+            small.append(tmp_small)
+    return large, small
+
+def get_truncated_interpolated_sv_data(data,radius=None):
+    branches,_ = truncate(data,radius=radius)
+    points   = get_points(data,branches)
+    #print("Points: {}".format(points[0]))
+    radii    = get_radii(data,branches)
+    #print("Radii:  {}".format(radii[0]))
+    normals  = get_normals(data,branches)
+    path_frames = []
+    for idx in range(len(branches)):
+        frames = []
+        for jdx in range(len(points[idx])):
+            frame = []
+            frame.extend(points[idx][jdx])
+            frame.append(radii[idx][jdx])
+            frame.extend(normals[idx][jdx])
+            frames.append(frame)
+        path_frames.append(frames)
+    interp_xyz = []
+    interp_r   = []
+    interp_n   = []
+    interp_xyzr = []
+    for idx in range(len(branches)):
+        p = np.array(points[idx]).T
+        r = np.array(radii[idx]).T
+        n = np.array(normals[idx]).T
+        if len(points[idx]) == 2:
+            interp_xyz.append(splprep(p,k=1,s=0))
+            rr = np.vstack((interp_xyz[-1][1],r))
+            interp_r.append(splprep(rr,k=1,s=0))
+            xyzr = np.vstack((p,r))
+            interp_xyzr.append(splprep(xyzr,k=1,s=0))
+            #interp_n.append(splprep(n,k=1,s=0))
+        elif len(points[idx]) == 3:
+            interp_xyz.append(splprep(p,k=2,s=0))
+            rr = np.vstack((interp_xyz[-1][1],r))
+            interp_r.append(splprep(rr,k=2,s=0))
+            xyzr = np.vstack((p,r))
+            interp_xyzr.append(splprep(xyzr,k=2,s=0))
+            #interp_n.append(splprep(n,k=2,s=0))
+        else:
+            interp_xyz.append(splprep(p,s=0))
+            rr = np.vstack((interp_xyz[-1][1],r))
+            interp_r.append(splprep(rr,s=0))
+            xyzr = np.vstack((p,r))
+            interp_xyzr.append(splprep(xyzr,s=0))
+            #interp_n.append(splprep(n,s=0))
+
+    return interp_xyz,interp_r,interp_n,path_frames,branches,interp_xyzr
