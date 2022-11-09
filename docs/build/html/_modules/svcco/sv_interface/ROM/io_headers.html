@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.sv_interface.ROM.io_headers &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css" />
+    
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.io_headers</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.sv_interface.ROM.io_headers</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Stanford University, The Regents of the University of</span>
+<span class="c1">#               California, and others.</span>
+<span class="c1">#</span>
+<span class="c1"># All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># See Copyright-SimVascular.txt for additional details.</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining</span>
+<span class="c1"># a copy of this software and associated documentation files (the</span>
+<span class="c1"># &quot;Software&quot;), to deal in the Software without restriction, including</span>
+<span class="c1"># without limitation the rights to use, copy, modify, merge, publish,</span>
+<span class="c1"># distribute, sublicense, and/or sell copies of the Software, and to</span>
+<span class="c1"># permit persons to whom the Software is furnished to do so, subject</span>
+<span class="c1"># to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included</span>
+<span class="c1"># in all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS</span>
+<span class="c1"># IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED</span>
+<span class="c1"># TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A</span>
+<span class="c1"># PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER</span>
+<span class="c1"># OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,</span>
+<span class="c1"># EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,</span>
+<span class="c1"># PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR</span>
+<span class="c1"># PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF</span>
+<span class="c1"># LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING</span>
+<span class="c1"># NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c1"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This file contains i/o headers for the SimVascular 1D solver (https://github.com/SimVascular/oneDSolver).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="Headers"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_headers.Headers">[docs]</a><span class="k">class</span> <span class="nc">Headers</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Collection of headers of all oneDSolver input-file sections</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">node</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;#&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ==========&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# NODE CARD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ==========&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Node Name (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Node X Coordinate (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Node Y Coordinate (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Node Z Coordinate (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+    <span class="n">joint1</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;#&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ==========&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# JOINT CARD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ==========&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Joint Name (string)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Joint Node (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Joint Inlet Name (string)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Joint Outlet Name (string)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+    <span class="n">joint2</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;#&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ================================&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# JOINTINLET AND JOINTOUTLET CARDS&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ================================&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Inlet/Outlet Name (string)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Total Number of segments (int)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - List of segments (list of int)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+    <span class="n">segment</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;# ============&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# SEGMENT CARD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ============&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Segment Name (string)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Segment ID (int)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Segment Length (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Total Finite Elements in Segment (int)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Segment Inlet Node (int)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Segment Outlet Node (int)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Segment Inlet Area (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Segment Outlet Area (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Segment Inflow Value (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Segment Material (string)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Type of Loss (string - &#39;NONE&#39;,&#39;STENOSIS&#39;,&#39;BRANCH_THROUGH_DIVIDING&#39;,&#39;BRANCH_SIDE_DIVIDING&#39;,&#39;BRANCH_THROUGH_CONVERGING&#39;,&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;#                          &#39;BRANCH_SIDE_CONVERGING&#39;,&#39;BIFURCATION_BRANCH&#39;)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Branch Angle (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Upstream Segment ID (int)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Branch Segment ID (int)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Boundary Condition Type (string - &#39;NOBOUND&#39;,&#39;PRESSURE&#39;,&#39;AREA&#39;,&#39;FLOW&#39;,&#39;RESISTANCE&#39;,&#39;RESISTANCE_TIME&#39;,&#39;PRESSURE_WAVE&#39;,&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;#                                     &#39;WAVE&#39;,&#39;RCR&#39;,&#39;CORONARY&#39;,&#39;IMPEDANCE&#39;,&#39;PULMONARY&#39;)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Data Table Name (string)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+    <span class="n">solveroptions</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;# ==================&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# SOLVEROPTIONS CARD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ==================&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Solver Time Step (double), &quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Steps Between Saves (int), &quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Max Number of Steps (int)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Number of quadrature points for finite elements (int), &quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Name of Datatable for inlet conditions (string)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Type of boundary condition (string - &#39;NOBOUND&#39;,&#39;PRESSURE&#39;,&#39;AREA&#39;,&#39;FLOW&#39;,&#39;RESISTANCE&#39;,&#39;RESISTANCE_TIME&#39;,&#39;PRESSURE_WAVE&#39;,&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;#                                        &#39;WAVE&#39;,&#39;RCR&#39;,&#39;CORONARY&#39;,&#39;IMPEDANCE&#39;,&#39;PULMONARY&#39;)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Convergence tolerance (double), &quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Formulation Type (int - 0 Advective, 1 Conservative), &quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Stabilization (int - 0 No stabilization, 1 With stabilization)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+    <span class="n">material</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;# =============&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# MATERIAL CARD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# =============&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Material Name (string)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Material Type (string - &#39;LINEAR&#39;,&#39;OLUFSEN&#39;)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Material Density (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Material Viscosity (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Material PRef (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Material Exponent (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Material Parameter 1 (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Material Parameter 2 (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Material Parameter 3 (double)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;# ============&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# OUTPUT CARD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ============&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;#&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# 1. Output file format. The following output types are supported:&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;#</span><span class="se">\t\t</span><span class="s2">TEXT. The output of every segment is written in separate text files for the flow rate, pressure, area and Reynolds number. The rows contain output values at varying locations along the segment while columns contains results at various time instants.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;#</span><span class="se">\t\t</span><span class="s2">VTK. The results for all time steps are plotted to a 3D-like model using the XML VTK file format.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# 2. VTK export option. Two options are available for VTK file outputs:&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;#</span><span class="se">\t\t</span><span class="s2">0 - Multiple files (default). A separate file is written for each saved increment. A pvd file is also provided which contains the time information of the sequence. This is the best option to create animations.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;#</span><span class="se">\t\t</span><span class="s2">1 - The results for all time steps are plotted to a single XML VTK file.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+    <span class="n">junction</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;#&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ==========&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# JUNCTION MODEL CARD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ==========&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - joint_name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - junction_type, i.e. NORMAL_JUNCTION, etc.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+    <span class="n">element</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;# =============&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ELEMENT CARD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# =============&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - 1d_segment_name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - 1d_segment_number / 0d_element_number&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - average_radius&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - length&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - blood_density&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - blood_dynamic_viscosity&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - Eh/r&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - inlet_node_number&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - outlet_node_number&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - vessel_vector_x_coor&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - vessel_vector_y_coor&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - vessel_vector_z_coor&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - boundary_condition_type&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - boundary_condition_datatable_name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - 0d_element_type, i.e. R, RC, RL, RCL, L, C, etc.&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - 0d_element_values in format of: R or R C or R L or R C L or L or C or blank for custom 0d elements&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+    <span class="n">inlet_bc</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;# ==============================&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# INLET BOUNDARY CONDITION CARD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ==============================&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - inlet_segment_number&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - inlet_boundary_condition_type&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - inlet_boundary_condition_datatable_name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+    <span class="n">solveroptions_0d</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;# ==================&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# SOLVEROPTIONS_0D CARD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# ==================&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - number_of_time_pts_per_cardiac_cycle (int)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;# - number_of_cardiac_cycles (int)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Headers.model"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_headers.Headers.model">[docs]</a>    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write model header</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;# ================================&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;# &quot;</span> <span class="o">+</span> <span class="n">model_name</span> <span class="o">+</span> <span class="s2">&quot; MODEL - UNITS IN CGS&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;# ================================&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;# ==========&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;# MODEL CARD&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;# ==========&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;# - Name of the model (string)&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                  <span class="s2">&quot;MODEL &quot;</span> <span class="o">+</span> <span class="n">model_name</span><span class="p">,</span>
+                  <span class="s2">&quot;&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">header</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.io_headers</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

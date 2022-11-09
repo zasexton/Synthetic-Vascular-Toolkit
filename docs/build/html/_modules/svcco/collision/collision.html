@@ -1,0 +1,684 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.collision.collision &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.collision.collision</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.collision.collision</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numba</span> <span class="k">as</span> <span class="nn">nb</span>
+<span class="kn">import</span> <span class="nn">vtk</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">.sphere_proximity</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">.obb</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">@nb.jit(nopython=True)</span>
+<span class="sd">def separating_axis(position,plane,U1,V1,W1,U2,V2,W2,U1_scale,</span>
+<span class="sd">                    V1_scale,W1_scale,U2_scale,V2_scale,W2_scale):</span>
+<span class="sd">    return np.abs(np.dot(position,plane)) &gt; (np.abs(np.dot(U1*U1_scale,plane))+</span>
+<span class="sd">                                             np.abs(np.dot(V1*V1_scale,plane))+</span>
+<span class="sd">                                             np.abs(np.dot(W1*W1_scale,plane))+</span>
+<span class="sd">                                             np.abs(np.dot(U2*U2_scale,plane))+</span>
+<span class="sd">                                             np.abs(np.dot(V2*V2_scale,plane))+</span>
+<span class="sd">                                             np.abs(np.dot(W2*W2_scale,plane)))</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">#@nb.jit(nopython=True)</span>
+<span class="sd">def obb2(data,edge):</span>
+<span class="sd">    C1 = (edge[0:3] + edge[3:6]) / 2</span>
+<span class="sd">    C2 = (data[:,0:3] + data[:,3:6]) / 2</span>
+<span class="sd">    Position = C2 - C1</span>
+
+<span class="sd">    # Basis vector construction</span>
+<span class="sd">    edge[12:15] = ((edge[3:6] - edge[0:3]) /</span>
+<span class="sd">                   np.linalg.norm(edge[3:6] -</span>
+<span class="sd">                                  edge[0:3]))</span>
+<span class="sd">    if edge[14] == -1:</span>
+<span class="sd">        edge[6:9] = np.array([-1,0,0])</span>
+<span class="sd">        edge[9:12] = np.array([0,-1,0])</span>
+<span class="sd">    else:</span>
+<span class="sd">        edge[6:9] = np.array([1-edge[12]**2/(1+edge[14]),</span>
+<span class="sd">                              (-edge[12]*edge[13])/(1+edge[14]),</span>
+<span class="sd">                              -edge[12]])</span>
+<span class="sd">        edge[9:12] = np.array([(-edge[12]*edge[13])/(1+edge[14]),</span>
+<span class="sd">                               1 - edge[13]**2/(1+edge[14]),</span>
+<span class="sd">                               -edge[13]])</span>
+<span class="sd">    result = []</span>
+<span class="sd">    for i in range(data.shape[0]):</span>
+<span class="sd">        # U1 axis</span>
+<span class="sd">        if separating_axis(Position[i,:],edge[6:9],edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # V1 axis</span>
+<span class="sd">        if separating_axis(Position[i,:],edge[9:12],edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # W1 axis</span>
+<span class="sd">        if separating_axis(Position[i,:],edge[12:15],edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # U2 axis</span>
+<span class="sd">        if separating_axis(Position[i,:],data[i,6:9],edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # V2 axis</span>
+<span class="sd">        if separating_axis(Position[i,:],data[i,9:12],edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # W2 axis</span>
+<span class="sd">        if separating_axis(Position[i,:],data[i,12:15],edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # Mixed Plane Separation Tests</span>
+<span class="sd">        # U1 X U2</span>
+<span class="sd">        plane = np.cross(edge[6:9],data[i,6:9])</span>
+<span class="sd">        if separating_axis(Position[i,:],plane,edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # U1 X V2</span>
+<span class="sd">        plane = np.cross(edge[6:9],data[i,9:12])</span>
+<span class="sd">        if separating_axis(Position[i,:],plane,edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # U1 X W2</span>
+<span class="sd">        plane = np.cross(edge[6:9],data[i,12:15])</span>
+<span class="sd">        if separating_axis(Position[i,:],plane,edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # V1 X U2</span>
+<span class="sd">        plane = np.cross(edge[9:12],data[i,6:9])</span>
+<span class="sd">        if separating_axis(Position[i,:],plane,edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # V1 X V2</span>
+<span class="sd">        plane = np.cross(edge[9:12],data[i,9:12])</span>
+<span class="sd">        if separating_axis(Position[i,:],plane,edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # V1 X W2</span>
+<span class="sd">        plane = np.cross(edge[9:12],data[i,12:15])</span>
+<span class="sd">        if separating_axis(Position[i,:],plane,edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # W1 X U2</span>
+<span class="sd">        plane = np.cross(edge[12:15],data[i,6:9])</span>
+<span class="sd">        if separating_axis(Position[i,:],plane,edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # W1 X V2</span>
+<span class="sd">        plane = np.cross(edge[12:15],data[i,9:12])</span>
+<span class="sd">        if separating_axis(Position[i,:],plane,edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        # W1 X W2</span>
+<span class="sd">        plane = np.cross(edge[12:15],data[i,12:15])</span>
+<span class="sd">        if separating_axis(Position[i,:],plane,edge[6:9],edge[9:12],edge[12:15],</span>
+<span class="sd">                           data[i,6:9],data[i,9:12],data[i,12:15],edge[21],edge[21],</span>
+<span class="sd">                           edge[20]/2,data[i,21],data[i,21],data[i,20]/2):</span>
+<span class="sd">            result.append(False)</span>
+<span class="sd">            continue</span>
+<span class="sd">        else:</span>
+<span class="sd">            pass</span>
+<span class="sd">            #return True</span>
+<span class="sd">    return False</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="collision_free"><a class="viewcode-back" href="../../../svcco.collision.html#svcco.collision.collision.collision_free">[docs]</a><span class="k">def</span> <span class="nf">collision_free</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">results</span><span class="p">,</span><span class="n">idx</span><span class="p">,</span><span class="n">terminal</span><span class="p">,</span><span class="n">vessel</span><span class="p">,</span><span class="n">radius_buffer</span><span class="p">):</span>
+    <span class="c1"># proximal = 0</span>
+    <span class="c1"># distal   = 1</span>
+    <span class="c1"># terminal = 2</span>
+    <span class="n">new_vessels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="o">*-</span><span class="mi">1</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">5</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">vessel</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">new_vessels</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span>  <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">radius_buffer</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">new_vessels</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span>  <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span><span class="o">*</span><span class="n">results</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">radius_buffer</span>
+        <span class="n">new_vessels</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">17</span><span class="p">]</span>  <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">17</span><span class="p">]</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">5</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span>  <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span><span class="o">*</span><span class="n">results</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">radius_buffer</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">15</span><span class="p">:</span><span class="mi">17</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">15</span><span class="p">:</span><span class="mi">17</span><span class="p">]</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">17</span><span class="p">]</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">(</span><span class="n">vessel</span><span class="p">)</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">5</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">terminal</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span>  <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span><span class="o">*</span><span class="n">results</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="n">radius_buffer</span>
+    <span class="n">new_vessels</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">17</span><span class="p">]</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">(</span><span class="n">vessel</span><span class="p">)</span>
+    <span class="c1">#print(new_vessels[:,-1])</span>
+    <span class="n">vessel_parent</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">17</span><span class="p">]</span>
+    <span class="n">vessel_child1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">15</span><span class="p">]</span>
+    <span class="n">vessel_child2</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">16</span><span class="p">]</span>
+    <span class="n">vessel_sister_i</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_parent</span><span class="p">),</span><span class="mi">15</span><span class="p">]</span>
+    <span class="n">vessel_sister_j</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_parent</span><span class="p">),</span><span class="mi">16</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">new_vessels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="c1">##Check Self</span>
+        <span class="c1">#start = time.time()</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">sphere_proximity</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span>
+        <span class="c1">#print(time.time()-start)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="n">vessel</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="n">vessel</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_parent</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_parent</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_child1</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_child1</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_child2</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_child2</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_sister_i</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_sister_i</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_sister_j</span><span class="p">)))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">vessel_sister_j</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            <span class="c1">#print(&#39;self&#39;)</span>
+        <span class="c1">#Check Parent</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">17</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">17</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            <span class="c1">#print(&#39;parent&#39;)</span>
+        <span class="c1">#Check Children</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">15</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">15</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            <span class="c1">#print(&#39;children&#39;)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">16</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">16</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            <span class="c1">#print(&#39;children&#39;)</span>
+        <span class="c1">#Check Sister</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">17</span><span class="p">])</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">17</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">15</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">15</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">16</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">16</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+                <span class="c1">#print(&#39;sister&#39;)</span>
+        <span class="c1">#else:</span>
+        <span class="c1">#    if len(np.argwhere(n==int(new_vessels[i,-1]))) &gt; 0:</span>
+        <span class="c1">#        n = np.delete(n,np.argwhere(n==int(new_vessels[i,-1])).flatten())</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">obb</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">,:],</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,:]):</span>
+                <span class="c1">#print(n)</span>
+                <span class="c1">#print(new_vessels[:,-1])</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                colors = vtk.vtkNamedColors()</span>
+<span class="sd">                models = []</span>
+<span class="sd">                actors = []</span>
+<span class="sd">                background_color=&#39;white&#39;</span>
+<span class="sd">                resolution=100</span>
+<span class="sd">                center = tuple((new_vessels[i,0:3] + new_vessels[i,3:6])/2)</span>
+<span class="sd">                radius = new_vessels[i,21]</span>
+<span class="sd">                direction = tuple(new_vessels[i,12:15])</span>
+<span class="sd">                vessel_length = new_vessels[i,20]</span>
+<span class="sd">                cyl = vtk.vtkTubeFilter()</span>
+<span class="sd">                line = vtk.vtkLineSource()</span>
+<span class="sd">                line.SetPoint1(new_vessels[i,0],new_vessels[i,1],new_vessels[i,2])</span>
+<span class="sd">                line.SetPoint2(new_vessels[i,3],new_vessels[i,4],new_vessels[i,5])</span>
+<span class="sd">                cyl.SetInputConnection(line.GetOutputPort())</span>
+<span class="sd">                cyl.SetRadius(radius)</span>
+<span class="sd">                cyl.SetNumberOfSides(resolution)</span>
+<span class="sd">                models.append(cyl)</span>
+<span class="sd">                mapper = vtk.vtkPolyDataMapper()</span>
+<span class="sd">                actor  = vtk.vtkActor()</span>
+<span class="sd">                mapper.SetInputConnection(cyl.GetOutputPort())</span>
+<span class="sd">                actor.SetMapper(mapper)</span>
+<span class="sd">                actor.GetProperty().SetColor(colors.GetColor3d(&#39;green&#39;))</span>
+<span class="sd">                actors.append(actor)</span>
+<span class="sd">                for edge in n:</span>
+<span class="sd">                    center = tuple((data[edge,0:3] + data[edge,3:6])/2)</span>
+<span class="sd">                    radius = data[edge,21]</span>
+<span class="sd">                    direction = tuple(data[edge,12:15])</span>
+<span class="sd">                    vessel_length = data[edge,20]</span>
+<span class="sd">                    cyl = vtk.vtkTubeFilter()</span>
+<span class="sd">                    line = vtk.vtkLineSource()</span>
+<span class="sd">                    line.SetPoint1(data[edge,0],data[edge,1],data[edge,2])</span>
+<span class="sd">                    line.SetPoint2(data[edge,3],data[edge,4],data[edge,5])</span>
+<span class="sd">                    cyl.SetInputConnection(line.GetOutputPort())</span>
+<span class="sd">                    cyl.SetRadius(radius)</span>
+<span class="sd">                    cyl.SetNumberOfSides(resolution)</span>
+<span class="sd">                    models.append(cyl)</span>
+<span class="sd">                    mapper = vtk.vtkPolyDataMapper()</span>
+<span class="sd">                    actor  = vtk.vtkActor()</span>
+<span class="sd">                    mapper.SetInputConnection(cyl.GetOutputPort())</span>
+<span class="sd">                    actor.SetMapper(mapper)</span>
+<span class="sd">                    if edge in n:</span>
+<span class="sd">                        #print(&#39;True&#39;)</span>
+<span class="sd">                        actor.GetProperty().SetColor(colors.GetColor3d(&#39;blue&#39;))</span>
+<span class="sd">                    if edge == int(new_vessels[i,-1]):</span>
+<span class="sd">                        print(edge)</span>
+<span class="sd">                        actor.GetProperty().SetColor(colors.GetColor3d(&#39;green&#39;))</span>
+<span class="sd">                    else:</span>
+<span class="sd">                        actor.GetProperty().SetColor(colors.GetColor3d(&#39;red&#39;))</span>
+<span class="sd">                    actors.append(actor)</span>
+<span class="sd">                renderer = vtk.vtkRenderer()</span>
+<span class="sd">                renderer.SetBackground(colors.GetColor3d(background_color))</span>
+
+<span class="sd">                render_window = vtk.vtkRenderWindow()</span>
+<span class="sd">                render_window.AddRenderer(renderer)</span>
+<span class="sd">                render_window.SetWindowName(&#39;SimVascular Vessel Collision&#39;)</span>
+
+<span class="sd">                interactor = vtk.vtkRenderWindowInteractor()</span>
+<span class="sd">                interactor.SetRenderWindow(render_window)</span>
+<span class="sd">                for actor in actors:</span>
+<span class="sd">                     renderer.AddActor(actor)</span>
+
+<span class="sd">                render_window.Render()</span>
+<span class="sd">                interactor.Start()</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="no_outside_collision"><a class="viewcode-back" href="../../../svcco.collision.html#svcco.collision.collision.no_outside_collision">[docs]</a><span class="k">def</span> <span class="nf">no_outside_collision</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span><span class="n">outside_vessels</span><span class="p">,</span><span class="n">radius_buffer</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">outside_vessels</span><span class="p">[:,</span><span class="mi">21</span><span class="p">]</span> <span class="o">+=</span> <span class="n">radius_buffer</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">outside_vessels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">sphere_proximity</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">data</span><span class="p">,</span><span class="n">outside_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">obb</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">n</span><span class="p">,:],</span><span class="n">outside_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,:]):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="collision_free_fd"><a class="viewcode-back" href="../../../svcco.collision.html#svcco.collision.collision.collision_free_fd">[docs]</a><span class="k">def</span> <span class="nf">collision_free_fd</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">vessel</span><span class="p">):</span>
+    <span class="n">ii</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">2</span><span class="p">)))</span>
+    <span class="n">ii</span>       <span class="o">=</span> <span class="n">ii</span><span class="p">[</span><span class="n">ii</span><span class="o">!=</span><span class="n">vessel</span><span class="p">]</span>
+    <span class="n">tree</span>     <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">,:]</span>
+    <span class="n">new</span>      <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:,:]</span>
+    <span class="n">proximal</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,:]</span>
+    <span class="n">new_vessels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">new</span><span class="p">,</span><span class="n">proximal</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">new_vessels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="c1">##Check Self</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">sphere_proximity</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="c1">#Check Parent</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">17</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">17</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="c1">#Check Children</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">15</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">15</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">16</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">16</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="c1">#Check Sister</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">17</span><span class="p">])</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">17</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">15</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">15</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">16</span><span class="p">])))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">n</span><span class="o">==</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">16</span><span class="p">]))</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="c1">#else:</span>
+        <span class="c1">#    if len(np.argwhere(n==int(new_vessels[i,-1]))) &gt; 0:</span>
+        <span class="c1">#        n = np.delete(n,np.argwhere(n==int(new_vessels[i,-1])).flatten())</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">obb</span><span class="p">(</span><span class="n">tree</span><span class="p">[</span><span class="n">n</span><span class="p">,:],</span><span class="n">new_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,:]):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                colors = vtk.vtkNamedColors()</span>
+<span class="sd">                models = []</span>
+<span class="sd">                actors = []</span>
+<span class="sd">                background_color=&#39;white&#39;</span>
+<span class="sd">                resolution=100</span>
+<span class="sd">                for edge in range(new_vessels.shape[0]):</span>
+<span class="sd">                    center = tuple((new_vessels[edge,0:3] + new_vessels[edge,3:6])/2)</span>
+<span class="sd">                    radius = new_vessels[edge,21]</span>
+<span class="sd">                    direction = tuple(new_vessels[edge,12:15])</span>
+<span class="sd">                    vessel_length = new_vessels[edge,20]</span>
+<span class="sd">                    cyl = vtk.vtkTubeFilter()</span>
+<span class="sd">                    line = vtk.vtkLineSource()</span>
+<span class="sd">                    line.SetPoint1(new_vessels[edge,0],new_vessels[edge,1],new_vessels[edge,2])</span>
+<span class="sd">                    line.SetPoint2(new_vessels[edge,3],new_vessels[edge,4],new_vessels[edge,5])</span>
+<span class="sd">                    cyl.SetInputConnection(line.GetOutputPort())</span>
+<span class="sd">                    cyl.SetRadius(radius)</span>
+<span class="sd">                    cyl.SetNumberOfSides(resolution)</span>
+<span class="sd">                    models.append(cyl)</span>
+<span class="sd">                    mapper = vtk.vtkPolyDataMapper()</span>
+<span class="sd">                    actor  = vtk.vtkActor()</span>
+<span class="sd">                    mapper.SetInputConnection(cyl.GetOutputPort())</span>
+<span class="sd">                    actor.SetMapper(mapper)</span>
+<span class="sd">                    actor.GetProperty().SetColor(colors.GetColor3d(&#39;red&#39;))</span>
+<span class="sd">                    actors.apend(actor)</span>
+<span class="sd">                for edge in n:</span>
+<span class="sd">                    center = tuple((data[edge,0:3] + data[edge,3:6])/2)</span>
+<span class="sd">                    radius = data[edge,21]</span>
+<span class="sd">                    direction = tuple(data[edge,12:15])</span>
+<span class="sd">                    vessel_length = data[edge,20]</span>
+<span class="sd">                    cyl = vtk.vtkTubeFilter()</span>
+<span class="sd">                    line = vtk.vtkLineSource()</span>
+<span class="sd">                    line.SetPoint1(data[edge,0],data[edge,1],data[edge,2])</span>
+<span class="sd">                    line.SetPoint2(data[edge,3],data[edge,4],data[edge,5])</span>
+<span class="sd">                    cyl.SetInputConnection(line.GetOutputPort())</span>
+<span class="sd">                    cyl.SetRadius(radius)</span>
+<span class="sd">                    cyl.SetNumberOfSides(resolution)</span>
+<span class="sd">                    models.append(cyl)</span>
+<span class="sd">                    mapper = vtk.vtkPolyDataMapper()</span>
+<span class="sd">                    actor  = vtk.vtkActor()</span>
+<span class="sd">                    mapper.SetInputConnection(cyl.GetOutputPort())</span>
+<span class="sd">                    actor.SetMapper(mapper)</span>
+<span class="sd">                    if edge in n:</span>
+<span class="sd">                        actor.GetProperty().SetColor(colors.GetColor3d(&#39;blue&#39;))</span>
+<span class="sd">                    if edge == int(new_vessels[i,-1]):</span>
+<span class="sd">                        actor.GetProperty().SetColor(colors.GetColor3d(&#39;green&#39;))</span>
+<span class="sd">                    else:</span>
+<span class="sd">                        actor.GetProperty().SetColor(colors.GetColor3d(&#39;red&#39;))</span>
+<span class="sd">                    actors.append(actor)</span>
+<span class="sd">                renderer = vtk.vtkRenderer()</span>
+<span class="sd">                renderer.SetBackground(colors.GetColor3d(background_color))</span>
+
+<span class="sd">                render_window = vtk.vtkRenderWindow()</span>
+<span class="sd">                render_window.AddRenderer(renderer)</span>
+<span class="sd">                render_window.SetWindowName(&#39;SimVascular Vessel Collision&#39;)</span>
+
+<span class="sd">                interactor = vtk.vtkRenderWindowInteractor()</span>
+<span class="sd">                interactor.SetRenderWindow(render_window)</span>
+<span class="sd">                for actor in actors:</span>
+<span class="sd">                     renderer.AddActor(actor)</span>
+
+<span class="sd">                render_window.Render()</span>
+<span class="sd">                interactor.Start()</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="line_distance"><a class="viewcode-back" href="../../../svcco.collision.html#svcco.collision.collision.line_distance">[docs]</a><span class="k">def</span> <span class="nf">line_distance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">edge</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">data</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">-</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">-</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">-</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span><span class="n">edge</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">-</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">-</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],</span><span class="n">edge</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">-</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">data</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">-</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">-</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">edge</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">-</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">],(</span><span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">-</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">f00</span> <span class="o">=</span> <span class="n">d</span>
+    <span class="n">f10</span> <span class="o">=</span> <span class="n">f00</span> <span class="o">+</span> <span class="n">a</span>
+    <span class="n">f01</span> <span class="o">=</span> <span class="n">f00</span> <span class="o">+</span> <span class="n">b</span>
+    <span class="n">f11</span> <span class="o">=</span> <span class="n">f10</span> <span class="o">-</span> <span class="n">b</span>
+
+    <span class="n">g00</span> <span class="o">=</span> <span class="o">-</span><span class="n">e</span>
+    <span class="n">g10</span> <span class="o">=</span> <span class="n">g00</span> <span class="o">-</span> <span class="n">b</span>
+    <span class="n">g01</span> <span class="o">=</span> <span class="n">g00</span> <span class="o">+</span> <span class="n">c</span>
+    <span class="n">g11</span> <span class="o">=</span> <span class="n">g10</span> <span class="o">+</span> <span class="n">c</span>
+
+    <span class="n">p0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">f00</span><span class="p">),</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">f00</span><span class="p">),</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">f00</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f00</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">a</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">clamped_root</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">f00</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">f10</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">clamped_root</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">f01</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">f11</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="n">idd</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">idd</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">s</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">idd</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">idd</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">idd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">idd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">clamped_root</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">g00</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">g01</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">idd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">idd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">clamped_root</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">g10</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">g11</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ed</span><span class="p">,</span><span class="n">M</span> <span class="o">=</span> <span class="n">line_intersection</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">idd</span><span class="p">,</span><span class="n">f10</span><span class="o">=</span><span class="n">f10</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">f00</span><span class="o">=</span><span class="n">f00</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">b</span><span class="o">=</span><span class="n">b</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                <span class="n">parameters</span> <span class="o">=</span> <span class="n">find_minimum</span><span class="p">(</span><span class="n">ed</span><span class="p">,</span><span class="n">M</span><span class="p">,</span><span class="n">b</span><span class="o">=</span><span class="n">b</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="p">,</span><span class="n">e</span><span class="o">=</span><span class="n">e</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">g00</span><span class="o">=</span><span class="n">g00</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>
+                                          <span class="n">g01</span><span class="o">=</span><span class="n">g01</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">g10</span><span class="o">=</span><span class="n">g10</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">g11</span><span class="o">=</span><span class="n">g11</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">a</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">clamped_root</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">f00</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">f10</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">clamped_root</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">g00</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="n">g01</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">p0</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">data</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+        <span class="n">p1</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">edge</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+        <span class="n">dist</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span><span class="o">-</span><span class="n">p1</span><span class="p">[</span><span class="n">j</span><span class="p">,:])))</span>
+    <span class="k">return</span> <span class="n">p0</span><span class="p">,</span><span class="n">p1</span><span class="p">,</span><span class="n">dist</span></div>
+
+<div class="viewcode-block" id="clamped_root"><a class="viewcode-back" href="../../../svcco.collision.html#svcco.collision.collision.clamped_root">[docs]</a><span class="k">def</span> <span class="nf">clamped_root</span><span class="p">(</span><span class="n">slope</span><span class="p">,</span><span class="n">h0</span><span class="p">,</span><span class="n">h1</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">h0</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">h1</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="o">-</span><span class="n">h0</span><span class="o">/</span><span class="n">slope</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">r</span></div>
+
+<div class="viewcode-block" id="line_intersection"><a class="viewcode-back" href="../../../svcco.collision.html#svcco.collision.collision.line_intersection">[docs]</a><span class="k">def</span> <span class="nf">line_intersection</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="nb">id</span><span class="p">,</span><span class="n">f10</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">f00</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">b</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">edge</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">id</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">f00</span><span class="o">/</span><span class="n">b</span>
+        <span class="k">if</span> <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="k">if</span> <span class="nb">id</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">f10</span><span class="o">/</span><span class="n">b</span>
+            <span class="k">if</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="k">elif</span> <span class="nb">id</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="nb">id</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">f00</span><span class="o">/</span><span class="n">b</span>
+            <span class="k">if</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="k">elif</span> <span class="nb">id</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">f10</span><span class="o">/</span><span class="n">b</span>
+            <span class="k">if</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">f10</span><span class="o">/</span><span class="n">b</span>
+        <span class="k">if</span> <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="k">if</span> <span class="nb">id</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">f00</span><span class="o">/</span><span class="n">b</span>
+            <span class="k">if</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="k">return</span> <span class="n">edge</span><span class="p">,</span> <span class="n">M</span></div>
+
+
+<div class="viewcode-block" id="find_minimum"><a class="viewcode-back" href="../../../svcco.collision.html#svcco.collision.collision.find_minimum">[docs]</a><span class="k">def</span> <span class="nf">find_minimum</span><span class="p">(</span><span class="n">edge</span><span class="p">,</span><span class="n">M</span><span class="p">,</span><span class="n">b</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">c</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">e</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">g00</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">g01</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">g10</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">g11</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">h0</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">b</span> <span class="o">*</span> <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">c</span><span class="o">*</span><span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">e</span><span class="p">)</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">h0</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">clamped_root</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">g00</span><span class="p">,</span><span class="n">g01</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">edge</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">clamped_root</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">g10</span><span class="p">,</span><span class="n">g11</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">h1</span> <span class="o">=</span> <span class="n">delta</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="n">b</span> <span class="o">*</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">c</span><span class="o">*</span><span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">h1</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">clamped_root</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">g00</span><span class="p">,</span><span class="n">g01</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">edge</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">clamped_root</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">g10</span><span class="p">,</span><span class="n">g11</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">h0</span><span class="o">/</span><span class="p">(</span><span class="n">h0</span><span class="o">-</span><span class="n">h1</span><span class="p">),</span><span class="mi">0</span><span class="p">),</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">mk</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">k</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">mk</span><span class="o">*</span><span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">k</span><span class="o">*</span><span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">parameters</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mk</span><span class="o">*</span><span class="n">M</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">k</span><span class="o">*</span><span class="n">M</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">parameters</span></div>
+
+<div class="viewcode-block" id="pairwise_tree_collisions"><a class="viewcode-back" href="../../../svcco.collision.html#svcco.collision.collision.pairwise_tree_collisions">[docs]</a><span class="k">def</span> <span class="nf">pairwise_tree_collisions</span><span class="p">(</span><span class="n">tree1_data</span><span class="p">,</span><span class="n">tree2_data</span><span class="p">,</span><span class="n">radius_buffer</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">outside_vessels</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">tree2_data</span><span class="p">)</span>
+    <span class="n">outside_vessels</span><span class="p">[:,</span><span class="mi">21</span><span class="p">]</span> <span class="o">+=</span> <span class="n">radius_buffer</span>
+    <span class="n">pairs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">outside_vessels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">sphere_proximity</span><span class="p">(</span><span class="n">tree1_data</span><span class="p">,</span><span class="n">outside_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">obbc</span><span class="p">(</span><span class="n">tree1_data</span><span class="p">[</span><span class="n">n</span><span class="p">,:],</span><span class="n">outside_vessels</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                    <span class="n">pairs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">r</span><span class="p">,</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">pairs</span></div>
+
+<div class="viewcode-block" id="fix_suggestions"><a class="viewcode-back" href="../../../svcco.collision.html#svcco.collision.collision.fix_suggestions">[docs]</a><span class="k">def</span> <span class="nf">fix_suggestions</span><span class="p">(</span><span class="n">tree1_data</span><span class="p">,</span><span class="n">tree2_data</span><span class="p">,</span><span class="n">radius_buffer</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="n">pairs</span> <span class="o">=</span> <span class="n">pairwise_tree_collisions</span><span class="p">(</span><span class="n">tree1_data</span><span class="p">,</span><span class="n">tree2_data</span><span class="p">,</span><span class="n">radius_buffer</span><span class="o">=</span><span class="n">radius_buffer</span><span class="p">)</span>
+    <span class="n">pair_points</span>     <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">pair_lengths</span>    <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">pair_adjustment</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">pair_vectors</span>    <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">pr</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">:</span>
+        <span class="n">p0</span><span class="p">,</span><span class="n">p1</span><span class="p">,</span><span class="n">length</span> <span class="o">=</span> <span class="n">line_distance</span><span class="p">(</span><span class="n">tree1_data</span><span class="p">[</span><span class="n">pr</span><span class="p">[</span><span class="mi">0</span><span class="p">],:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="n">tree2_data</span><span class="p">[</span><span class="n">pr</span><span class="p">[</span><span class="mi">1</span><span class="p">],:])</span>
+        <span class="n">pair_points</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">p0</span><span class="p">,</span><span class="n">p1</span><span class="p">])</span>
+        <span class="n">pair_lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+        <span class="n">pair_adjustment</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">abs</span><span class="p">(</span><span class="n">tree1_data</span><span class="p">[</span><span class="n">pr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">21</span><span class="p">]</span><span class="o">+</span><span class="n">tree2_data</span><span class="p">[</span><span class="n">pr</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mi">21</span><span class="p">]</span><span class="o">+</span><span class="n">radius_buffer</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>
+                                <span class="nb">abs</span><span class="p">(</span><span class="n">tree1_data</span><span class="p">[</span><span class="n">pr</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">21</span><span class="p">]</span><span class="o">+</span><span class="n">tree2_data</span><span class="p">[</span><span class="n">pr</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="mi">21</span><span class="p">]</span><span class="o">+</span><span class="n">radius_buffer</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">pair_vectors</span><span class="o">.</span><span class="n">append</span><span class="p">([(</span><span class="n">p0</span><span class="o">-</span><span class="n">p1</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p0</span><span class="o">-</span><span class="n">p1</span><span class="p">),(</span><span class="n">p1</span><span class="o">-</span><span class="n">p0</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p1</span><span class="o">-</span><span class="n">p0</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">pairs</span><span class="p">,</span><span class="n">pair_points</span><span class="p">,</span><span class="n">pair_lengths</span><span class="p">,</span><span class="n">pair_adjustment</span><span class="p">,</span><span class="n">pair_vectors</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.collision.collision</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

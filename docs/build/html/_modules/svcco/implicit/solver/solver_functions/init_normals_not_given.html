@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.implicit.solver.solver_functions.init_normals_not_given &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/classic.css" />
+    
+    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.implicit.solver.solver_functions.init_normals_not_given</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.implicit.solver.solver_functions.init_normals_not_given</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">...core.h_matrix</span> <span class="kn">import</span> <span class="n">H</span>
+<span class="kn">from</span> <span class="nn">...core.utils</span> <span class="kn">import</span> <span class="n">norm</span>
+
+<div class="viewcode-block" id="init_normals_not_given"><a class="viewcode-back" href="../../../../../svcco.implicit.solver.solver_functions.html#svcco.implicit.solver.solver_functions.init_normals_not_given.init_normals_not_given">[docs]</a><span class="k">def</span> <span class="nf">init_normals_not_given</span><span class="p">(</span><span class="n">lam</span><span class="p">,</span><span class="n">K00</span><span class="p">,</span><span class="n">K01</span><span class="p">,</span><span class="n">K11</span><span class="p">):</span>
+    <span class="n">H_matrix</span> <span class="o">=</span> <span class="n">H</span><span class="p">(</span><span class="n">K00</span><span class="p">,</span><span class="n">K01</span><span class="p">,</span><span class="n">K11</span><span class="p">,</span><span class="n">lam</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">K00</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">K11</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">//</span><span class="n">n</span>
+    <span class="n">w</span><span class="p">,</span><span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">H_matrix</span><span class="p">)</span>
+    <span class="n">rw</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">real</span>
+    <span class="n">eh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">rw</span><span class="p">)</span>
+    <span class="n">g0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">d</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="c1">#for j in range(d):</span>
+        <span class="c1">#    g0[i,j] = np.real(v[eh,i+n*j])</span>
+        <span class="c1">#mag = np.linalg.norm(g0[i,:])</span>
+        <span class="c1">#for j in range(d):</span>
+        <span class="c1">#    g0[i,j] = g0[i,j]/mag</span>
+        <span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">eh</span><span class="p">,</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">eh</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">])</span>
+        <span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="n">eh</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="o">*</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">norms</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span>
+        <span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">norms</span>
+        <span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">norms</span>
+        <span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">norms</span>
+    <span class="n">init_norms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="o">*</span><span class="p">(</span><span class="n">d</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="c1">#for i in range(n):</span>
+    <span class="c1">#    for j in range(d-1):</span>
+    <span class="c1">#        if j == d - 1:</span>
+    <span class="c1">#            if ic_norms[i,j] &gt;= 0:</span>
+    <span class="c1">#                init_norms[i*(d-1)+j] = np.arccos(g0[i,j]/np.linalg.norm(g0[i,j:]))</span>
+    <span class="c1">#            else:</span>
+    <span class="c1">#                init_norms[i*(d-1)+j] = 2*np.pi - np.arccos(g0[i,j]/np.linalg.norm(g0[i,j:]))</span>
+    <span class="c1">#        else:</span>
+    <span class="c1">#            init_norms[i*(d-1)+j] = np.arccos(g0[i,j]/np.linalg.norm(g0[i,j:]))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">K00</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">init_norms</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">((</span><span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span><span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">init_norms</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">g0</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">init_norms</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.implicit.solver.solver_functions.init_normals_not_given</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

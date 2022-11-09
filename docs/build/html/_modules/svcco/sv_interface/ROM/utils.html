@@ -1,0 +1,247 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.sv_interface.ROM.utils &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css" />
+    
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.utils</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.sv_interface.ROM.utils</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Stanford University, The Regents of the University of</span>
+<span class="c1">#               California, and others.</span>
+<span class="c1">#</span>
+<span class="c1"># All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># See Copyright-SimVascular.txt for additional details.</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining</span>
+<span class="c1"># a copy of this software and associated documentation files (the</span>
+<span class="c1"># &quot;Software&quot;), to deal in the Software without restriction, including</span>
+<span class="c1"># without limitation the rights to use, copy, modify, merge, publish,</span>
+<span class="c1"># distribute, sublicense, and/or sell copies of the Software, and to</span>
+<span class="c1"># permit persons to whom the Software is furnished to do so, subject</span>
+<span class="c1"># to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included</span>
+<span class="c1"># in all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS</span>
+<span class="c1"># IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED</span>
+<span class="c1"># TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A</span>
+<span class="c1"># PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER</span>
+<span class="c1"># OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,</span>
+<span class="c1"># EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,</span>
+<span class="c1"># PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR</span>
+<span class="c1"># PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF</span>
+<span class="c1"># LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING</span>
+<span class="c1"># NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c1"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The module contains utilities used to read files, calculate centers, etc.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">vtk</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">.manage</span> <span class="kn">import</span> <span class="n">get_logger_name</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">get_logger_name</span><span class="p">())</span>
+
+<span class="n">SurfaceFileFormats</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;vtk&quot;</span><span class="p">,</span> <span class="s2">&quot;vtp&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="read_surface"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.utils.read_surface">[docs]</a><span class="k">def</span> <span class="nf">read_surface</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_format</span><span class="o">=</span><span class="s2">&quot;vtp&quot;</span><span class="p">,</span> <span class="n">datatype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read surface geometry from a file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file_name (str): Path to input file.</span>
+<span class="sd">        file_format (str): File format (.vtp, .stl, etc.). </span>
+<span class="sd">        datatype (str): Additional parameter for vtkIdList objects.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        polyData (vtkSTL/vtkPolyData/vtkXMLStructured/</span>
+<span class="sd">                    vtkXMLRectilinear/vtkXMLPolydata/vtkXMLUnstructured/</span>
+<span class="sd">                    vtkXMLImage/Tecplot): Output data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check if file exists</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Could not find file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">file_name</span><span class="p">)</span>
+
+    <span class="c1"># Get reader</span>
+    <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s1">&#39;stl&#39;</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkSTLReader</span><span class="p">()</span>
+        <span class="n">reader</span><span class="o">.</span><span class="n">MergingOn</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s1">&#39;vtk&#39;</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyDataReader</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s1">&#39;vtp&#39;</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkXMLPolyDataReader</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s1">&#39;vts&#39;</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkXMinkorporereLStructuredGridReader</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s1">&#39;vtr&#39;</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkXMLRectilinearGridReader</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s1">&#39;vtu&#39;</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkXMLUnstructuredGridReader</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;vti&quot;</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkXMLImageDataReader</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;np&quot;</span> <span class="ow">and</span> <span class="n">datatype</span> <span class="o">==</span> <span class="s2">&quot;vtkIdList&quot;</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="n">id_list</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkIdList</span><span class="p">()</span>
+        <span class="n">id_list</span><span class="o">.</span><span class="n">SetNumberOfIds</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">id_list</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">id_list</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Unknown file type </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">file_format</span><span class="p">)</span>
+
+    <span class="c1"># Read surface geometry.</span>
+    <span class="n">reader</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+    <span class="n">reader</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+    <span class="n">polydata</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">()</span>
+    <span class="n">polygons</span> <span class="o">=</span> <span class="n">polydata</span><span class="o">.</span><span class="n">GetPolys</span><span class="p">()</span>
+    <span class="n">num_polys</span> <span class="o">=</span> <span class="n">polygons</span><span class="o">.</span><span class="n">GetNumberOfCells</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">polydata</span></div>
+
+
+<div class="viewcode-block" id="write_polydata"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.utils.write_polydata">[docs]</a><span class="k">def</span> <span class="nf">write_polydata</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">datatype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; Write the given VTK object to a file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file_name (str): The name of the file to write. </span>
+<span class="sd">        data (vtkDataObject): Data to write.</span>
+<span class="sd">        datatype (str): Additional parameter for vtkIdList objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check filename format.</span>
+    <span class="n">file_ext</span> <span class="o">=</span> <span class="n">file_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">file_ext</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;The file does not have an extension&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Get writer.</span>
+    <span class="k">if</span> <span class="n">file_ext</span> <span class="o">==</span> <span class="s1">&#39;vtp&#39;</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkXMLPolyDataWriter</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">file_ext</span> <span class="o">==</span> <span class="s1">&#39;vtu&#39;</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkXMLUnstructuredGridWriter</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Unknown file type </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">file_ext</span><span class="p">)</span>
+
+    <span class="c1"># Set file name and the data to write.</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">SetInputData</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+
+    <span class="c1"># Write the data.</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">Write</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="read_polydata"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.utils.read_polydata">[docs]</a><span class="k">def</span> <span class="nf">read_polydata</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">datatype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Read a vtp file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file_name (str): The input polydata file. </span>
+<span class="sd">        datatype (str): Additional parameter for vtkIdList objects.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        polydata (vtkDataObject): Geometry read in from the input file. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Check if file exists.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Could not find file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">file_name</span><span class="p">)</span>
+
+    <span class="c1"># Check filename format.</span>
+    <span class="n">file_ext</span> <span class="o">=</span> <span class="n">file_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">file_ext</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;The file does not have an extension&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">file_ext</span> <span class="o">==</span> <span class="s1">&#39;vtp&#39;</span><span class="p">:</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkXMLPolyDataReader</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Unknown file type </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">file_ext</span><span class="p">)</span>
+
+    <span class="c1"># Read the vtkPolyData object.</span>
+    <span class="n">reader</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+    <span class="n">reader</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+    <span class="n">polydata</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">polydata</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.utils</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

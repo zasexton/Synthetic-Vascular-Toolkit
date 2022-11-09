@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.branch_addition.geodesic &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.branch_addition.geodesic</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.branch_addition.geodesic</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">vtk</span>
+<span class="kn">from</span> <span class="nn">vtk.util</span> <span class="kn">import</span> <span class="n">numpy_support</span>
+
+<div class="viewcode-block" id="extract_surface"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.geodesic.extract_surface">[docs]</a><span class="k">def</span> <span class="nf">extract_surface</span><span class="p">(</span><span class="n">msh</span><span class="p">):</span>
+    <span class="n">msh_vtk</span> <span class="o">=</span> <span class="n">numpy_support</span><span class="o">.</span><span class="n">numpy_to_vtk</span><span class="p">(</span><span class="n">msh</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPoints</span><span class="p">()</span>
+    <span class="n">pts</span><span class="o">.</span><span class="n">SetData</span><span class="p">(</span><span class="n">msh_vtk</span><span class="p">)</span>
+    <span class="n">poly</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyData</span><span class="p">()</span>
+    <span class="n">poly</span><span class="o">.</span><span class="n">SetPoints</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="n">poly</span><span class="o">.</span><span class="n">GetBounds</span><span class="p">()</span>
+    <span class="n">x_range</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">y_range</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">-</span><span class="n">bounds</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">z_range</span> <span class="o">=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">-</span><span class="n">bounds</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+
+    <span class="n">PCA</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPCANormalEstimation</span><span class="p">()</span>
+    <span class="n">PCA</span><span class="o">.</span><span class="n">SetInputData</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
+    <span class="n">PCA</span><span class="o">.</span><span class="n">SetSampleSize</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">PCA</span><span class="o">.</span><span class="n">SetNormalOrientationToGraphTraversal</span><span class="p">()</span>
+    <span class="n">PCA</span><span class="o">.</span><span class="n">FlipNormalsOn</span><span class="p">()</span>
+
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkSignedDistance</span><span class="p">()</span>
+    <span class="n">distance</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">PCA</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+    <span class="n">distance</span><span class="o">.</span><span class="n">SetRadius</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1">#distance.SetDimensions(256,256,256)</span>
+    <span class="n">distance</span><span class="o">.</span><span class="n">SetBounds</span><span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">x_range</span> <span class="o">*</span> <span class="mf">.1</span><span class="p">,</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">x_range</span> <span class="o">*</span> <span class="mf">.1</span><span class="p">,</span>
+                       <span class="n">bounds</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">y_range</span> <span class="o">*</span> <span class="mf">.1</span><span class="p">,</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">y_range</span> <span class="o">*</span> <span class="mf">.1</span><span class="p">,</span>
+                       <span class="n">bounds</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">-</span> <span class="n">z_range</span> <span class="o">*</span> <span class="mf">.1</span><span class="p">,</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="n">z_range</span> <span class="o">*</span> <span class="mf">.1</span><span class="p">)</span>
+    <span class="n">surf_extract</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkExtractSurface</span><span class="p">()</span>
+    <span class="n">surf_extract</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">distance</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+    <span class="n">surf_extract</span><span class="o">.</span><span class="n">SetRadius</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">surf_extract</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+    <span class="n">clean</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkCleanPolyData</span><span class="p">()</span>
+    <span class="n">clean</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">surf_extract</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+    <span class="n">clean</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+    <span class="n">tri</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkTriangleFilter</span><span class="p">()</span>
+    <span class="n">tri</span><span class="o">.</span><span class="n">SetInputConnection</span><span class="p">(</span><span class="n">clean</span><span class="o">.</span><span class="n">GetOutputPort</span><span class="p">())</span>
+    <span class="n">tri</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">tri</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="geodesic"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.geodesic.geodesic">[docs]</a><span class="k">def</span> <span class="nf">geodesic</span><span class="p">(</span><span class="n">polydata</span><span class="p">,</span><span class="n">proximal</span><span class="p">,</span><span class="n">distal</span><span class="p">,</span><span class="n">terminal</span><span class="p">,</span><span class="n">bifurcation</span><span class="p">):</span>
+
+    <span class="n">proximal_idx</span>     <span class="o">=</span> <span class="n">polydata</span><span class="o">.</span><span class="n">FindPoint</span><span class="p">(</span><span class="n">proximal</span><span class="p">)</span>
+    <span class="n">distal_idx</span>       <span class="o">=</span> <span class="n">polydata</span><span class="o">.</span><span class="n">FindPoint</span><span class="p">(</span><span class="n">distal</span><span class="p">)</span>
+    <span class="n">terminal_idx</span>     <span class="o">=</span> <span class="n">polydata</span><span class="o">.</span><span class="n">FindPoint</span><span class="p">(</span><span class="n">terminal</span><span class="p">)</span>
+    <span class="n">bifurcation_idx</span>  <span class="o">=</span> <span class="n">polydata</span><span class="o">.</span><span class="n">FindPoint</span><span class="p">(</span><span class="n">bifurcation</span><span class="p">)</span>
+
+    <span class="n">DIJ_1</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkDijkstraGraphGeodesicPath</span><span class="p">()</span>
+    <span class="n">DIJ_1</span><span class="o">.</span><span class="n">SetInputData</span><span class="p">(</span><span class="n">polydata</span><span class="p">)</span>
+    <span class="n">DIJ_1</span><span class="o">.</span><span class="n">SetStartVertex</span><span class="p">(</span><span class="n">proximal_idx</span><span class="p">)</span>
+    <span class="n">DIJ_1</span><span class="o">.</span><span class="n">SetEndVertex</span><span class="p">(</span><span class="n">bifurcation_idx</span><span class="p">)</span>
+    <span class="n">DIJ_1</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+
+    <span class="n">DIJ_2</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkDijkstraGraphGeodesicPath</span><span class="p">()</span>
+    <span class="n">DIJ_2</span><span class="o">.</span><span class="n">SetInputData</span><span class="p">(</span><span class="n">polydata</span><span class="p">)</span>
+    <span class="n">DIJ_2</span><span class="o">.</span><span class="n">SetStartVertex</span><span class="p">(</span><span class="n">bifurcation_idx</span><span class="p">)</span>
+    <span class="n">DIJ_2</span><span class="o">.</span><span class="n">SetEndVertex</span><span class="p">(</span><span class="n">distal_idx</span><span class="p">)</span>
+    <span class="n">DIJ_2</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+
+    <span class="n">DIJ_3</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkDijkstraGraphGeodesicPath</span><span class="p">()</span>
+    <span class="n">DIJ_3</span><span class="o">.</span><span class="n">SetInputData</span><span class="p">(</span><span class="n">polydata</span><span class="p">)</span>
+    <span class="n">DIJ_3</span><span class="o">.</span><span class="n">SetStartVertex</span><span class="p">(</span><span class="n">bifurcation_idx</span><span class="p">)</span>
+    <span class="n">DIJ_3</span><span class="o">.</span><span class="n">SetEndVertex</span><span class="p">(</span><span class="n">terminal_idx</span><span class="p">)</span>
+    <span class="n">DIJ_3</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+
+
+    <span class="n">poly_path_1</span> <span class="o">=</span> <span class="n">DIJ_1</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">()</span>
+    <span class="n">poly_path_2</span> <span class="o">=</span> <span class="n">DIJ_2</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">()</span>
+    <span class="n">poly_path_3</span> <span class="o">=</span> <span class="n">DIJ_3</span><span class="o">.</span><span class="n">GetOutput</span><span class="p">()</span>
+
+    <span class="n">proximal_geodesic</span>  <span class="o">=</span> <span class="n">numpy_support</span><span class="o">.</span><span class="n">vtk_to_numpy</span><span class="p">(</span><span class="n">poly_path_1</span><span class="o">.</span><span class="n">GetPoints</span><span class="p">()</span><span class="o">.</span><span class="n">GetData</span><span class="p">())</span>
+    <span class="n">distal_geodesic</span>    <span class="o">=</span> <span class="n">numpy_support</span><span class="o">.</span><span class="n">vtk_to_numpy</span><span class="p">(</span><span class="n">poly_path_2</span><span class="o">.</span><span class="n">GetPoints</span><span class="p">()</span><span class="o">.</span><span class="n">GetData</span><span class="p">())</span>
+    <span class="n">terminal_geodesic</span>  <span class="o">=</span> <span class="n">numpy_support</span><span class="o">.</span><span class="n">vtk_to_numpy</span><span class="p">(</span><span class="n">poly_path_3</span><span class="o">.</span><span class="n">GetPoints</span><span class="p">()</span><span class="o">.</span><span class="n">GetData</span><span class="p">())</span>
+
+    <span class="n">proximal_length</span> <span class="o">=</span> <span class="n">poly_path_1</span><span class="o">.</span><span class="n">GetLength</span><span class="p">()</span>
+    <span class="n">distal_length</span>   <span class="o">=</span> <span class="n">poly_path_2</span><span class="o">.</span><span class="n">GetLength</span><span class="p">()</span>
+    <span class="n">terminal_length</span> <span class="o">=</span> <span class="n">poly_path_3</span><span class="o">.</span><span class="n">GetLength</span><span class="p">()</span>
+
+    <span class="n">proximal_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;path&#39;</span>  <span class="p">:</span><span class="n">proximal_geodesic</span><span class="p">,</span>
+                     <span class="s1">&#39;length&#39;</span><span class="p">:</span><span class="n">proximal_length</span><span class="p">}</span>
+
+    <span class="n">distal_data</span>   <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;path&#39;</span>  <span class="p">:</span><span class="n">distal_geodesic</span><span class="p">,</span>
+                     <span class="s1">&#39;length&#39;</span><span class="p">:</span><span class="n">distal_length</span><span class="p">}</span>
+
+    <span class="n">terminal_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;path&#39;</span>  <span class="p">:</span><span class="n">terminal_geodesic</span><span class="p">,</span>
+                     <span class="s1">&#39;length&#39;</span><span class="p">:</span><span class="n">terminal_length</span><span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">proximal_data</span><span class="p">,</span><span class="n">distal_data</span><span class="p">,</span><span class="n">terminal_data</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.branch_addition.geodesic</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

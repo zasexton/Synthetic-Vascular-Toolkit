@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.branch_addition.calculate_radii &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.branch_addition.calculate_radii</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.branch_addition.calculate_radii</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numba</span> <span class="k">as</span> <span class="nn">nb</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="radii"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.calculate_radii.radii">[docs]</a><span class="nd">@nb</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">radii</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">Pperm</span><span class="p">,</span><span class="n">Pterm</span><span class="p">):</span>
+    <span class="n">updated_radii</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">25</span><span class="p">]</span><span class="o">*</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">22</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">Pperm</span><span class="o">-</span><span class="n">Pterm</span><span class="p">))</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">15</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">children_d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">15</span><span class="p">:</span><span class="mi">17</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">children_i</span> <span class="o">=</span> <span class="n">children_d</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">parents_d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">children_i</span><span class="p">,</span><span class="mi">17</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">parents_i</span> <span class="o">=</span> <span class="n">parents_d</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">bifs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parents_i</span><span class="p">[::</span><span class="mi">2</span><span class="p">],</span><span class="mi">23</span><span class="p">:</span><span class="mi">25</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">radii</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parents_i</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">children_i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">children_i</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span> <span class="o">=</span> <span class="n">bifs</span><span class="o">*</span><span class="n">radii</span>
+        <span class="n">updated_radii</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">children_i</span><span class="p">)</span>
+        <span class="n">next_children</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">children_i</span><span class="p">,</span><span class="mi">15</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">next_children</span> <span class="o">=</span> <span class="n">children_i</span><span class="p">[</span><span class="n">next_children</span><span class="o">.</span><span class="n">flatten</span><span class="p">()]</span>
+        <span class="n">children_d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">next_children</span><span class="p">,</span><span class="mi">15</span><span class="p">:</span><span class="mi">17</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">children_i</span> <span class="o">=</span> <span class="n">children_d</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="n">parents_d</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">children_i</span><span class="p">,</span><span class="mi">17</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">parents_i</span> <span class="o">=</span> <span class="n">parents_d</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="n">bifs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parents_i</span><span class="p">[::</span><span class="mi">2</span><span class="p">],</span><span class="mi">23</span><span class="p">:</span><span class="mi">25</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">radii</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parents_i</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">updated_radii</span></div>
+
+<div class="viewcode-block" id="update_radii"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.calculate_radii.update_radii">[docs]</a><span class="k">def</span> <span class="nf">update_radii</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">Pperm</span><span class="p">,</span><span class="n">Pterm</span><span class="p">):</span>
+    <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">25</span><span class="p">]</span><span class="o">*</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">22</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">Pperm</span><span class="o">-</span><span class="n">Pterm</span><span class="p">))</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">15</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">16</span><span class="p">])]</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">vessel</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">:</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">17</span><span class="p">])</span>
+            <span class="n">LR</span>  <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">15</span><span class="p">:</span><span class="mi">17</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">BIF</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">23</span><span class="p">:</span><span class="mi">25</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">LR_type</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">LR</span> <span class="o">==</span> <span class="n">vessel</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">BIF</span> <span class="o">=</span> <span class="n">BIF</span><span class="p">[</span><span class="n">LR_type</span><span class="p">]</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span><span class="o">*</span><span class="n">BIF</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">28</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent</span><span class="p">,</span><span class="mi">28</span><span class="p">]</span><span class="o">*</span><span class="n">BIF</span>
+            <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">15</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">15</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">16</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">16</span><span class="p">]))</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">tmp</span></div>
+
+
+<span class="c1">#def naive_radii(data,Pperm,Pterm,idx):</span>
+<span class="c1">#    if idx == 0:</span>
+<span class="c1">#        data[idx,21] = ((data[idx,25]*data[idx,22])/(Pperm-Pterm)) ** (1/4)</span>
+<span class="c1">#    elif data[idx,15] &gt; 0 and data[idx,16] &gt; 0:</span>
+
+<span class="c1">##################################################################</span>
+<span class="c1"># UNIT TEST</span>
+<span class="c1">##################################################################</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.branch_addition.calculate_radii</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

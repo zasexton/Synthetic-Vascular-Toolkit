@@ -1,0 +1,452 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.sv_interface.options &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.options</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.sv_interface.options</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+
+<div class="viewcode-block" id="file_options"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.options.file_options">[docs]</a><span class="k">class</span> <span class="nc">file_options</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">num_caps</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">flow</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">gui</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">distal_resistance</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the parameters for vascular construction</span>
+<span class="sd">        and simulation for SimVascular python interface.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_geometry_options</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_loft_options</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_solid_options</span><span class="p">(</span><span class="n">num_caps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_mesh_options</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_pipeline_steps</span><span class="p">(</span><span class="n">gui</span><span class="o">=</span><span class="n">gui</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_directories</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">time</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">simulation_parameters</span><span class="p">(</span><span class="n">fourier_mode</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">period</span><span class="o">=</span><span class="n">time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">bct_point_number</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">time</span><span class="p">),</span><span class="n">distal_resistance</span><span class="o">=</span><span class="n">distal_resistance</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">simulation_parameters</span><span class="p">(</span><span class="n">distal_resistance</span><span class="o">=</span><span class="n">distal_resistance</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow_parameters</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span><span class="n">flow</span><span class="o">=</span><span class="n">flow</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rom_parameters</span><span class="p">()</span>
+
+<div class="viewcode-block" id="file_options.set_geometry_options"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_geometry_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_geometry_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">number_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span><span class="n">use_distance_alignment_method</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">geometry_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;number_samples&#39;</span><span class="p">:</span>                <span class="n">number_samples</span><span class="p">,</span>
+                            <span class="s1">&#39;use_distance_alignment_method&#39;</span><span class="p">:</span> <span class="n">use_distance_alignment_method</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry_options</span> <span class="o">=</span> <span class="n">geometry_options</span>
+        <span class="k">return</span></div>
+<div class="viewcode-block" id="file_options.set_loft_options"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_loft_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_loft_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">u_knot_span_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">v_parametric_span_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">u_parametric_span_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">v_knot_span_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">v_degree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">u_degree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">boundary_face_angle</span><span class="o">=</span><span class="mi">45</span><span class="p">):</span>
+        <span class="n">loft_param</span> <span class="o">=</span> <span class="p">[</span><span class="n">u_knot_span_type</span><span class="p">,</span><span class="n">v_parametric_span_type</span><span class="p">,</span>
+                      <span class="n">u_parametric_span_type</span><span class="p">,</span><span class="n">v_knot_span_type</span><span class="p">,</span>
+                      <span class="n">v_degree</span><span class="p">,</span><span class="n">u_degree</span><span class="p">]</span>
+        <span class="n">loft_param</span> <span class="o">=</span> <span class="p">[</span><span class="n">param</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">loft_param</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">loft_param</span><span class="p">):</span>
+            <span class="n">loft_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;default&#39;</span><span class="p">:</span>             <span class="kc">True</span><span class="p">,</span>
+                            <span class="s1">&#39;changes&#39;</span><span class="p">:</span>               <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;angle&#39;</span><span class="p">:</span><span class="n">boundary_face_angle</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">loft_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                            <span class="s1">&#39;changes&#39;</span><span class="p">:</span>    <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;angle&#39;</span><span class="p">:</span><span class="n">boundary_face_angle</span><span class="p">}</span>
+            <span class="c1"># Check Knot Span Values</span>
+            <span class="k">if</span> <span class="n">u_knot_span_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">u_knot_span_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;derivative&#39;</span><span class="p">,</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span><span class="s1">&#39;average&#39;</span><span class="p">]:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid knot span type</span><span class="se">\n\n</span><span class="s1">Must be one of:</span><span class="se">\n</span><span class="s1">  &quot;derivative&quot;</span><span class="se">\n</span><span class="s1">  &quot;equal&quot;</span><span class="se">\n</span><span class="s1">  &quot;average&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Will default to &quot;derivative&quot; type.&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">loft_options</span><span class="p">[</span><span class="s1">&#39;changes&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39;options.u_knot_span_type = </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">u_knot_span_type</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">v_knot_span_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">v_knot_span_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;derivative&#39;</span><span class="p">,</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span><span class="s1">&#39;average&#39;</span><span class="p">]:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid knot span type</span><span class="se">\n\n</span><span class="s1">Must be one of:</span><span class="se">\n</span><span class="s1">  &quot;derivative&quot;</span><span class="se">\n</span><span class="s1">  &quot;equal&quot;</span><span class="se">\n</span><span class="s1">  &quot;average&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Will default to &quot;average&quot; type.&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">loft_options</span><span class="p">[</span><span class="s1">&#39;changes&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39;options.v_knot_span_type = </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v_knot_span_type</span><span class="p">)</span>
+            <span class="c1"># Check Parametric Span Values</span>
+            <span class="k">if</span> <span class="n">v_parametric_span_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">v_parametric_span_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;centripetal&#39;</span><span class="p">,</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span><span class="s1">&#39;chord&#39;</span><span class="p">]:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid knot span type</span><span class="se">\n\n</span><span class="s1">Must be one of:</span><span class="se">\n</span><span class="s1">  &quot;centripetal&quot;</span><span class="se">\n</span><span class="s1">  &quot;equal&quot;</span><span class="se">\n</span><span class="s1">  &quot;chord&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Will default to &quot;chord&quot; type.&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">loft_options</span><span class="p">[</span><span class="s1">&#39;changes&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39;options.v_parametric_span_type = </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v_parametric_span_type</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">u_parametric_span_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">u_parametric_span_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;centripetal&#39;</span><span class="p">,</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span><span class="s1">&#39;chord&#39;</span><span class="p">]:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Invalid knot span type</span><span class="se">\n\n</span><span class="s1">Must be one of:</span><span class="se">\n</span><span class="s1">  &quot;centripetal&quot;</span><span class="se">\n</span><span class="s1">  &quot;equal&quot;</span><span class="se">\n</span><span class="s1">  &quot;chord&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Will default to &quot;centripetal&quot; type.&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">loft_options</span><span class="p">[</span><span class="s1">&#39;changes&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39;options.u_parametric_span_type = </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">u_parametric_span_type</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">v_degree</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v_degree</span><span class="p">,</span><span class="nb">int</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;v_degree must be an integer&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Will default to v_degree = 2&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">loft_options</span><span class="p">[</span><span class="s1">&#39;changes&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39;options.v_degree = </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v_degree</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">u_degree</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u_degree</span><span class="p">,</span><span class="nb">int</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;v_degree must be an integer&#39;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Will default to u_degree = 2&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">loft_options</span><span class="p">[</span><span class="s1">&#39;changes&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39;options.u_degree = </span><span class="si">{}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">u_degree</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loft_options</span> <span class="o">=</span> <span class="n">loft_options</span>
+        <span class="k">return</span></div>
+<div class="viewcode-block" id="file_options.set_solid_options"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_solid_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_solid_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">num_caps</span><span class="p">,</span><span class="n">minimum_face_cells</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span><span class="n">hmin</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span><span class="n">hmax</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+                          <span class="n">face_edge_size</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span><span class="n">boundary_face_angle</span><span class="o">=</span><span class="mi">45</span><span class="p">):</span>
+        <span class="c1">#Check input types</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">minimum_face_cells</span><span class="p">,</span><span class="nb">int</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;minimum_face_cells must be a positive int &gt; 0&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default value&#39;</span><span class="p">)</span>
+            <span class="n">minimum_face_cells</span><span class="o">=</span><span class="mi">200</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hmin</span><span class="p">,</span><span class="nb">float</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;hmin must be a float &lt; 1&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default value&#39;</span><span class="p">)</span>
+            <span class="n">hmin</span><span class="o">=</span><span class="mf">0.02</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hmax</span><span class="p">,</span><span class="nb">float</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;hmax must be a float hmin =&lt; hmax &lt; 1&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default value&#39;</span><span class="p">)</span>
+            <span class="n">hmax</span><span class="o">=</span><span class="mf">0.02</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">face_edge_size</span><span class="p">,</span><span class="nb">float</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;face_edge_size must be a float &lt; 1&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default value&#39;</span><span class="p">)</span>
+            <span class="n">face_edge_size</span><span class="o">=</span><span class="mf">0.02</span>
+        <span class="k">if</span> <span class="n">boundary_face_angle</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="ow">or</span> <span class="n">boundary_face_angle</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;boundary_face_angle must be greater than 0 and less than 90&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default value&#39;</span><span class="p">)</span>
+            <span class="n">boundary_face_angle</span> <span class="o">=</span> <span class="mi">45</span>
+        <span class="n">solid_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;minimum_face_cells&#39;</span><span class="p">:</span>  <span class="n">minimum_face_cells</span><span class="p">,</span>
+                         <span class="s1">&#39;hmin&#39;</span><span class="p">:</span>                             <span class="n">hmin</span><span class="p">,</span>
+                         <span class="s1">&#39;hmax&#39;</span><span class="p">:</span>                             <span class="n">hmax</span><span class="p">,</span>
+                         <span class="s1">&#39;face_edge_size&#39;</span><span class="p">:</span>          <span class="n">face_edge_size</span><span class="p">,</span>
+                         <span class="s1">&#39;angle&#39;</span><span class="p">:</span>              <span class="n">boundary_face_angle</span><span class="p">,</span>
+                         <span class="s1">&#39;num_caps&#39;</span><span class="p">:</span>                      <span class="n">num_caps</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solid_options</span> <span class="o">=</span> <span class="n">solid_options</span>
+        <span class="k">return</span></div>
+<div class="viewcode-block" id="file_options.set_mesh_options"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_mesh_options">[docs]</a>    <span class="k">def</span> <span class="nf">set_mesh_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">global_edge_size</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span><span class="n">surface_mesh_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">volume_mesh_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">no_merge</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">optimization_level</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                         <span class="n">minimum_dihedral_angle</span><span class="o">=</span><span class="mf">18.0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">global_edge_size</span><span class="p">,</span><span class="nb">float</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;global_edge_size must be a float less than 1&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default: global_edge_size = 0.01&#39;</span><span class="p">)</span>
+            <span class="n">global_edge_size</span><span class="o">=</span><span class="mf">0.01</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">surface_mesh_flag</span><span class="p">,</span><span class="nb">bool</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;surface_mesh_flag must be boolean logic&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default: surface_mesh_flag = True&#39;</span><span class="p">)</span>
+            <span class="n">surface_mesh_flag</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">volume_mesh_flag</span><span class="p">,</span><span class="nb">bool</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;volume_mesh_flag must be boolean logic&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default: volume_mesh_flag = True&#39;</span><span class="p">)</span>
+            <span class="n">volume_mesh_flag</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">no_merge</span><span class="p">,</span><span class="nb">bool</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;no_merge must be boolean logic&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default: no_merge = False&#39;</span><span class="p">)</span>
+            <span class="n">no_merge</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">optimization_level</span><span class="p">,</span><span class="nb">int</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;optimization_level must be an integer between 0 and 7, inclusive&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default: optimization_level = 5&#39;</span><span class="p">)</span>
+            <span class="n">optimization_level</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="k">elif</span> <span class="n">optimization_level</span> <span class="o">&gt;</span> <span class="mi">7</span> <span class="ow">or</span> <span class="n">optimization_level</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;optimization_level must be an integer between 0 and 7, inclusive&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default: optimization_level = 5&#39;</span><span class="p">)</span>
+            <span class="n">optimization_level</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">minimum_dihedral_angle</span><span class="p">,</span><span class="nb">float</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;minimum_dihedral_angle must be a float&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using default: minimum_dihedral_angle = 18&#39;</span><span class="p">)</span>
+            <span class="n">minimum_dihedral_angle</span> <span class="o">=</span> <span class="mi">18</span>
+        <span class="n">mesh_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;global_edge_size&#39;</span><span class="p">:</span>            <span class="n">global_edge_size</span><span class="p">,</span>
+                        <span class="s1">&#39;surface_mesh_flag&#39;</span><span class="p">:</span>          <span class="n">surface_mesh_flag</span><span class="p">,</span>
+                        <span class="s1">&#39;volume_mesh_flag&#39;</span><span class="p">:</span>            <span class="n">volume_mesh_flag</span><span class="p">,</span>
+                        <span class="s1">&#39;no_merge&#39;</span><span class="p">:</span>                            <span class="n">no_merge</span><span class="p">,</span>
+                        <span class="s1">&#39;optimization_level&#39;</span><span class="p">:</span>        <span class="n">optimization_level</span><span class="p">,</span>
+                        <span class="s1">&#39;minimum_dihedral_angle&#39;</span><span class="p">:</span><span class="n">minimum_dihedral_angle</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mesh_options</span> <span class="o">=</span> <span class="n">mesh_options</span>
+        <span class="k">return</span></div>
+<div class="viewcode-block" id="file_options.set_pipeline_steps"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_pipeline_steps">[docs]</a>    <span class="k">def</span> <span class="nf">set_pipeline_steps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">files</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span><span class="n">gui</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">file_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">,</span><span class="s1">&#39;contour&#39;</span><span class="p">,</span><span class="s1">&#39;solid&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;mesh&#39;</span><span class="p">,</span><span class="s1">&#39;simulation&#39;</span><span class="p">,</span><span class="s1">&#39;rom&#39;</span><span class="p">]</span>
+        <span class="c1"># Check parameter values</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">files</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{files}</span><span class="s1"> parameter must be a str&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gui</span><span class="p">,</span><span class="nb">bool</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{gui}</span><span class="s1"> parameter must be True or False&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c1"># Assign Model Constructor Values</span>
+        <span class="n">file_constructor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;path&#39;</span><span class="p">:</span>        <span class="kc">True</span><span class="p">,</span>
+                            <span class="s1">&#39;contour&#39;</span><span class="p">:</span>     <span class="kc">True</span><span class="p">,</span>
+                            <span class="s1">&#39;solid&#39;</span><span class="p">:</span>       <span class="kc">True</span><span class="p">,</span>
+                            <span class="s1">&#39;mesh&#39;</span><span class="p">:</span>        <span class="kc">True</span><span class="p">,</span>
+                            <span class="s1">&#39;simulation&#39;</span><span class="p">:</span>  <span class="kc">True</span><span class="p">,</span>
+                            <span class="s1">&#39;rom&#39;</span><span class="p">:</span>         <span class="kc">True</span><span class="p">,</span>
+                            <span class="s1">&#39;gui&#39;</span><span class="p">:</span>          <span class="n">gui</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">files</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">file_types</span><span class="p">:</span>
+               <span class="n">file_index</span> <span class="o">=</span> <span class="n">file_types</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+               <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file_types</span><span class="p">):</span>
+                   <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">file_index</span><span class="p">:</span>
+                       <span class="k">pass</span>
+                   <span class="k">else</span><span class="p">:</span>
+                       <span class="n">file_constructor</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_constructor</span> <span class="o">=</span> <span class="n">file_constructor</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="file_options.set_directories"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_directories">[docs]</a>    <span class="k">def</span> <span class="nf">set_directories</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">outdir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span><span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)):</span>
+            <span class="n">outdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span><span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">outdir</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> either does not exist or is not accessible&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">outdir</span><span class="p">))</span>
+                <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{outdir}</span><span class="s1"> should be a str argument if provided&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="c1"># Assigning Directory Constructor Values</span>
+        <span class="n">directory_constructor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;main_folder&#39;</span><span class="p">:</span>          <span class="kc">None</span><span class="p">,</span>
+                                 <span class="s1">&#39;create_main_folder&#39;</span><span class="p">:</span>  <span class="kc">False</span><span class="p">,</span>
+                                 <span class="s1">&#39;data_folder&#39;</span><span class="p">:</span>          <span class="kc">None</span><span class="p">,</span>
+                                 <span class="s1">&#39;mesh_complete_folder&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                                 <span class="s1">&#39;mesh_surfaces_folder&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                                 <span class="s1">&#39;postprocessing_folder&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">outdir</span><span class="o">+</span><span class="s1">&#39;/CCO_DATA&#39;</span><span class="p">):</span>
+            <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;create_main_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;create_main_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;main_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">outdir</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;CCO_DATA&#39;</span>
+        <span class="n">number</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;main_folder&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;CCO_*&#39;</span><span class="p">))</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;main_folder&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;simulation_data</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_complete_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;mesh-complete&#39;</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_surfaces_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_complete_folder&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;mesh-surfaces&#39;</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;centerline_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;centerlines&#39;</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;postprocessing_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;post&#39;</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;rom&#39;</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_0D_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_folder&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;zeroD&#39;</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_1D_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_folder&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;oneD&#39;</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;main_folder&#39;</span><span class="p">]</span>           <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;main_folder&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">]</span>           <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_complete_folder&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_complete_folder&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_surfaces_folder&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_surfaces_folder&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;centerline_folder&#39;</span><span class="p">]</span>     <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;centerline_folder&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;postprocessing_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;postprocessing_folder&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_folder&#39;</span><span class="p">]</span>            <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_folder&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_0D_folder&#39;</span><span class="p">]</span>         <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_0D_folder&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_1D_folder&#39;</span><span class="p">]</span>         <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_1D_folder&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">directory_constructor</span> <span class="o">=</span> <span class="n">directory_constructor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;main_folder&#39;</span><span class="p">]</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;CCO_</span><span class="si">{}</span><span class="s1">.py&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span><span class="s1">&#39;</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;CCO_</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="file_options.simulation_parameters"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.options.file_options.simulation_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">simulation_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">svpre_name</span><span class="o">=</span><span class="s1">&#39;cco&#39;</span><span class="p">,</span><span class="n">fluid_density</span><span class="o">=</span><span class="mf">1.06</span><span class="p">,</span>
+                              <span class="n">fluid_viscosity</span><span class="o">=</span><span class="mf">0.04</span><span class="p">,</span> <span class="n">initial_pressure</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                              <span class="n">initial_velocity</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0001</span><span class="p">,</span><span class="mf">0.0001</span><span class="p">,</span><span class="mf">0.0001</span><span class="p">],</span>
+                              <span class="n">bct_analytical_shape</span><span class="o">=</span><span class="s1">&#39;parabolic&#39;</span><span class="p">,</span>
+                              <span class="n">inflow_file</span><span class="o">=</span><span class="s1">&#39;inflow&#39;</span><span class="p">,</span>
+                              <span class="n">period</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">bct_point_number</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                              <span class="n">fourier_mode</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">pressures</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                              <span class="n">svsolver</span><span class="o">=</span><span class="s1">&#39;solver&#39;</span><span class="p">,</span><span class="n">number_timesteps</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                              <span class="n">timestep_size</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span><span class="n">number_restarts</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                              <span class="n">number_force_surfaces</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                              <span class="n">surface_id_force_calc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                              <span class="n">force_calc_method</span><span class="o">=</span><span class="s1">&#39;Velocity Based&#39;</span><span class="p">,</span>
+                              <span class="n">print_avg_solution</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                              <span class="n">print_error_indicators</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">varying_time_from_file</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                              <span class="n">step_construction</span><span class="o">=</span><span class="s1">&#39;0 1 0 1&#39;</span><span class="p">,</span>
+                              <span class="n">pressure_coupling</span><span class="o">=</span><span class="s1">&#39;Implicit&#39;</span><span class="p">,</span>
+                              <span class="n">backflow_stabilization</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+                              <span class="n">residual_control</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                              <span class="n">residual_criteria</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                              <span class="n">minimum_req_iter</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                              <span class="n">svLS_type</span><span class="o">=</span><span class="s1">&#39;NS&#39;</span><span class="p">,</span><span class="n">num_krylov</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                              <span class="n">num_solves_per_left</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                              <span class="n">tolerance_momentum</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                              <span class="n">tolerance_continuity</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+                              <span class="n">tolerance_svLS_NS</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+                              <span class="n">max_iter_NS</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">max_iter_momentum</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                              <span class="n">max_iter_continuity</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
+                              <span class="n">time_integration_rule</span><span class="o">=</span><span class="s1">&#39;Second Order&#39;</span><span class="p">,</span>
+                              <span class="n">time_integration_rho</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                              <span class="n">flow_advection_form</span><span class="o">=</span><span class="s1">&#39;Convective&#39;</span><span class="p">,</span>
+                              <span class="n">quadrature_interior</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                              <span class="n">quadrature_boundary</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">procs</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+                              <span class="n">svpost</span><span class="o">=</span><span class="s1">&#39;cco&#39;</span><span class="p">,</span><span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">vtu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                              <span class="n">vtp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">vtkcombo</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">all_arg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">wss</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">sim_units_mm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">sim_units_cm</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                              <span class="n">global_edge_size</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                              <span class="n">distal_resistance</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="c1"># Assign PreSolver Constructor Values</span>
+        <span class="n">presolver_constructor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span>                           <span class="n">svpre_name</span><span class="p">,</span>
+                                 <span class="s1">&#39;fluid_density&#39;</span><span class="p">:</span>               <span class="n">fluid_density</span><span class="p">,</span>
+                                 <span class="s1">&#39;fluid_viscosity&#39;</span><span class="p">:</span>           <span class="n">fluid_viscosity</span><span class="p">,</span>
+                                 <span class="s1">&#39;initial_pressure&#39;</span><span class="p">:</span>         <span class="n">initial_pressure</span><span class="p">,</span>
+                                 <span class="s1">&#39;initial_velocity&#39;</span><span class="p">:</span>         <span class="n">initial_velocity</span><span class="p">,</span>
+                                 <span class="s1">&#39;bct_analytical_shape&#39;</span><span class="p">:</span> <span class="n">bct_analytical_shape</span><span class="p">,</span>
+                                 <span class="s1">&#39;inflow_file&#39;</span><span class="p">:</span>        <span class="n">inflow_file</span><span class="o">+</span><span class="s1">&#39;_3d.flow&#39;</span><span class="p">,</span>
+                                 <span class="s1">&#39;period&#39;</span><span class="p">:</span>                             <span class="n">period</span><span class="p">,</span>
+                                 <span class="s1">&#39;bct_point_number&#39;</span><span class="p">:</span>         <span class="n">bct_point_number</span><span class="p">,</span>
+                                 <span class="s1">&#39;fourier_mode&#39;</span><span class="p">:</span>                 <span class="n">fourier_mode</span><span class="p">,</span>
+                                 <span class="s1">&#39;pressures&#39;</span><span class="p">:</span>                       <span class="n">pressures</span><span class="p">}</span>
+        <span class="c1"># Assign Solver Constructor Values</span>
+        <span class="n">solver_constructor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span>                                <span class="n">svsolver</span><span class="p">,</span>
+                              <span class="s1">&#39;fluid_density&#39;</span><span class="p">:</span>                  <span class="n">fluid_density</span><span class="p">,</span>
+                              <span class="s1">&#39;fluid_viscosity&#39;</span><span class="p">:</span>              <span class="n">fluid_viscosity</span><span class="p">,</span>
+                              <span class="s1">&#39;number_timesteps&#39;</span><span class="p">:</span>            <span class="n">number_timesteps</span><span class="p">,</span>
+                              <span class="s1">&#39;timestep_size&#39;</span><span class="p">:</span>                  <span class="n">timestep_size</span><span class="p">,</span>
+                              <span class="s1">&#39;number_restarts&#39;</span><span class="p">:</span>              <span class="n">number_restarts</span><span class="p">,</span>
+                              <span class="s1">&#39;number_force_surfaces&#39;</span><span class="p">:</span>  <span class="n">number_force_surfaces</span><span class="p">,</span>
+                              <span class="s1">&#39;surface_id_force_calc&#39;</span><span class="p">:</span>  <span class="n">surface_id_force_calc</span><span class="p">,</span>
+                              <span class="s1">&#39;force_calc_method&#39;</span><span class="p">:</span>          <span class="n">force_calc_method</span><span class="p">,</span>
+                              <span class="s1">&#39;print_avg_solution&#39;</span><span class="p">:</span>        <span class="n">print_avg_solution</span><span class="p">,</span>
+                              <span class="s1">&#39;print_error_indicators&#39;</span><span class="p">:</span><span class="n">print_error_indicators</span><span class="p">,</span>
+                              <span class="s1">&#39;varying_time_from_file&#39;</span><span class="p">:</span><span class="n">varying_time_from_file</span><span class="p">,</span>
+                              <span class="s1">&#39;step_construction&#39;</span><span class="p">:</span>          <span class="n">step_construction</span><span class="p">,</span>
+                              <span class="s1">&#39;pressure_coupling&#39;</span><span class="p">:</span>          <span class="n">pressure_coupling</span><span class="p">,</span>
+                              <span class="s1">&#39;backflow_stabilization&#39;</span><span class="p">:</span><span class="n">backflow_stabilization</span><span class="p">,</span>
+                              <span class="s1">&#39;residual_control&#39;</span><span class="p">:</span>            <span class="n">residual_control</span><span class="p">,</span>
+                              <span class="s1">&#39;residual_criteria&#39;</span><span class="p">:</span>          <span class="n">residual_criteria</span><span class="p">,</span>
+                              <span class="s1">&#39;minimum_req_iter&#39;</span><span class="p">:</span>            <span class="n">minimum_req_iter</span><span class="p">,</span>
+                              <span class="s1">&#39;svLS_type&#39;</span><span class="p">:</span>                          <span class="n">svLS_type</span><span class="p">,</span>
+                              <span class="s1">&#39;num_krylov&#39;</span><span class="p">:</span>                        <span class="n">num_krylov</span><span class="p">,</span>
+                              <span class="s1">&#39;num_solves_per_left&#39;</span><span class="p">:</span>      <span class="n">num_solves_per_left</span><span class="p">,</span>
+                              <span class="s1">&#39;tolerance_momentum&#39;</span><span class="p">:</span>        <span class="n">tolerance_momentum</span><span class="p">,</span>
+                              <span class="s1">&#39;tolerance_continuity&#39;</span><span class="p">:</span>    <span class="n">tolerance_continuity</span><span class="p">,</span>
+                              <span class="s1">&#39;tolerance_svLS_NS&#39;</span><span class="p">:</span>          <span class="n">tolerance_svLS_NS</span><span class="p">,</span>
+                              <span class="s1">&#39;max_iter_NS&#39;</span><span class="p">:</span>                     <span class="n">max_iter_NS</span><span class="p">,</span>
+                              <span class="s1">&#39;max_iter_momentum&#39;</span><span class="p">:</span>          <span class="n">max_iter_momentum</span><span class="p">,</span>
+                              <span class="s1">&#39;max_iter_continuity&#39;</span><span class="p">:</span>      <span class="n">max_iter_continuity</span><span class="p">,</span>
+                              <span class="s1">&#39;time_integration_rule&#39;</span><span class="p">:</span>  <span class="n">time_integration_rule</span><span class="p">,</span>
+                              <span class="s1">&#39;time_integration_rho&#39;</span><span class="p">:</span>    <span class="n">time_integration_rho</span><span class="p">,</span>
+                              <span class="s1">&#39;flow_advection_form&#39;</span><span class="p">:</span>      <span class="n">flow_advection_form</span><span class="p">,</span>
+                              <span class="s1">&#39;quadrature_interior&#39;</span><span class="p">:</span>      <span class="n">quadrature_interior</span><span class="p">,</span>
+                              <span class="s1">&#39;quadrature_boundary&#39;</span><span class="p">:</span>      <span class="n">quadrature_boundary</span><span class="p">,</span>
+                              <span class="s1">&#39;global_edge_size&#39;</span><span class="p">:</span>            <span class="n">global_edge_size</span><span class="p">,</span>
+                              <span class="s1">&#39;distal_resistance&#39;</span><span class="p">:</span>          <span class="n">distal_resistance</span><span class="p">}</span>
+        <span class="n">indir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">]</span><span class="o">+</span><span class="s1">&#39;/</span><span class="si">{}</span><span class="s1">-procs_case&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">procs</span><span class="p">)</span>
+        <span class="n">outdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;postprocessing_folder&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">sim_units_mm</span> <span class="ow">and</span> <span class="n">sim_units_cm</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Must pick one unit scale. Not both.&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Exiting without assigning postprocessing parameters.&#39;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">postsolver_constructor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span>                              <span class="n">svpost</span><span class="p">,</span>
+                                  <span class="s1">&#39;start&#39;</span><span class="p">:</span>                              <span class="n">start</span><span class="p">,</span>
+                                  <span class="s1">&#39;stop&#39;</span><span class="p">:</span>                    <span class="n">number_timesteps</span><span class="p">,</span>
+                                  <span class="s1">&#39;incr&#39;</span><span class="p">:</span>                     <span class="n">number_restarts</span><span class="p">,</span>
+                                  <span class="s1">&#39;vtu&#39;</span><span class="p">:</span>                                  <span class="n">vtu</span><span class="p">,</span>
+                                  <span class="s1">&#39;vtp&#39;</span><span class="p">:</span>                                  <span class="n">vtp</span><span class="p">,</span>
+                                  <span class="s1">&#39;vtkcombo&#39;</span><span class="p">:</span>                        <span class="n">vtkcombo</span><span class="p">,</span>
+                                  <span class="s1">&#39;all&#39;</span><span class="p">:</span>                              <span class="n">all_arg</span><span class="p">,</span>
+                                  <span class="s1">&#39;wss&#39;</span><span class="p">:</span>                                  <span class="n">wss</span><span class="p">,</span>
+                                  <span class="s1">&#39;indir&#39;</span><span class="p">:</span>                              <span class="n">indir</span><span class="p">,</span>
+                                  <span class="s1">&#39;sim_units_mm&#39;</span><span class="p">:</span>                <span class="n">sim_units_mm</span><span class="p">,</span>
+                                  <span class="s1">&#39;sim_units_cm&#39;</span><span class="p">:</span>                <span class="n">sim_units_cm</span><span class="p">,</span>
+                                  <span class="s1">&#39;outdir&#39;</span><span class="p">:</span>                            <span class="n">outdir</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">presolver_constructor</span>   <span class="o">=</span> <span class="n">presolver_constructor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver_constructor</span>      <span class="o">=</span> <span class="n">solver_constructor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">postsolver_constructor</span>  <span class="o">=</span> <span class="n">postsolver_constructor</span>
+        <span class="k">return</span></div>
+<div class="viewcode-block" id="file_options.flow_parameters"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.options.file_options.flow_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">flow_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">inflow_file</span><span class="o">=</span><span class="s1">&#39;inflow&#39;</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">flow</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">flow_constructor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;inflow_file&#39;</span><span class="p">:</span>                        <span class="n">inflow_file</span><span class="p">,</span>
+                            <span class="s1">&#39;time&#39;</span><span class="p">:</span>                                      <span class="n">time</span><span class="p">,</span>
+                            <span class="s1">&#39;flow&#39;</span><span class="p">:</span>                                      <span class="n">flow</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flow_constructor</span> <span class="o">=</span> <span class="n">flow_constructor</span></div>
+
+<div class="viewcode-block" id="file_options.rom_parameters"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.options.file_options.rom_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">rom_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">inflow</span><span class="o">=</span><span class="s1">&#39;inflow_rom.flow&#39;</span><span class="p">,</span><span class="n">zeroD</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">oneD</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">time_step</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+                       <span class="n">number_time_steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="n">rom0D_constructor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;create&#39;</span><span class="p">:</span> <span class="n">zeroD</span><span class="p">,</span>
+                             <span class="s1">&#39;model_order&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                             <span class="s1">&#39;time_step&#39;</span><span class="p">:</span> <span class="n">time_step</span><span class="p">,</span>
+                             <span class="s1">&#39;number_time_steps&#39;</span><span class="p">:</span> <span class="n">number_time_steps</span><span class="p">,</span>
+                             <span class="s1">&#39;inflow_file&#39;</span><span class="p">:</span>  <span class="n">inflow</span><span class="p">}</span>
+
+        <span class="n">rom1D_constructor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;create&#39;</span><span class="p">:</span> <span class="n">oneD</span><span class="p">,</span>
+                             <span class="s1">&#39;model_order&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                             <span class="s1">&#39;time_step&#39;</span><span class="p">:</span> <span class="n">time_step</span><span class="p">,</span>
+                             <span class="s1">&#39;number_time_steps&#39;</span><span class="p">:</span> <span class="n">number_time_steps</span><span class="p">,</span>
+                             <span class="s1">&#39;inflow_file&#39;</span><span class="p">:</span>   <span class="n">inflow</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rom_constructor</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;0D&#39;</span><span class="p">:</span> <span class="n">rom0D_constructor</span><span class="p">,</span>
+                                <span class="s1">&#39;1D&#39;</span><span class="p">:</span> <span class="n">rom1D_constructor</span><span class="p">}</span>
+        <span class="k">return</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.options</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

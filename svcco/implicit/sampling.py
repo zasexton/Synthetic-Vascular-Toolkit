@@ -16,6 +16,7 @@ def sampling(points,angle=0,max_local_size=20,min_local_size=10,normals=None,l=0
     patch_idx = []
     centers = []
     total_length = len(sorted_abs_curvature_idx)
+    dist, idx = KDT.query(points,k=max_local_size+1)
     if quiet:
         while len(sorted_abs_curvature_idx) > 0:
             center = sorted_abs_curvature_idx[0]
@@ -23,14 +24,20 @@ def sampling(points,angle=0,max_local_size=20,min_local_size=10,normals=None,l=0
             patch_idxs = []
             for k in idx[center,:]:
                 #if abs(abs_curvature[center] - abs_curvature[k]) > 0.1:
+                #    pass
                 if np.isclose(np.dot(normals[center],normals[k]),1) and np.all(points[center]==points[k]):
                     patch_idxs.append(count)
-                if np.dot(normals[center],normals[k]) <= angle or np.all(points[center]==points[k]):
-                    if count > min_local_size:
+                elif np.dot(normals[center],normals[k]) <= angle or abs(abs_curvature[center] - abs_curvature[k]) > 0.2:
+                    if len(patch_idxs) > min_local_size:
                         break
                 else:
                     patch_idxs.append(count)
-                    #pass
+                #if np.dot(normals[center],normals[k]) <= angle or abs(abs_curvature[center] - abs_curvature[k]) > 0.2:#np.all(points[center]==points[k]):
+                #    if len(patch_idxs) > min_local_size:
+                #        break
+                #else:
+                #    patch_idxs.append(count)
+                #    #pass
                 count += 1
             #limit = count//3
             if len(patch_idxs) < round(min_local_size*0.5):

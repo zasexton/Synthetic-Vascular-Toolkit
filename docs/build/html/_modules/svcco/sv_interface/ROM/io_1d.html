@@ -1,0 +1,657 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.sv_interface.ROM.io_1d &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css" />
+    
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.io_1d</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.sv_interface.ROM.io_1d</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Stanford University, The Regents of the University of</span>
+<span class="c1">#               California, and others.</span>
+<span class="c1">#</span>
+<span class="c1"># All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># See Copyright-SimVascular.txt for additional details.</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining</span>
+<span class="c1"># a copy of this software and associated documentation files (the</span>
+<span class="c1"># &quot;Software&quot;), to deal in the Software without restriction, including</span>
+<span class="c1"># without limitation the rights to use, copy, modify, merge, publish,</span>
+<span class="c1"># distribute, sublicense, and/or sell copies of the Software, and to</span>
+<span class="c1"># permit persons to whom the Software is furnished to do so, subject</span>
+<span class="c1"># to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included</span>
+<span class="c1"># in all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS</span>
+<span class="c1"># IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED</span>
+<span class="c1"># TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A</span>
+<span class="c1"># PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER</span>
+<span class="c1"># OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,</span>
+<span class="c1"># EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,</span>
+<span class="c1"># PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR</span>
+<span class="c1"># PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF</span>
+<span class="c1"># LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING</span>
+<span class="c1"># NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c1"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module handles file i/o for the SimVascular 1D solver (https://github.com/SimVascular/oneDSolver).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pdb</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">.manage</span> <span class="kn">import</span> <span class="n">get_logger_name</span>
+<span class="kn">from</span> <span class="nn">.parameters</span> <span class="kn">import</span> <span class="n">OutflowBoundaryConditionType</span><span class="p">,</span> <span class="n">MaterialModel</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
+<span class="kn">import</span> <span class="nn">vtk.util.numpy_support</span> <span class="k">as</span> <span class="nn">nps</span>
+<span class="kn">from</span> <span class="nn">vtk</span> <span class="kn">import</span> <span class="n">vtkIdList</span>
+<span class="kn">from</span> <span class="nn">vtk</span> <span class="kn">import</span> <span class="n">vtkPoints</span><span class="p">,</span> <span class="n">vtkLine</span><span class="p">,</span> <span class="n">vtkCellArray</span><span class="p">,</span> <span class="n">vtkPolyData</span><span class="p">,</span> <span class="n">vtkXMLPolyDataWriter</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">SurfaceFileFormats</span><span class="p">,</span> <span class="n">read_polydata</span><span class="p">,</span> <span class="n">write_polydata</span>
+<span class="kn">from</span> <span class="nn">.io_headers</span> <span class="kn">import</span> <span class="n">Headers</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="c1"># Define flow data tuple.</span>
+<span class="n">FlowData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;FlowData&#39;</span><span class="p">,</span> <span class="s1">&#39;time flow&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="read_inflow_file"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.read_inflow_file">[docs]</a><span class="k">def</span> <span class="nf">read_inflow_file</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Read the inflow file.</span>
+
+<span class="sd">    The file can be formatted as space- or comma-separated value pairs.</span>
+
+<span class="sd">    Example:   </span>
+<span class="sd">        &lt;time1&gt;  &lt;flow1&gt;</span>
+<span class="sd">        &lt;time2&gt;  &lt;flow2&gt;</span>
+<span class="sd">        ...</span>
+<span class="sd">        &lt;timeN&gt;  &lt;flowN&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Read inflow BC ...&quot;</span><span class="p">)</span>
+    <span class="n">inflow_data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">inflow_file</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">inflow_input_file</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">inflow_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ofile</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">ofile</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;[, ]+&quot;</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="n">inflow_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FlowData</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">flow</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;The inflow file is in the wrong format, expecting space- or comma-separated value pairs.</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+    <span class="n">mesh</span><span class="o">.</span><span class="n">inflow_data</span> <span class="o">=</span> <span class="n">inflow_data</span></div>
+
+
+<div class="viewcode-block" id="read_outlet_face_names"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.read_outlet_face_names">[docs]</a><span class="k">def</span> <span class="nf">read_outlet_face_names</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Read in outlet face names file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">outlet_face_names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Read model outlet face names from: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">outlet_face_names_file</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">outlet_face_names_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">outlet_face_names</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">splitlines</span><span class="p">())</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of model outlet faces names: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">outlet_face_names</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">outlet_face_names</span></div>
+
+
+<div class="viewcode-block" id="write_mesh"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.write_mesh">[docs]</a><span class="k">def</span> <span class="nf">write_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write the 1D mesh to a VTK VTP format file.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        mesh: Mesh object</span>
+<span class="sd">        params: 1d model parameters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">output_directory</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">mesh_output_file</span><span class="p">)</span>
+
+    <span class="c1"># add points and lines</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">vtkPoints</span><span class="p">()</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">vtkCellArray</span><span class="p">()</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s1">&#39;coord&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">point</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">branch</span><span class="p">):</span>
+            <span class="n">points</span><span class="o">.</span><span class="n">InsertNextPoint</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">lcoef</span> <span class="o">*</span> <span class="n">point</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">vtkLine</span><span class="p">()</span>
+                <span class="n">line</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">line</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">SetId</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">InsertNextCell</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span>
+
+    <span class="c1"># create polydata</span>
+    <span class="n">polydata</span> <span class="o">=</span> <span class="n">vtkPolyData</span><span class="p">()</span>
+    <span class="n">polydata</span><span class="o">.</span><span class="n">SetPoints</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+    <span class="n">polydata</span><span class="o">.</span><span class="n">SetLines</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+    <span class="n">polydata</span><span class="o">.</span><span class="n">Modified</span><span class="p">()</span>
+
+    <span class="c1"># add point and cell arrays to output</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;point&#39;</span><span class="p">:</span> <span class="n">mesh</span><span class="o">.</span><span class="n">point_data</span><span class="p">,</span> <span class="s1">&#39;cell&#39;</span><span class="p">:</span> <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">out</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">branch</span><span class="p">:</span>
+                    <span class="n">array</span> <span class="o">+=</span> <span class="p">[</span><span class="n">v</span><span class="p">]</span>
+            <span class="n">add_array</span><span class="p">(</span><span class="n">polydata</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># write the VTP file</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">vtkXMLPolyDataWriter</span><span class="p">()</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">SetInputData</span><span class="p">(</span><span class="n">polydata</span><span class="p">)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">Write</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="write_solver_file"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.write_solver_file">[docs]</a><span class="k">def</span> <span class="nf">write_solver_file</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Write a solver input file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># print(&quot;Write solver file.&quot;)</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Write solver file.&quot;</span><span class="p">)</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">output_directory</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">solver_output_file</span><span class="p">)</span>
+    <span class="n">model_name</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">model_name</span>
+    <span class="n">sp</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">space</span>
+    <span class="c1"># print(&quot;Solver file %s&quot; % file_name)</span>
+
+    <span class="c1"># Open file</span>
+    <span class="n">ofile</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+    <span class="c1"># write header</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">Headers</span><span class="p">()</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">model_name</span><span class="p">)</span>
+    <span class="n">write_solver_section_header</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
+
+    <span class="c1"># Write node section.</span>
+    <span class="n">write_solver_nodes</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+    <span class="c1"># Write joint section.</span>
+    <span class="n">write_solver_joints</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+    <span class="c1"># Write segment section.</span>
+    <span class="n">write_solver_segments</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+    <span class="c1"># Write SolverOptions section.</span>
+    <span class="n">write_solver_options</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+    <span class="c1"># Write material section.</span>
+    <span class="n">write_solver_material</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+    <span class="c1"># Write output section.</span>
+    <span class="n">write_solver_output</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+    <span class="n">ofile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="write_solver_nodes"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.write_solver_nodes">[docs]</a><span class="k">def</span> <span class="nf">write_solver_nodes</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Write a solver input file nodes section.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">Headers</span><span class="p">()</span><span class="o">.</span><span class="n">node</span>
+
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">solver_file_msg</span><span class="p">)</span>
+    <span class="n">write_solver_section_header</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
+
+    <span class="n">lcoef</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">lcoef</span>
+    <span class="n">sp</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">space</span>
+
+    <span class="c1"># loop branches</span>
+    <span class="k">for</span> <span class="n">ids</span><span class="p">,</span> <span class="n">nodes</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">mesh</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s1">&#39;coord&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="c1"># loop nodes</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
+            <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;NODE &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="n">sp</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">lcoef</span> <span class="o">*</span> <span class="n">node</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="write_solver_joints"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.write_solver_joints">[docs]</a><span class="k">def</span> <span class="nf">write_solver_joints</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Write a solver input file joints section.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">header1</span> <span class="o">=</span> <span class="n">Headers</span><span class="p">()</span><span class="o">.</span><span class="n">joint1</span>
+    <span class="n">header2</span> <span class="o">=</span> <span class="n">Headers</span><span class="p">()</span><span class="o">.</span><span class="n">joint2</span>
+
+    <span class="c1"># Joint header.</span>
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">solver_file_msg</span><span class="p">)</span>
+    <span class="n">write_solver_section_header</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">header1</span><span class="p">)</span>
+
+    <span class="c1"># JointInlet and JointOutlet header.</span>
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">solver_file_msg</span><span class="p">)</span>
+    <span class="n">write_solver_section_header</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">header2</span><span class="p">)</span>
+
+    <span class="n">sp</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">space</span>
+    <span class="n">seg_connectivity</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">seg_connectivity</span>
+    <span class="n">seg_rear</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">seg_rear</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">seg_connectivity</span><span class="p">)):</span>
+        <span class="n">joint</span> <span class="o">=</span> <span class="s2">&quot;JOINT J&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">seg_rear</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">jin</span> <span class="o">=</span> <span class="s2">&quot;IN&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">jout</span> <span class="o">=</span> <span class="s2">&quot;OUT&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="n">joint</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="n">jin</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="n">jout</span><span class="p">)</span>
+        <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;JOINTINLET IN&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="s2">&quot;1 &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">seg_connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">ofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;JOINTOUTLET OUT&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">seg_connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">seg_connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
+            <span class="n">ofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">seg_connectivity</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]))</span>
+        <span class="n">ofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write_solver_segments"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.write_solver_segments">[docs]</a><span class="k">def</span> <span class="nf">write_solver_segments</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Write a solver input file joints section.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">Headers</span><span class="p">()</span><span class="o">.</span><span class="n">segment</span>
+    <span class="n">write_solver_section_header</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Write solver segment section ...&quot;</span><span class="p">)</span>
+
+    <span class="n">sp</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">space</span>
+
+    <span class="n">uniform_bc</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">uniform_bc</span>
+    <span class="n">uniform_material</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">uniform_material</span>
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">element_size</span>
+    <span class="n">min_num_elems</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">min_num_elems</span>
+    <span class="n">inflow_data</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">inflow_data</span>
+
+    <span class="n">mesh</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Uniform BC: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">uniform_bc</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">bc_type</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Outflow BC: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">t</span><span class="p">)</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">num_elements</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">assert</span> <span class="n">uniform_material</span><span class="p">,</span> <span class="s1">&#39;non-uniform material not implemented&#39;</span>
+
+    <span class="c1"># loop branches</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">branch</span><span class="p">,</span> <span class="n">ids</span><span class="p">),</span> <span class="n">lengths</span><span class="p">,</span> <span class="n">stenosis</span><span class="p">,</span> <span class="n">seg_1d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;stenosis&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;1d_seg&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="c1"># loop nodes</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">sten</span><span class="p">,</span> <span class="n">numfe</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">lengths</span><span class="p">,</span> <span class="n">stenosis</span><span class="p">,</span> <span class="n">seg_1d</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">uniform_material</span><span class="p">:</span>
+                <span class="n">matname</span> <span class="o">=</span> <span class="s2">&quot;MAT1&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">matname</span> <span class="o">=</span> <span class="s2">&quot;MAT_group&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+
+            <span class="n">mesh</span><span class="o">.</span><span class="n">num_elements</span> <span class="o">+=</span> <span class="n">numfe</span>
+
+            <span class="n">p0</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="n">branch</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">p1</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="n">branch</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">a0</span><span class="p">,</span> <span class="n">a1</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">][</span><span class="n">branch</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="n">seg_out</span> <span class="o">=</span> <span class="s2">&quot;SEGMENT&quot;</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="s2">&quot;branch&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_seg&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span>\
+                      <span class="nb">str</span><span class="p">(</span><span class="n">length</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">numfe</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p0</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span>\
+                      <span class="nb">str</span><span class="p">(</span><span class="n">p1</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">a0</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">a1</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span>\
+                      <span class="s2">&quot;0.0 &quot;</span> <span class="o">+</span> <span class="n">matname</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stenosis</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">stenosis</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">seg_out</span> <span class="o">+=</span> <span class="s2">&quot; STENOSIS 0.0 &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; 0 &quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">seg_out</span> <span class="o">+=</span> <span class="s2">&quot; NONE 0.0 0 0 &quot;</span>
+
+            <span class="n">ofile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">seg_out</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">terminal</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">uniform_bc</span><span class="p">:</span>
+                    <span class="n">outflow_bc</span> <span class="o">=</span> <span class="n">OutflowBoundaryConditionType</span><span class="o">.</span><span class="n">RCR</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="n">outflow_bc</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">outflow_bc</span> <span class="o">+</span> <span class="s2">&quot;_1&quot;</span><span class="p">)</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;While writing solver segments encountered: group_terminal[seg_list[i]] == 1&quot;</span>
+                    <span class="n">mesh</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">bc_id</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">terminal</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                    <span class="n">bc_name</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">outlet_face_names_index</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">bc_id</span><span class="p">]</span>
+                    <span class="n">bc_type</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">bc_type</span><span class="p">[</span><span class="n">bc_name</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+                    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="n">bc_type</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">bc_type</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">bc_id</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;NOBOUND NONE&quot;</span><span class="p">)</span>
+
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">uniform_bc</span><span class="p">:</span>
+        <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;DATATABLE &quot;</span> <span class="o">+</span> <span class="n">outflow_bc_uc</span> <span class="o">+</span> <span class="s2">&quot;_1 LIST&quot;</span><span class="p">)</span>
+        <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span>
+        <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;ENDDATATABLE&quot;</span><span class="p">)</span>
+        <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">outlet_face_names_index</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">bc_val</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">bc_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="n">bc_type</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">bc_type</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;DATATABLE &quot;</span> <span class="o">+</span> <span class="n">bc_type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; LIST&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">bc_type</span> <span class="o">==</span> <span class="n">OutflowBoundaryConditionType</span><span class="o">.</span><span class="n">RCR</span> <span class="ow">or</span> <span class="n">bc_type</span> <span class="o">==</span> <span class="n">OutflowBoundaryConditionType</span><span class="o">.</span><span class="n">RESISTANCE</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">bc_val</span><span class="p">:</span>
+                    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;0.0 &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">))</span>
+
+            <span class="k">elif</span> <span class="n">bc_type</span> <span class="o">==</span> <span class="n">OutflowBoundaryConditionType</span><span class="o">.</span><span class="n">CORONARY</span><span class="p">:</span>
+                <span class="c1"># write parameters</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Ra1&#39;</span><span class="p">,</span> <span class="s1">&#39;Ra2&#39;</span><span class="p">,</span> <span class="s1">&#39;Ca&#39;</span><span class="p">,</span> <span class="s1">&#39;Cc&#39;</span><span class="p">,</span> <span class="s1">&#39;Rv1&#39;</span><span class="p">,</span> <span class="s1">&#39;P_v&#39;</span><span class="p">]:</span>
+                    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;-1.0 &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">bc_val</span><span class="p">[</span><span class="s1">&#39;var&#39;</span><span class="p">][</span><span class="n">v</span><span class="p">]))</span>
+
+                <span class="c1"># write time / pressure pairs</span>
+                <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bc_val</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">bc_val</span><span class="p">[</span><span class="s1">&#39;pressure&#39;</span><span class="p">]):</span>
+                    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+
+            <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;ENDDATATABLE&quot;</span><span class="p">)</span>
+            <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;DATATABLE INFLOW LIST&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">inflow_data</span><span class="p">:</span>
+        <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;Copy and paste inflow data here.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">inflow_data</span><span class="p">:</span>
+            <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">flow</span><span class="p">))</span>
+
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;ENDDATATABLE&quot;</span><span class="p">)</span>
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write_solver_options"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.write_solver_options">[docs]</a><span class="k">def</span> <span class="nf">write_solver_options</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Write a solver input file options section.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">Headers</span><span class="p">()</span><span class="o">.</span><span class="n">solveroptions</span>
+    <span class="n">write_solver_section_header</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
+
+    <span class="n">sp</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">space</span>
+    <span class="n">time_step</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">time_step</span>
+    <span class="n">num_time_steps</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">num_time_steps</span>
+    <span class="n">save_data_freq</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">save_data_freq</span>
+
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;SOLVEROPTIONS &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">time_step</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">save_data_freq</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span>
+        <span class="n">num_time_steps</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; 2 INFLOW FLOW 1.0e-5 1 1&quot;</span><span class="p">)</span>
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write_solver_material"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.write_solver_material">[docs]</a><span class="k">def</span> <span class="nf">write_solver_material</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Write a solver input file material section.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">Headers</span><span class="p">()</span><span class="o">.</span><span class="n">material</span>
+    <span class="n">write_solver_section_header</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
+
+    <span class="n">sp</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">space</span>
+    <span class="n">mattype</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">material_model</span>
+    <span class="n">density</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">density</span>
+    <span class="n">viscosity</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">viscosity</span>
+
+    <span class="k">if</span> <span class="n">mattype</span> <span class="o">==</span> <span class="n">MaterialModel</span><span class="o">.</span><span class="n">OLUFSEN</span><span class="p">:</span>
+        <span class="n">k1</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_k1</span>
+        <span class="n">k2</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_k2</span>
+        <span class="n">k3</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_k3</span>
+        <span class="n">pressure</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_pressure</span>
+        <span class="n">exponent</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_exponent</span>
+    <span class="k">elif</span> <span class="n">mattype</span> <span class="o">==</span> <span class="n">MaterialModel</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">:</span>
+        <span class="n">k1</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">linear_material_ehr</span>
+        <span class="n">k2</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">k3</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">pressure</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">linear_material_pressure</span>
+        <span class="n">exponent</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="n">uniform_material</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">uniform_material</span>
+
+    <span class="k">if</span> <span class="n">uniform_material</span><span class="p">:</span>
+        <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;MATERIAL MAT1 &quot;</span> <span class="o">+</span> <span class="n">mattype</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">density</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">viscosity</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span>
+                      <span class="nb">str</span><span class="p">(</span><span class="n">pressure</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">exponent</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">k1</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">k2</span><span class="p">)</span> <span class="o">+</span> <span class="n">sp</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">k3</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Non-uniform material not implemented&#39;</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write_solver_output"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.write_solver_output">[docs]</a><span class="k">def</span> <span class="nf">write_solver_output</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Write a solver input file output section.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">Headers</span><span class="p">()</span><span class="o">.</span><span class="n">output</span>
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">write_solver_section_header</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">header</span><span class="p">)</span>
+
+    <span class="n">outputformat</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">outputformat</span>
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="s2">&quot;OUTPUT &quot;</span> <span class="o">+</span> <span class="n">outputformat</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="write_solver_section_header"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.write_solver_section_header">[docs]</a><span class="k">def</span> <span class="nf">write_solver_section_header</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">ofile</span><span class="p">,</span> <span class="n">header</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Write a solver input file section header.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">endl</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">endl</span>
+    <span class="n">hdr</span> <span class="o">=</span> <span class="n">endl</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">header</span><span class="p">)</span>
+    <span class="n">ofile</span><span class="o">.</span><span class="n">writeln</span><span class="p">(</span><span class="n">hdr</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="add_array"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.add_array">[docs]</a><span class="k">def</span> <span class="nf">add_array</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add array to vtkPolyData</span>
+<span class="sd">    Args:</span>
+<span class="sd">        data: vtkPolyData object</span>
+<span class="sd">        identifier: array association (point or cell)</span>
+<span class="sd">        array: scalar list or numpy array</span>
+<span class="sd">        name: display name of array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">out_array</span> <span class="o">=</span> <span class="n">nps</span><span class="o">.</span><span class="n">numpy_to_vtk</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">array</span><span class="p">))</span>
+    <span class="n">out_array</span><span class="o">.</span><span class="n">SetName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">identifier</span> <span class="o">==</span> <span class="s1">&#39;point&#39;</span><span class="p">:</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">GetPointData</span><span class="p">()</span><span class="o">.</span><span class="n">AddArray</span><span class="p">(</span><span class="n">out_array</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">identifier</span> <span class="o">==</span> <span class="s1">&#39;cell&#39;</span><span class="p">:</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">GetCellData</span><span class="p">()</span><span class="o">.</span><span class="n">AddArray</span><span class="p">(</span><span class="n">out_array</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown identifier &#39;</span> <span class="o">+</span> <span class="n">identifier</span> <span class="o">+</span> <span class="s1">&#39;. Choose point or cell.&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read_variable_outflow_bcs"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.read_variable_outflow_bcs">[docs]</a><span class="k">def</span> <span class="nf">read_variable_outflow_bcs</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read in data for variable flow boundary conditions from file (RCR, resistance, coronary)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bc_map</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">bc_type</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">outflow_bc_sv</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_type</span><span class="p">:</span>
+        <span class="c1"># filename for boundary condition type</span>
+        <span class="n">bc_file</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_file</span><span class="p">,</span> <span class="n">outflow_bc_sv</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">bc_file</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Boundary condition file not found: &#39;</span> <span class="o">+</span> <span class="n">bc_file</span><span class="p">)</span>
+
+        <span class="c1"># onedsolver name for boundary condition type</span>
+        <span class="n">bc_in</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">outflow_bc_sv</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bc_in</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">OutflowBoundaryConditionType</span><span class="o">.</span><span class="n">SV_TO_ONED</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Unknown bounadry condition type: &#39;</span> <span class="o">+</span> <span class="n">bc_in</span><span class="p">)</span>
+        <span class="n">outflow_bc</span> <span class="o">=</span> <span class="n">OutflowBoundaryConditionType</span><span class="o">.</span><span class="n">SV_TO_ONED</span><span class="p">[</span><span class="n">bc_in</span><span class="p">]</span>
+
+        <span class="c1"># switch between boundary condition types resistance, RCR, coronary</span>
+        <span class="k">if</span> <span class="n">outflow_bc</span> <span class="o">==</span> <span class="n">OutflowBoundaryConditionType</span><span class="o">.</span><span class="n">RESISTANCE</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">bc_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">rfile</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">rfile</span><span class="p">:</span>
+                        <span class="n">split</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+                        <span class="n">face_name</span> <span class="o">=</span> <span class="n">split</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                        <span class="c1"># resistance</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="n">value</span> <span class="o">+=</span> <span class="p">[</span><span class="n">split</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+                        <span class="c1"># check if reference pressure is given</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                            <span class="n">value</span> <span class="o">+=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
+                        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">split</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                            <span class="n">value</span> <span class="o">+=</span> <span class="p">[</span><span class="n">split</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;The resistance file is in the wrong format, expecting face name / value pairs.&quot;</span>
+                            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+                        <span class="n">bc_map</span><span class="p">[</span><span class="n">face_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                        <span class="n">bc_type</span><span class="p">[</span><span class="n">face_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">outflow_bc</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;The resistance file is in the wrong format, expecting face name / value pairs.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">outflow_bc</span> <span class="o">==</span> <span class="n">OutflowBoundaryConditionType</span><span class="o">.</span><span class="n">RCR</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">bc_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">rfile</span><span class="p">:</span>
+                <span class="n">keyword</span> <span class="o">=</span> <span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="n">tmp</span> <span class="o">=</span> <span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">tmp</span> <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+                        <span class="n">RCRval</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="n">face_name</span> <span class="o">=</span> <span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                        <span class="n">RCRval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()))</span>
+                        <span class="n">RCRval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()))</span>
+                        <span class="n">RCRval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()))</span>
+
+                        <span class="c1"># read reference pressure</span>
+                        <span class="n">p0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">p1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="k">assert</span> <span class="n">p0</span> <span class="o">==</span> <span class="n">p1</span><span class="p">,</span> <span class="s1">&#39;Cannot handle time-dependent reference pressure&#39;</span>
+                        <span class="n">RCRval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">p1</span><span class="p">))</span>
+
+                        <span class="n">bc_map</span><span class="p">[</span><span class="n">face_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">RCRval</span>
+                        <span class="n">bc_type</span><span class="p">[</span><span class="n">face_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">outflow_bc</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">break</span>
+
+        <span class="k">elif</span> <span class="n">outflow_bc</span> <span class="o">==</span> <span class="n">OutflowBoundaryConditionType</span><span class="o">.</span><span class="n">CORONARY</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">bc_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">rfile</span><span class="p">:</span>
+                <span class="n">keyword</span> <span class="o">=</span> <span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">tmp</span> <span class="o">==</span> <span class="n">keyword</span><span class="p">:</span>
+                        <span class="n">face_name</span> <span class="o">=</span> <span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+                        <span class="c1"># read coronary parameters</span>
+                        <span class="n">coronary_var_sv</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+                        <span class="n">var_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;q0&#39;</span><span class="p">,</span> <span class="s1">&#39;q1&#39;</span><span class="p">,</span> <span class="s1">&#39;q2&#39;</span><span class="p">,</span> <span class="s1">&#39;p0&#39;</span><span class="p">,</span> <span class="s1">&#39;p1&#39;</span><span class="p">,</span> <span class="s1">&#39;p2&#39;</span><span class="p">,</span> <span class="s1">&#39;b0&#39;</span><span class="p">,</span> <span class="s1">&#39;b1&#39;</span><span class="p">,</span> <span class="s1">&#39;b2&#39;</span><span class="p">,</span> <span class="s1">&#39;dQinidT&#39;</span><span class="p">,</span> <span class="s1">&#39;dPinidT&#39;</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">var_names</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">coronary_var_sv</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">())</span>
+                            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Wrong format of coronary boundary conditions&#39;</span><span class="p">)</span>
+
+                        <span class="c1"># convert SimVascular convention to oneD convention</span>
+                        <span class="n">coronary_var</span> <span class="o">=</span> <span class="n">coronary_sv_to_oned</span><span class="p">(</span><span class="n">coronary_var_sv</span><span class="p">)</span>
+
+                        <span class="c1"># read ventricular time and pressure pairs</span>
+                        <span class="n">time</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="n">pressure</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                            <span class="n">tmp</span> <span class="o">=</span> <span class="n">rfile</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                            <span class="c1"># check if end of table</span>
+                            <span class="k">if</span> <span class="n">tmp</span> <span class="o">==</span> <span class="n">keyword</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="k">break</span>
+
+                            <span class="c1"># split line in time, pressure</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">t</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Wrong format of coronary boundary conditions&#39;</span><span class="p">)</span>
+
+                            <span class="n">time</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">)]</span>
+                            <span class="n">pressure</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span>
+
+                        <span class="n">coronary</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="n">coronary_var</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">time</span><span class="p">,</span> <span class="s1">&#39;pressure&#39;</span><span class="p">:</span> <span class="n">pressure</span><span class="p">}</span>
+
+                        <span class="n">bc_map</span><span class="p">[</span><span class="n">face_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">coronary</span>
+                        <span class="n">bc_type</span><span class="p">[</span><span class="n">face_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">outflow_bc</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">bc_map</span><span class="p">,</span> <span class="n">bc_type</span></div>
+
+
+<div class="viewcode-block" id="coronary_sv_to_oned"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.io_1d.coronary_sv_to_oned">[docs]</a><span class="k">def</span> <span class="nf">coronary_sv_to_oned</span><span class="p">(</span><span class="n">bc</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert format of coronary boundary condition parameters from svSimVascular to svOneDSolver</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># unpack constants</span>
+    <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">b1</span> <span class="o">=</span> <span class="p">(</span><span class="n">bc</span><span class="p">[</span><span class="s1">&#39;p1&#39;</span><span class="p">],</span> <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;p2&#39;</span><span class="p">],</span> <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;q0&#39;</span><span class="p">],</span> <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;q1&#39;</span><span class="p">],</span> <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;q2&#39;</span><span class="p">],</span> <span class="n">bc</span><span class="p">[</span><span class="s1">&#39;b1&#39;</span><span class="p">])</span>
+    <span class="n">Rv_micro</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># build system of equations (obtained from analytically solving for constants as defined in paper)</span>
+    <span class="c1"># see H. J. Kim et al. &quot;Patient-Specific Modeling of Blood Flow and Pressure in Human Coronary Arteries&quot;, p. 3198</span>
+    <span class="n">Ra</span> <span class="o">=</span> <span class="n">q2</span> <span class="o">/</span> <span class="n">p2</span>
+    <span class="n">Ra_micro</span> <span class="o">=</span> <span class="p">(</span><span class="n">p1</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">q2</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">p1</span> <span class="o">*</span> <span class="n">p2</span> <span class="o">*</span> <span class="n">q1</span> <span class="o">*</span> <span class="n">q2</span> <span class="o">+</span> <span class="n">p2</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">q1</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">p2</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span> <span class="n">q2</span> <span class="o">*</span> <span class="n">p1</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">q1</span> <span class="o">*</span> <span class="n">p1</span> <span class="o">*</span> <span class="n">p2</span> <span class="o">-</span> <span class="n">q0</span> <span class="o">*</span> <span class="n">p2</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">q2</span> <span class="o">*</span> <span class="n">p2</span><span class="p">))</span>
+    <span class="n">Ca</span> <span class="o">=</span> <span class="o">-</span><span class="n">p2</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="n">p1</span><span class="o">*</span><span class="n">q2</span> <span class="o">-</span> <span class="n">p2</span><span class="o">*</span><span class="n">q1</span><span class="p">)</span>
+    <span class="n">Cim</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span> <span class="n">q2</span><span class="o">*</span><span class="n">p1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">q1</span><span class="o">*</span><span class="n">p1</span><span class="o">*</span><span class="n">p2</span> <span class="o">-</span> <span class="n">q0</span><span class="o">*</span><span class="n">p2</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">q2</span><span class="o">*</span><span class="n">p2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">((</span><span class="n">p1</span><span class="o">*</span><span class="n">q2</span> <span class="o">-</span> <span class="n">p2</span><span class="o">*</span><span class="n">q1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">p1</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">q0</span><span class="o">*</span><span class="n">q2</span> <span class="o">-</span> <span class="n">p1</span><span class="o">*</span><span class="n">p2</span><span class="o">*</span><span class="n">q0</span><span class="o">*</span><span class="n">q1</span> <span class="o">-</span> <span class="n">p1</span><span class="o">*</span><span class="n">q1</span><span class="o">*</span><span class="n">q2</span> <span class="o">+</span> <span class="n">p2</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">q0</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">p2</span><span class="o">*</span><span class="n">q0</span><span class="o">*</span><span class="n">q2</span> <span class="o">+</span> <span class="n">p2</span><span class="o">*</span><span class="n">q1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">q2</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">Rv</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">p1</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">q0</span><span class="o">*</span><span class="n">q2</span> <span class="o">-</span> <span class="n">p1</span><span class="o">*</span><span class="n">p2</span><span class="o">*</span><span class="n">q0</span><span class="o">*</span><span class="n">q1</span> <span class="o">-</span> <span class="n">p1</span><span class="o">*</span><span class="n">q1</span><span class="o">*</span><span class="n">q2</span> <span class="o">+</span> <span class="n">p2</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">q0</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">p2</span><span class="o">*</span><span class="n">q0</span><span class="o">*</span><span class="n">q2</span> <span class="o">+</span> <span class="n">p2</span><span class="o">*</span><span class="n">q1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">q2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="o">-</span> <span class="n">q2</span><span class="o">*</span><span class="n">p1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">q1</span><span class="o">*</span><span class="n">p1</span><span class="o">*</span><span class="n">p2</span> <span class="o">-</span> <span class="n">q0</span><span class="o">*</span><span class="n">p2</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">q2</span><span class="o">*</span><span class="n">p2</span><span class="p">)</span>
+
+    <span class="c1"># check equation residuals</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">[</span><span class="n">p1</span> <span class="o">-</span> <span class="p">(</span><span class="n">Ra_micro</span> <span class="o">*</span> <span class="n">Ca</span> <span class="o">+</span> <span class="p">(</span><span class="n">Rv</span> <span class="o">+</span> <span class="n">Rv_micro</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">Ca</span> <span class="o">+</span> <span class="n">Cim</span><span class="p">)),</span>
+           <span class="n">p2</span> <span class="o">-</span> <span class="p">(</span><span class="n">Ca</span> <span class="o">*</span> <span class="n">Cim</span> <span class="o">*</span> <span class="n">Ra_micro</span> <span class="o">*</span> <span class="p">(</span><span class="n">Rv</span> <span class="o">+</span> <span class="n">Rv_micro</span><span class="p">)),</span>
+           <span class="n">q0</span> <span class="o">-</span> <span class="p">(</span><span class="n">Ra</span> <span class="o">+</span> <span class="n">Ra_micro</span> <span class="o">+</span> <span class="n">Rv</span> <span class="o">+</span> <span class="n">Rv_micro</span><span class="p">),</span>
+           <span class="n">q1</span> <span class="o">-</span> <span class="p">(</span><span class="n">Ra</span> <span class="o">*</span> <span class="n">Ca</span> <span class="o">*</span> <span class="p">(</span><span class="n">Ra_micro</span> <span class="o">+</span> <span class="n">Rv</span> <span class="o">+</span> <span class="n">Rv_micro</span><span class="p">)</span> <span class="o">+</span> <span class="n">Cim</span> <span class="o">*</span> <span class="p">(</span><span class="n">Ra</span> <span class="o">+</span> <span class="n">Ra_micro</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">Rv</span> <span class="o">+</span> <span class="n">Rv_micro</span><span class="p">)),</span>
+           <span class="n">q2</span> <span class="o">-</span> <span class="p">(</span><span class="n">Ca</span> <span class="o">*</span> <span class="n">Cim</span> <span class="o">*</span> <span class="n">Ra</span> <span class="o">*</span> <span class="n">Ra_micro</span> <span class="o">*</span> <span class="p">(</span><span class="n">Rv</span> <span class="o">+</span> <span class="n">Rv_micro</span><span class="p">)),</span>
+           <span class="n">b1</span> <span class="o">-</span> <span class="p">(</span><span class="n">Cim</span> <span class="o">*</span> <span class="p">(</span><span class="n">Rv</span> <span class="o">+</span> <span class="n">Rv_micro</span><span class="p">))]</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">res</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="s1">&#39;SV coronary constants inconsistent&#39;</span>
+
+    <span class="c1"># export constants</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;Ra1&#39;</span><span class="p">:</span> <span class="n">Ra</span><span class="p">,</span> <span class="s1">&#39;Ra2&#39;</span><span class="p">:</span> <span class="n">Ra_micro</span><span class="p">,</span> <span class="s1">&#39;Ca&#39;</span><span class="p">:</span> <span class="n">Ca</span><span class="p">,</span> <span class="s1">&#39;Cc&#39;</span><span class="p">:</span> <span class="n">Cim</span><span class="p">,</span> <span class="s1">&#39;Rv1&#39;</span><span class="p">:</span> <span class="n">Rv</span><span class="p">,</span> <span class="s1">&#39;P_v&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">}</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.io_1d</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

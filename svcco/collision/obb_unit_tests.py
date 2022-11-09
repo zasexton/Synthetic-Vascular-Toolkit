@@ -3,7 +3,7 @@
 ##########
 
 import numpy as np
-from obb import obb
+from .obb import obb
 
 ############################################
 # Test 1: Perpendicular Intersecting Vessels

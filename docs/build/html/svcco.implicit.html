@@ -1,0 +1,558 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>svcco.implicit package &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="svcco.implicit.core package" href="svcco.implicit.core.html" />
+    <link rel="prev" title="svcco.forest_utils package" href="svcco.forest_utils.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="svcco.implicit.core.html" title="svcco.implicit.core package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="svcco.forest_utils.html" title="svcco.forest_utils package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >svcco</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="svcco.html" accesskey="U">svcco package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.implicit package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="svcco-implicit-package">
+<h1>svcco.implicit package<a class="headerlink" href="#svcco-implicit-package" title="Permalink to this heading">¶</a></h1>
+<p>The classes and submodules presented here support the <code class="docutils literal notranslate"><span class="pre">svcco.surface()</span></code> class
+object responsible for defining perfusion domains for synthetic vascular construction.</p>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="svcco.implicit.core.html">svcco.implicit.core package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.core.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core.a_matrix">svcco.implicit.core.a_matrix module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.core.html#svcco.implicit.core.a_matrix.A"><code class="docutils literal notranslate"><span class="pre">A()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core.h_matrix">svcco.implicit.core.h_matrix module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.core.html#svcco.implicit.core.h_matrix.H"><code class="docutils literal notranslate"><span class="pre">H()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core.m_matrix">svcco.implicit.core.m_matrix module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.core.html#svcco.implicit.core.m_matrix.M"><code class="docutils literal notranslate"><span class="pre">M()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core.n_matrix">svcco.implicit.core.n_matrix module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.core.html#svcco.implicit.core.n_matrix.N"><code class="docutils literal notranslate"><span class="pre">N()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core.utils">svcco.implicit.core.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.core.html#svcco.implicit.core.utils.norm"><code class="docutils literal notranslate"><span class="pre">norm()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="svcco.implicit.kernel.html">svcco.implicit.kernel package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.kernel.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.kernel.kernel_functions.html">svcco.implicit.kernel.kernel_functions package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.kernel_functions.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.kernel_functions.html#module-svcco.implicit.kernel.kernel_functions.fitness">svcco.implicit.kernel.kernel_functions.fitness module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.kernel_functions.html#module-svcco.implicit.kernel.kernel_functions.grad">svcco.implicit.kernel.kernel_functions.grad module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.kernel_functions.html#module-svcco.implicit.kernel.kernel_functions.hess">svcco.implicit.kernel.kernel_functions.hess module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.kernel_functions.html#module-svcco.implicit.kernel.kernel_functions">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.kernel.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.kernel.html#module-svcco.implicit.kernel.kernel">svcco.implicit.kernel.kernel module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.kernel.html#svcco.implicit.kernel.kernel.kernel"><code class="docutils literal notranslate"><span class="pre">kernel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.html#svcco.implicit.kernel.kernel.kernel.fitness"><code class="docutils literal notranslate"><span class="pre">kernel.fitness()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.html#svcco.implicit.kernel.kernel.kernel.get_bounds"><code class="docutils literal notranslate"><span class="pre">kernel.get_bounds()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.html#svcco.implicit.kernel.kernel.kernel.gradient"><code class="docutils literal notranslate"><span class="pre">kernel.gradient()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.html#svcco.implicit.kernel.kernel.kernel.hessian"><code class="docutils literal notranslate"><span class="pre">kernel.hessian()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.kernel.html#module-svcco.implicit.kernel">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="svcco.implicit.solver.html">svcco.implicit.solver package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.solver.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.solver.solver_functions.html">svcco.implicit.solver.solver_functions package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.solver_functions.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.solver_functions.html#module-svcco.implicit.solver.solver_functions.init_normals_given">svcco.implicit.solver.solver_functions.init_normals_given module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.solver_functions.html#module-svcco.implicit.solver.solver_functions.init_normals_not_given">svcco.implicit.solver.solver_functions.init_normals_not_given module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.solver_functions.html#module-svcco.implicit.solver.solver_functions">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.solver.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.solver.html#module-svcco.implicit.solver.solver">svcco.implicit.solver.solver module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.solver.html#svcco.implicit.solver.solver.solver"><code class="docutils literal notranslate"><span class="pre">solver</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.html#svcco.implicit.solver.solver.solver.set_solver"><code class="docutils literal notranslate"><span class="pre">solver.set_solver()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.html#svcco.implicit.solver.solver.solver.solve"><code class="docutils literal notranslate"><span class="pre">solver.solve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.html#svcco.implicit.solver.solver.solver.variational_solver"><code class="docutils literal notranslate"><span class="pre">solver.variational_solver()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.html#svcco.implicit.solver.solver.solver.vector_solver"><code class="docutils literal notranslate"><span class="pre">solver.vector_solver()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.solver.html#module-svcco.implicit.solver">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="svcco.implicit.tests.html">svcco.implicit.tests package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.tests.html#module-svcco.implicit.tests.bumpy_sphere">svcco.implicit.tests.bumpy_sphere module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.tests.html#svcco.implicit.tests.bumpy_sphere.bumpy_sphere"><code class="docutils literal notranslate"><span class="pre">bumpy_sphere()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.tests.html#module-svcco.implicit.tests.heart">svcco.implicit.tests.heart module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.tests.html#module-svcco.implicit.tests">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="svcco.implicit.visualize.html">svcco.implicit.visualize package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.visualize.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.visualize.html#module-svcco.implicit.visualize.visualize">svcco.implicit.visualize.visualize module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.level_contour"><code class="docutils literal notranslate"><span class="pre">level_contour()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.mpu_meshgrid"><code class="docutils literal notranslate"><span class="pre">mpu_meshgrid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.newton"><code class="docutils literal notranslate"><span class="pre">newton()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.plot_error"><code class="docutils literal notranslate"><span class="pre">plot_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.plot_gradient"><code class="docutils literal notranslate"><span class="pre">plot_gradient()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.plot_gradient_error"><code class="docutils literal notranslate"><span class="pre">plot_gradient_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.plot_mpu_boundaries"><code class="docutils literal notranslate"><span class="pre">plot_mpu_boundaries()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.plot_slice_error"><code class="docutils literal notranslate"><span class="pre">plot_slice_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.plot_time"><code class="docutils literal notranslate"><span class="pre">plot_time()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.plot_volume"><code class="docutils literal notranslate"><span class="pre">plot_volume()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.plot_volume_individual"><code class="docutils literal notranslate"><span class="pre">plot_volume_individual()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.show_mesh"><code class="docutils literal notranslate"><span class="pre">show_mesh()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.show_patches"><code class="docutils literal notranslate"><span class="pre">show_patches()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.show_path"><code class="docutils literal notranslate"><span class="pre">show_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html#svcco.implicit.visualize.visualize.time_PU_global"><code class="docutils literal notranslate"><span class="pre">time_PU_global()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.visualize.html#module-svcco.implicit.visualize">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-svcco.implicit.derivative">
+<span id="svcco-implicit-derivative-module"></span><h2>svcco.implicit.derivative module<a class="headerlink" href="#module-svcco.implicit.derivative" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.construct">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">construct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#construct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.construct" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.construct_global">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">construct_global</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#construct_global"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.construct_global" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.core_hessian">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">core_hessian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#core_hessian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.core_hessian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.d">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.function">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyzk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">KDTree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sol_mat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.function" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.function_marching">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">function_marching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#function_marching"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.function_marching" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.global_d">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">global_d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#global_d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.global_d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.gradient">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyzk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">KDTree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sol_mat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#gradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.gradient" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.hessian">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">hessian</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xyzk</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">KDTree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sol_mat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#hessian"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.hessian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.linesearch_d0">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">linesearch_d0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sol_mat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#linesearch_d0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.linesearch_d0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.linesearch_d1">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">linesearch_d1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sol_mat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#linesearch_d1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.linesearch_d1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.linesearch_d2">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">linesearch_d2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b_coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sol_mat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#linesearch_d2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.linesearch_d2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.derivative.outter_parentheses">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.derivative.</span></span><span class="sig-name descname"><span class="pre">outter_parentheses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/derivative.html#outter_parentheses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.derivative.outter_parentheses" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-svcco.implicit.implicit">
+<span id="svcco-implicit-implicit-module"></span><h2>svcco.implicit.implicit module<a class="headerlink" href="#module-svcco.implicit.implicit" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.generate">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.implicit.</span></span><span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.generate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.marching_cubes">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.implicit.</span></span><span class="sig-name descname"><span class="pre">marching_cubes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visualize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#marching_cubes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.marching_cubes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes an interpolated volume and performs
+a descritization on a selected hyperplane.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.marching_cubes_pv">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.implicit.</span></span><span class="sig-name descname"><span class="pre">marching_cubes_pv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visualize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'marching_cubes'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_normals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_gradients</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tetgen_verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#marching_cubes_pv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.marching_cubes_pv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.patch">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.implicit.implicit.</span></span><span class="sig-name descname"><span class="pre">patch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normals</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#patch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.patch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.patch.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L-BFGS-B'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regularize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variational</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Bounded'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#patch.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.patch.solve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.properties">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.implicit.</span></span><span class="sig-name descname"><span class="pre">properties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">polydata_object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#properties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.properties" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.implicit.implicit.</span></span><span class="sig-name descname"><span class="pre">surface</span></span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other_surface</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.build">
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.build" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.build_individual">
+<span class="sig-name descname"><span class="pre">build_individual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.build_individual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.build_individual" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.export_polydata">
+<span class="sig-name descname"><span class="pre">export_polydata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.export_polydata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.export_polydata" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.mesh">
+<span class="sig-name descname"><span class="pre">mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">others</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.mesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.parallel_build">
+<span class="sig-name descname"><span class="pre">parallel_build</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chunks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.parallel_build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.parallel_build" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.patch_constructor_no_progress">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">patch_constructor_no_progress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tuple_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_safe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regularize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L-BFGS-B'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variational</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Bounded'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.patch_constructor_no_progress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.patch_constructor_no_progress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.patch_constructor_progress">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">patch_constructor_progress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tuple_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_safe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocking</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regularize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L-BFGS-B'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variational</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Bounded'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.patch_constructor_progress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.patch_constructor_progress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.path">
+<span class="sig-name descname"><span class="pre">path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.pick">
+<span class="sig-name descname"><span class="pre">pick</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.pick"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.pick" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.pick_in_cell">
+<span class="sig-name descname"><span class="pre">pick_in_cell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.pick_in_cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.pick_in_cell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.set_data">
+<span class="sig-name descname"><span class="pre">set_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PCA_samplesize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.set_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.set_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PU</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_individual</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regularize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L-BFGS-B'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variational</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Bounded'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.solve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.subtract">
+<span class="sig-name descname"><span class="pre">subtract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other_surface</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.subtract"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.subtract" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.within">
+<span class="sig-name descname"><span class="pre">within</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.within"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.within" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.implicit.implicit.surface.within_mesh">
+<span class="sig-name descname"><span class="pre">within_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/implicit.html#surface.within_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.implicit.surface.within_mesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-svcco.implicit.load">
+<span id="svcco-implicit-load-module"></span><h2>svcco.implicit.load module<a class="headerlink" href="#module-svcco.implicit.load" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.load.load3d">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.load.</span></span><span class="sig-name descname"><span class="pre">load3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdivisions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/load.html#load3d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.load.load3d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.load.load3d_pv">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.load.</span></span><span class="sig-name descname"><span class="pre">load3d_pv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdivisions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/load.html#load3d_pv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.load.load3d_pv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-svcco.implicit.sampling">
+<span id="svcco-implicit-sampling-module"></span><h2>svcco.implicit.sampling module<a class="headerlink" href="#module-svcco.implicit.sampling" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.sampling.sampling">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.sampling.</span></span><span class="sig-name descname"><span class="pre">sampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_local_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_local_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/sampling.html#sampling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.sampling.sampling" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-svcco.implicit.weingarten_map">
+<span id="svcco-implicit-weingarten-map-module"></span><h2>svcco.implicit.weingarten_map module<a class="headerlink" href="#module-svcco.implicit.weingarten_map" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.weingarten_map.estimate_gaussian_curvature">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.weingarten_map.</span></span><span class="sig-name descname"><span class="pre">estimate_gaussian_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/weingarten_map.html#estimate_gaussian_curvature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.weingarten_map.estimate_gaussian_curvature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.weingarten_map.estimate_weingarten_map">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.weingarten_map.</span></span><span class="sig-name descname"><span class="pre">estimate_weingarten_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/weingarten_map.html#estimate_weingarten_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.weingarten_map.estimate_weingarten_map" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.weingarten_map.generate_bases">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.weingarten_map.</span></span><span class="sig-name descname"><span class="pre">generate_bases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quiet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/weingarten_map.html#generate_bases"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.weingarten_map.generate_bases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.implicit.weingarten_map.show_gaussian_curvature">
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.weingarten_map.</span></span><span class="sig-name descname"><span class="pre">show_gaussian_curvature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/weingarten_map.html#show_gaussian_curvature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.weingarten_map.show_gaussian_curvature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-svcco.implicit">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-svcco.implicit" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">svcco.implicit package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-svcco.implicit.derivative">svcco.implicit.derivative module</a><ul>
+<li><a class="reference internal" href="#svcco.implicit.derivative.construct"><code class="docutils literal notranslate"><span class="pre">construct()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.construct_global"><code class="docutils literal notranslate"><span class="pre">construct_global()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.core_hessian"><code class="docutils literal notranslate"><span class="pre">core_hessian()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.d"><code class="docutils literal notranslate"><span class="pre">d()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.function"><code class="docutils literal notranslate"><span class="pre">function()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.function_marching"><code class="docutils literal notranslate"><span class="pre">function_marching()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.global_d"><code class="docutils literal notranslate"><span class="pre">global_d()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.gradient"><code class="docutils literal notranslate"><span class="pre">gradient()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.hessian"><code class="docutils literal notranslate"><span class="pre">hessian()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.linesearch_d0"><code class="docutils literal notranslate"><span class="pre">linesearch_d0()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.linesearch_d1"><code class="docutils literal notranslate"><span class="pre">linesearch_d1()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.linesearch_d2"><code class="docutils literal notranslate"><span class="pre">linesearch_d2()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.derivative.outter_parentheses"><code class="docutils literal notranslate"><span class="pre">outter_parentheses()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.implicit.implicit">svcco.implicit.implicit module</a><ul>
+<li><a class="reference internal" href="#svcco.implicit.implicit.generate"><code class="docutils literal notranslate"><span class="pre">generate()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.marching_cubes"><code class="docutils literal notranslate"><span class="pre">marching_cubes()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.marching_cubes_pv"><code class="docutils literal notranslate"><span class="pre">marching_cubes_pv()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.patch"><code class="docutils literal notranslate"><span class="pre">patch</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.implicit.implicit.patch.solve"><code class="docutils literal notranslate"><span class="pre">patch.solve()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.properties"><code class="docutils literal notranslate"><span class="pre">properties()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface"><code class="docutils literal notranslate"><span class="pre">surface</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.add"><code class="docutils literal notranslate"><span class="pre">surface.add()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.build"><code class="docutils literal notranslate"><span class="pre">surface.build()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.build_individual"><code class="docutils literal notranslate"><span class="pre">surface.build_individual()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.export_polydata"><code class="docutils literal notranslate"><span class="pre">surface.export_polydata()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.load"><code class="docutils literal notranslate"><span class="pre">surface.load()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.mesh"><code class="docutils literal notranslate"><span class="pre">surface.mesh()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.parallel_build"><code class="docutils literal notranslate"><span class="pre">surface.parallel_build()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.patch_constructor_no_progress"><code class="docutils literal notranslate"><span class="pre">surface.patch_constructor_no_progress()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.patch_constructor_progress"><code class="docutils literal notranslate"><span class="pre">surface.patch_constructor_progress()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.path"><code class="docutils literal notranslate"><span class="pre">surface.path()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.pick"><code class="docutils literal notranslate"><span class="pre">surface.pick()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.pick_in_cell"><code class="docutils literal notranslate"><span class="pre">surface.pick_in_cell()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.set_data"><code class="docutils literal notranslate"><span class="pre">surface.set_data()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.solve"><code class="docutils literal notranslate"><span class="pre">surface.solve()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.subtract"><code class="docutils literal notranslate"><span class="pre">surface.subtract()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.within"><code class="docutils literal notranslate"><span class="pre">surface.within()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.implicit.surface.within_mesh"><code class="docutils literal notranslate"><span class="pre">surface.within_mesh()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.implicit.load">svcco.implicit.load module</a><ul>
+<li><a class="reference internal" href="#svcco.implicit.load.load3d"><code class="docutils literal notranslate"><span class="pre">load3d()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.load.load3d_pv"><code class="docutils literal notranslate"><span class="pre">load3d_pv()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.implicit.sampling">svcco.implicit.sampling module</a><ul>
+<li><a class="reference internal" href="#svcco.implicit.sampling.sampling"><code class="docutils literal notranslate"><span class="pre">sampling()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.implicit.weingarten_map">svcco.implicit.weingarten_map module</a><ul>
+<li><a class="reference internal" href="#svcco.implicit.weingarten_map.estimate_gaussian_curvature"><code class="docutils literal notranslate"><span class="pre">estimate_gaussian_curvature()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.weingarten_map.estimate_weingarten_map"><code class="docutils literal notranslate"><span class="pre">estimate_weingarten_map()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.weingarten_map.generate_bases"><code class="docutils literal notranslate"><span class="pre">generate_bases()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.implicit.weingarten_map.show_gaussian_curvature"><code class="docutils literal notranslate"><span class="pre">show_gaussian_curvature()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.implicit">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="svcco.forest_utils.html"
+                          title="previous chapter">svcco.forest_utils package</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="svcco.implicit.core.html"
+                          title="next chapter">svcco.implicit.core package</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/svcco.implicit.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="svcco.implicit.core.html" title="svcco.implicit.core package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="svcco.forest_utils.html" title="svcco.forest_utils package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >svcco</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="svcco.html" >svcco package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.implicit package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

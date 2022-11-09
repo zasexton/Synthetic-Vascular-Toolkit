@@ -1,0 +1,680 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.sv_interface.ROM.generate_1d_mesh &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css" />
+    
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.generate_1d_mesh</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.sv_interface.ROM.generate_1d_mesh</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Stanford University, The Regents of the University of</span>
+<span class="c1">#               California, and others.</span>
+<span class="c1">#</span>
+<span class="c1"># All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># See Copyright-SimVascular.txt for additional details.</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining</span>
+<span class="c1"># a copy of this software and associated documentation files (the</span>
+<span class="c1"># &quot;Software&quot;), to deal in the Software without restriction, including</span>
+<span class="c1"># without limitation the rights to use, copy, modify, merge, publish,</span>
+<span class="c1"># distribute, sublicense, and/or sell copies of the Software, and to</span>
+<span class="c1"># permit persons to whom the Software is furnished to do so, subject</span>
+<span class="c1"># to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included</span>
+<span class="c1"># in all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS</span>
+<span class="c1"># IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED</span>
+<span class="c1"># TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A</span>
+<span class="c1"># PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER</span>
+<span class="c1"># OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,</span>
+<span class="c1"># EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,</span>
+<span class="c1"># PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR</span>
+<span class="c1"># PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF</span>
+<span class="c1"># LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING</span>
+<span class="c1"># NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c1"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">This module provides the interface to the modules creating a 1D mesh used for 1D simulations. </span>
+
+<span class="sd">Centerlines can be computed or read in. If centerline are read from a file then they must have </span>
+<span class="sd">been split and grouped along branches. If you are reading the centerlines computed by the SimVascular </span>
+<span class="sd">Models plugin then the Full_Centerlines.vtp file must be used.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">.manage</span> <span class="kn">import</span> <span class="n">get_logger_name</span><span class="p">,</span> <span class="n">init_logging</span><span class="p">,</span> <span class="n">get_log_file_name</span>
+<span class="kn">from</span> <span class="nn">.parameters</span> <span class="kn">import</span> <span class="n">Parameters</span>
+<span class="kn">from</span> <span class="nn">.centerlines</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.mesh</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">write_polydata</span><span class="p">,</span> <span class="n">read_polydata</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">get_logger_name</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="Args"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.generate_1d_mesh.Args">[docs]</a><span class="k">class</span> <span class="nc">Args</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This class defines the command line arguments to the generate-1d-mesh script.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">PREFIX</span> <span class="o">=</span> <span class="s2">&quot;--&quot;</span>
+    <span class="n">BOUNDARY_SURFACE_DIR</span> <span class="o">=</span> <span class="s2">&quot;boundary_surfaces_directory&quot;</span>
+    <span class="n">CENTERLINE_INPUT_FILE</span> <span class="o">=</span> <span class="s2">&quot;centerlines_input_file&quot;</span>
+    <span class="n">CENTERLINE_OUTPUT_FILE</span> <span class="o">=</span> <span class="s2">&quot;centerlines_output_file&quot;</span>
+    <span class="n">COMPUTE_CENTERLINES</span> <span class="o">=</span> <span class="s2">&quot;compute_centerlines&quot;</span>
+    <span class="n">COMPUTE_MESH</span> <span class="o">=</span> <span class="s2">&quot;compute_mesh&quot;</span>
+    <span class="n">DENSITY</span> <span class="o">=</span> <span class="s2">&quot;density&quot;</span>
+    <span class="n">ELEMENT_SIZE</span> <span class="o">=</span> <span class="s2">&quot;element_size&quot;</span>
+    <span class="n">INLET_FACE_INPUT_FILE</span> <span class="o">=</span> <span class="s2">&quot;inlet_face_input_file&quot;</span>
+    <span class="n">INFLOW_INPUT_FILE</span> <span class="o">=</span> <span class="s2">&quot;inflow_input_file&quot;</span>
+    <span class="n">LINEAR_MATERIAL_EHR</span> <span class="o">=</span> <span class="s2">&quot;linear_material_ehr&quot;</span>
+    <span class="n">LINEAR_MATERIAL_PRESSURE</span> <span class="o">=</span> <span class="s2">&quot;linear_material_pressure&quot;</span>
+    <span class="n">MATERIAL_MODEL</span> <span class="o">=</span> <span class="s2">&quot;material_model&quot;</span>
+    <span class="n">MESH_OUTPUT_FILE</span> <span class="o">=</span> <span class="s2">&quot;mesh_output_file&quot;</span>
+    <span class="n">MINIMUM_NUMBER_ELEMENTS</span> <span class="o">=</span> <span class="s2">&quot;min_num_elements&quot;</span>
+    <span class="n">MODEL_NAME</span> <span class="o">=</span> <span class="s2">&quot;model_name&quot;</span>
+    <span class="n">MODEL_ORDER</span> <span class="o">=</span> <span class="s2">&quot;model_order&quot;</span>
+    <span class="n">NUM_TIME_STEPS</span> <span class="o">=</span> <span class="s2">&quot;num_time_steps&quot;</span>
+    <span class="n">OLUFSEN_MATERIAL_K1</span> <span class="o">=</span> <span class="s2">&quot;olufsen_material_k1&quot;</span>
+    <span class="n">OLUFSEN_MATERIAL_K2</span> <span class="o">=</span> <span class="s2">&quot;olufsen_material_k2&quot;</span>
+    <span class="n">OLUFSEN_MATERIAL_K3</span> <span class="o">=</span> <span class="s2">&quot;olufsen_material_k3&quot;</span>
+    <span class="n">OLUFSEN_MATERIAL_EXP</span> <span class="o">=</span> <span class="s2">&quot;olufsen_material_exp&quot;</span>
+    <span class="n">OLUFSEN_MATERIAL_PRESSURE</span> <span class="o">=</span> <span class="s2">&quot;olufsen_material_pressure&quot;</span>
+    <span class="n">OUTFLOW_BC_INPUT_FILE</span> <span class="o">=</span> <span class="s2">&quot;outflow_bc_input_file&quot;</span>
+    <span class="n">OUTFLOW_BC_TYPE</span> <span class="o">=</span> <span class="s2">&quot;outflow_bc_type&quot;</span>
+    <span class="n">OUTLET_FACE_NAMES_INPUT_FILE</span> <span class="o">=</span> <span class="s2">&quot;outlet_face_names_input_file&quot;</span>
+    <span class="n">OUTPUT_DIRECTORY</span> <span class="o">=</span> <span class="s2">&quot;output_directory&quot;</span>
+    <span class="n">SEGMENT_MINIMUM_NUMBER</span> <span class="o">=</span> <span class="s2">&quot;seg_min_num&quot;</span>
+    <span class="n">SEGMENT_SIZE</span> <span class="o">=</span> <span class="s2">&quot;seg_size&quot;</span>
+    <span class="n">SEGMENT_SIZE_ADAPTIVE</span> <span class="o">=</span> <span class="s2">&quot;seg_size_adaptive&quot;</span>
+    <span class="n">SOLVER_OUTPUT_FILE</span> <span class="o">=</span> <span class="s2">&quot;solver_output_file&quot;</span>
+    <span class="n">SAVE_DATA_FREQUENCY</span> <span class="o">=</span> <span class="s2">&quot;save_data_frequency&quot;</span>
+    <span class="n">SURFACE_MODEL</span> <span class="o">=</span> <span class="s2">&quot;surface_model&quot;</span>
+    <span class="n">TIME_STEP</span> <span class="o">=</span> <span class="s2">&quot;time_step&quot;</span>
+    <span class="n">UNIFORM_BC</span> <span class="o">=</span> <span class="s2">&quot;uniform_bc&quot;</span>
+    <span class="n">UNITS</span> <span class="o">=</span> <span class="s2">&quot;units&quot;</span>
+    <span class="n">VISCOSITY</span> <span class="o">=</span> <span class="s2">&quot;viscosity&quot;</span>
+    <span class="n">WALL_PROPERTIES_INPUT_FILE</span> <span class="o">=</span> <span class="s2">&quot;wall_properties_input_file&quot;</span>
+    <span class="n">WALL_PROPERTIES_OUTPUT_FILE</span> <span class="o">=</span> <span class="s2">&quot;wall_properties_output_file&quot;</span></div>
+
+
+<div class="viewcode-block" id="cmd"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.generate_1d_mesh.cmd">[docs]</a><span class="k">def</span> <span class="nf">cmd</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Create an argparse command argument.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Args</span><span class="o">.</span><span class="n">PREFIX</span> <span class="o">+</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="parse_args"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.generate_1d_mesh.parse_args">[docs]</a><span class="k">def</span> <span class="nf">parse_args</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Parse command-line arguments.&quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MODEL_ORDER</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Dimension of reduced order model (0 or 1)&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">BOUNDARY_SURFACE_DIR</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Directory containing the boundary (inlet/outlet) surface files&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">CENTERLINE_INPUT_FILE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the file to read centerline geometry from.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">CENTERLINE_OUTPUT_FILE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the file to write centerline geometry to.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">COMPUTE_CENTERLINES</span><span class="p">),</span> <span class="n">const</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If given or value is set to 1 then compute centerlines.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">COMPUTE_MESH</span><span class="p">),</span> <span class="n">const</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If given or value is set to 1 then compute a mesh from centerlines..&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">DENSITY</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The fluid density.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">ELEMENT_SIZE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The finite element size in a sub-segment.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">INFLOW_INPUT_FILE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the file to read inflow data from.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">INLET_FACE_INPUT_FILE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the file (.vtp) defining the inlet face geometry.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">LINEAR_MATERIAL_EHR</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Linear material ehr parameter.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">LINEAR_MATERIAL_PRESSURE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Linear material pressure parameter.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MATERIAL_MODEL</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the material model. Can be &#39;LINEAR&#39; or &#39;OLUFSEN&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MESH_OUTPUT_FILE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the file to write the mesh to.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MINIMUM_NUMBER_ELEMENTS</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The minimum number of finite elements per segment.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MODEL_NAME</span><span class="p">),</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the model.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MODEL_ORDER</span><span class="p">),</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The order of the model: 0 or 1.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">NUM_TIME_STEPS</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The number of simulation time steps.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_K1</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Olufsen material k1 parameter.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_K2</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Olufsen material k2 parameter.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_K3</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Olufsen material k3 parameter.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_EXP</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Olufsen material exponent parameter.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_PRESSURE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Olufsen material pressure parameter.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTFLOW_BC_INPUT_FILE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The output boundary condition input file (RESISTANCE, RCR).&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTFLOW_BC_TYPE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The output boundary condition type (RESISTANCE, RCR).&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTPUT_DIRECTORY</span><span class="p">),</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The directory where output files are written.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SEGMENT_MINIMUM_NUMBER</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The minimum number of sub-segments per vessel master-segment.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SEGMENT_SIZE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The sub-segment size in a vessel master-segment.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SEGMENT_SIZE_ADAPTIVE</span><span class="p">),</span> <span class="n">const</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Should the sub-segment size be adaptive to centerline area change?&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SAVE_DATA_FREQUENCY</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The frequency to save data as the number of time steps between saves.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SOLVER_OUTPUT_FILE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the file to write the solver input to.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SURFACE_MODEL</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The surface model used to compute centerlines.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">TIME_STEP</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The simulation time step.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">UNIFORM_BC</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If set to (true,1,on) then read BC files&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">UNITS</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The units used to scale geometry. (cm or mm)&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">VISCOSITY</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The fluid viscosity.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTLET_FACE_NAMES_INPUT_FILE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The file containing outlet face names.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">WALL_PROPERTIES_INPUT_FILE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the file read surface wall material properties from.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="n">cmd</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">WALL_PROPERTIES_OUTPUT_FILE</span><span class="p">),</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the file write grouped wall material properties to.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(),</span> <span class="n">parser</span><span class="o">.</span><span class="n">print_help</span></div>
+
+
+<div class="viewcode-block" id="set_parameters"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.generate_1d_mesh.set_parameters">[docs]</a><span class="k">def</span> <span class="nf">set_parameters</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Set the values of parameters input from the command line.</span>
+
+<span class="sd">    The **kwargs argument can originate from the command line or from a direct</span>
+<span class="sd">    call to the &#39;run()&#39; function, in which case parser.parse_args() is not called</span>
+<span class="sd">    and so we need to check here if required arguments have been passed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Parse arguments ...&quot;</span><span class="p">)</span>
+
+    <span class="c1">## Create a Parameters object to store parameters.</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">Parameters</span><span class="p">()</span>
+
+    <span class="c1">## Process arguments.</span>
+    <span class="c1">#</span>
+    <span class="n">true_values</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;on&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MODEL_ORDER</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">model_order</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MODEL_ORDER</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Model order: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">model_order</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">model_order</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The model order &#39;</span><span class="si">%s</span><span class="s2">&#39; is unknown (must be 0 or 1).&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">model_order</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The model order must be given (0 or 1).&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">BOUNDARY_SURFACE_DIR</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">boundary_surfaces_dir</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">BOUNDARY_SURFACE_DIR</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Surface directory: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">boundary_surfaces_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">boundary_surfaces_dir</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The surface directory &#39;</span><span class="si">%s</span><span class="s2">&#39; was not found.&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">boundary_surfaces_dir</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">CENTERLINE_INPUT_FILE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">centerlines_input_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">CENTERLINE_INPUT_FILE</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Centerlines input file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">centerlines_input_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">centerlines_input_file</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The centerlines input file &#39;</span><span class="si">%s</span><span class="s2">&#39; was not found.&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">centerlines_input_file</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">CENTERLINE_OUTPUT_FILE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">centerlines_output_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">CENTERLINE_OUTPUT_FILE</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Centerlines output file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">centerlines_output_file</span><span class="p">)</span>
+
+    <span class="c1"># The &#39;compute_centerlines&#39; parameter is set to True if the COMPUTE_CENTERLINES </span>
+    <span class="c1"># argument is given with no value. Otherwise it is set to the value given.</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">compute_centerlines</span> <span class="o">=</span> <span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">COMPUTE_CENTERLINES</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">or</span> \
+                                 <span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">COMPUTE_CENTERLINES</span><span class="p">)</span> <span class="ow">in</span> <span class="n">true_values</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Compute centerlines: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">compute_centerlines</span><span class="p">)</span>
+
+    <span class="c1"># The &#39;compute_mesh&#39; parameter is set to True if the COMPUTE_MESH </span>
+    <span class="c1"># argument is given with no value. Otherwise it is set to the value given.</span>
+    <span class="n">params</span><span class="o">.</span><span class="n">compute_mesh</span> <span class="o">=</span> <span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">COMPUTE_MESH</span><span class="p">)</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)</span> <span class="ow">or</span> \
+                          <span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">COMPUTE_MESH</span><span class="p">)</span> <span class="ow">in</span> <span class="n">true_values</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">DENSITY</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">density</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">DENSITY</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Density: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">density</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">ELEMENT_SIZE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">element_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">ELEMENT_SIZE</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Element size: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">element_size</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">INFLOW_INPUT_FILE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">inflow_input_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">INFLOW_INPUT_FILE</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inflow input file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">inflow_input_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">inflow_input_file</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The inflow input file &#39;</span><span class="si">%s</span><span class="s2">&#39; was not found.&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">inflow_input_file</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">INLET_FACE_INPUT_FILE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">inlet_face_input_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">INLET_FACE_INPUT_FILE</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">inlet_face_input_file</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The inlet face input file &#39;</span><span class="si">%s</span><span class="s2">&#39; should not have a full path.&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">inlet_face_input_file</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">inlet_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">boundary_surfaces_dir</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">inlet_face_input_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">inlet_file</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The inlet face input file &#39;</span><span class="si">%s</span><span class="s2">&#39; was not found in the boundary surfaces diretory &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> \
+                         <span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">inlet_face_input_file</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">boundary_surfaces_dir</span><span class="p">))</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inlet face input file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">inlet_face_input_file</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">LINEAR_MATERIAL_EHR</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">linear_material_ehr</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">LINEAR_MATERIAL_EHR</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Linear material parameter Er/h: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">linear_material_ehr</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">LINEAR_MATERIAL_PRESSURE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">linear_material_pressure</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">LINEAR_MATERIAL_PRESSURE</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Linear material parameter pressure: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">linear_material_pressure</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTPUT_DIRECTORY</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">output_directory</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTPUT_DIRECTORY</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">output_directory</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The output directory &#39;</span><span class="si">%s</span><span class="s2">&#39; was not found.&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">output_directory</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;An output directory argument must be given.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MATERIAL_MODEL</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">material_model</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MATERIAL_MODEL</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Material model: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">material_model</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MESH_OUTPUT_FILE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">mesh_output_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MESH_OUTPUT_FILE</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Mesh output file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">mesh_output_file</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MINIMUM_NUMBER_ELEMENTS</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">min_num_elems</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MINIMUM_NUMBER_ELEMENTS</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Minimum number of finite elements per segment: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">min_num_elems</span><span class="p">)</span>
+
+    <span class="n">params</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MODEL_NAME</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Model name: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">model_name</span><span class="p">)</span>
+
+    <span class="n">params</span><span class="o">.</span><span class="n">model_order</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">MODEL_ORDER</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Model order: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">model_order</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">NUM_TIME_STEPS</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">num_time_steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">NUM_TIME_STEPS</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of time steps: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">num_time_steps</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_K1</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_k1</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_K1</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Olufsen material parameter k1: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_k1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_K2</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_k2</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_K2</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Olufsen material parameter k2: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_k2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_K3</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_k3</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_K3</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Olufsen material parameter k3: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_k3</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_EXP</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_exponent</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_EXP</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Olufsen material parameter exponent: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_exponent</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_PRESSURE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_pressure</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OLUFSEN_MATERIAL_PRESSURE</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Olufsen material parameter pressure: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">olufsen_material_pressure</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTFLOW_BC_INPUT_FILE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTFLOW_BC_INPUT_FILE</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_file</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The outflow input bc folder &#39;</span><span class="si">%s</span><span class="s2">&#39; was not found.&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_file</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Outflow bc file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_file</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTFLOW_BC_TYPE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_type</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTFLOW_BC_TYPE</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Outflow bc type: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_type</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTLET_FACE_NAMES_INPUT_FILE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">outlet_face_names_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">OUTLET_FACE_NAMES_INPUT_FILE</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">outlet_face_names_file</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The input outlet face names file &#39;</span><span class="si">%s</span><span class="s2">&#39; was not found.&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">outlet_face_names_file</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Outlet face names file: &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">outlet_face_names_file</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SEGMENT_MINIMUM_NUMBER</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">seg_min_num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SEGMENT_MINIMUM_NUMBER</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Minimum number of sub-segments per master-segment: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">seg_min_num</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SEGMENT_SIZE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">seg_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SEGMENT_SIZE</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Sub-segment size in vessel master-segment: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">seg_size</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SEGMENT_SIZE_ADAPTIVE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">seg_size_adaptive</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SEGMENT_SIZE_ADAPTIVE</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Sub-segment size is adaptive: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">seg_size_adaptive</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SAVE_DATA_FREQUENCY</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">save_data_freq</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SAVE_DATA_FREQUENCY</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Save data frequency: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">save_data_freq</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SOLVER_OUTPUT_FILE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">solver_output_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SOLVER_OUTPUT_FILE</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Solver output file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">solver_output_file</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SURFACE_MODEL</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">surface_model</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">SURFACE_MODEL</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Surface model: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">surface_model</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">surface_model</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The surface model file &#39;</span><span class="si">%s</span><span class="s2">&#39; was not found.&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">surface_model</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">TIME_STEP</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">time_step</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">TIME_STEP</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Simulation time step: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">time_step</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">UNIFORM_BC</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">uniform_bc</span> <span class="o">=</span> <span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">UNIFORM_BC</span><span class="p">)</span> <span class="ow">in</span> <span class="n">true_values</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Uniform boundary conditions: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">uniform_bc</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">UNITS</span><span class="p">):</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">UNITS</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">set_units</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">units</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The units value &#39;</span><span class="si">%s</span><span class="s2">&#39; was not recognized. Valid values are mm or cm.&quot;</span> <span class="o">%</span> <span class="n">units</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Units: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">VISCOSITY</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">viscosity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">VISCOSITY</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Viscosity: </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">viscosity</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">WALL_PROPERTIES_INPUT_FILE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">wall_properties_input_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">WALL_PROPERTIES_INPUT_FILE</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wall properties input file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">wall_properties_input_file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">wall_properties_input_file</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The wall properties input file &#39;</span><span class="si">%s</span><span class="s2">&#39; was not found.&quot;</span> <span class="o">%</span>
+                         <span class="n">params</span><span class="o">.</span><span class="n">wall_properties_input_file</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">uniform_material</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wall properties are not uniform.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wall properties are uniform.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">WALL_PROPERTIES_OUTPUT_FILE</span><span class="p">):</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">wall_properties_output_file</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">Args</span><span class="o">.</span><span class="n">WALL_PROPERTIES_OUTPUT_FILE</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Wall properties output file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">wall_properties_output_file</span><span class="p">)</span>
+
+    <span class="c1">## Check for argument consistency.</span>
+    <span class="c1">#</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">compute_centerlines</span> <span class="ow">and</span> <span class="n">params</span><span class="o">.</span><span class="n">centerlines_input_file</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Both compute centerlines and read centerlines are given.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">compute_centerlines</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">inlet_face_input_file</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;An inlet face file must be given when computing centerlines.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">wall_properties_input_file</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">wall_properties_output_file</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;If a wall properties input file is given then a wall properties output file must also be given.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_type</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_file</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="s2">&quot;If an outflow boundary condition type is given then an input data file for that type must also be given.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">outlet_face_names_file</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No outlet face names file was given.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Uniform / Non-uniform BCs.</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">uniform_bc</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_type</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;An outflow BC type can&#39;t be given with uniform BCs.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_type</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;An outflow BC type must be given for non-uniform BCs.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">params</span></div>
+
+
+<div class="viewcode-block" id="read_centerlines"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.generate_1d_mesh.read_centerlines">[docs]</a><span class="k">def</span> <span class="nf">read_centerlines</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Read centerlines for a surface model from a file.</span>
+<span class="sd">    </span>
+<span class="sd">    The centerlines must have had </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">centerlines</span> <span class="o">=</span> <span class="n">Centerlines</span><span class="p">()</span>
+    <span class="n">centerlines</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">centerlines_input_file</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Read centerlines from the file: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">centerlines_input_file</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;   Number of points: </span><span class="si">%d</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">centerlines</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">GetNumberOfPoints</span><span class="p">())</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;   Number of cells: </span><span class="si">%d</span><span class="s2"> &quot;</span><span class="p">,</span> <span class="n">centerlines</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">GetNumberOfCells</span><span class="p">())</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;   Number of arrays: </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">centerlines</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">GetCellData</span><span class="p">()</span><span class="o">.</span><span class="n">GetNumberOfArrays</span><span class="p">())</span>
+
+    <span class="k">return</span> <span class="n">centerlines</span></div>
+
+
+<div class="viewcode-block" id="compute_centerlines"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.generate_1d_mesh.compute_centerlines">[docs]</a><span class="k">def</span> <span class="nf">compute_centerlines</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Compute the centerlines for a surface model.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">## Check input parameters.</span>
+    <span class="c1">#</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">surface_model</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No surface model has been specified.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">centerlines_output_file</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No centerlines output file has been specified.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Create Centerlines object that encapsulats centerline calculations. </span>
+    <span class="n">centerlines</span> <span class="o">=</span> <span class="n">Centerlines</span><span class="p">()</span>
+
+    <span class="c1"># Extract centerlines.</span>
+    <span class="n">centerlines</span><span class="o">.</span><span class="n">extract_center_lines</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="c1"># Write the centerlines branches to a file.</span>
+    <span class="k">if</span> <span class="n">centerlines</span><span class="o">.</span><span class="n">geometry</span><span class="p">:</span>
+        <span class="n">write_polydata</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">centerlines_output_file</span><span class="p">,</span> <span class="n">centerlines</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">centerlines</span></div>
+
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.generate_1d_mesh.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Execute the 1D mesh generation using passed parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="c1">## Set input parameters.</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">set_parameters</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error in parameters.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">),</span> <span class="n">params</span><span class="p">)</span>
+
+    <span class="n">centerlines</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1">## Extract surface centerlines.</span>
+    <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">compute_centerlines</span><span class="p">:</span>
+        <span class="n">centerlines</span> <span class="o">=</span> <span class="n">compute_centerlines</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="c1">## Read surface centerlines.</span>
+    <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">centerlines_input_file</span><span class="p">:</span>
+        <span class="n">centerlines</span> <span class="o">=</span> <span class="n">read_centerlines</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">centerlines</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No centerlines calculated or read in.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="c1">## Generate a 1D mesh.</span>
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">()</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">centerlines</span><span class="p">)</span>
+
+    <span class="c1"># statistics</span>
+    <span class="n">num_seg</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">num_node</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">num_seg</span> <span class="o">+=</span> <span class="n">i</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">num_node</span> <span class="o">+=</span> <span class="n">num_seg</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generated </span><span class="si">%d</span><span class="s2"> segments, </span><span class="si">%d</span><span class="s2"> nodes and </span><span class="si">%d</span><span class="s2"> elements.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_seg</span><span class="p">,</span> <span class="n">num_node</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">num_elements</span><span class="p">))</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;Mesh: num_nodes=</span><span class="si">%d</span><span class="s2"> num_elements=</span><span class="si">%d</span><span class="s2"> num_segs=</span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_node</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">num_elements</span><span class="p">,</span> <span class="n">num_seg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="run_from_c"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.generate_1d_mesh.run_from_c">[docs]</a><span class="k">def</span> <span class="nf">run_from_c</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Execute the 1D mesh generation using passed parameters from c++</span>
+
+<span class="sd">    The &#39;*args&#39; argument contains the directory to write the log file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">init_logging</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Status: OK</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="n">result</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Status: Error</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;Error: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+    <span class="c1">## Attach log file to returned result.</span>
+    <span class="c1">#</span>
+    <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;Log:</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">log_file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">get_log_file_name</span><span class="p">())</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log_file_name</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">msg</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">init_logging</span><span class="p">()</span>
+    <span class="n">args</span><span class="p">,</span> <span class="n">print_help</span> <span class="o">=</span> <span class="n">parse_args</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="nb">vars</span><span class="p">(</span><span class="n">args</span><span class="p">)):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.generate_1d_mesh</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

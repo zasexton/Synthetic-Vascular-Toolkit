@@ -28,10 +28,13 @@ def set_root(data, boundary, Qterm, gamma, nu,
         if not isconvex:
             attempts = 0
             threshold = (volume)**(1/3)
+            tried = set()
             max_attempts = 10
             cell_list_outter = set(boundary.cell_lookup.query_ball_point(p0,threshold+threshold*0.5))
             cell_list_inner  = set(boundary.cell_lookup.query_ball_point(p0,threshold))
             cell_list = list(cell_list_outter.difference(cell_list_inner))
+            cell_set = set(cell_list)
+            cell_list = list(cell_set - tried)
             while np.sum(lengths) < threshold:
                 if attempts > max_attempts or len(cell_list)==0:
                     attempts = 0
@@ -40,18 +43,38 @@ def set_root(data, boundary, Qterm, gamma, nu,
                     cell_list_outter = set(boundary.cell_lookup.query_ball_point(p0,threshold+threshold*0.5))
                     cell_list_inner  = set(boundary.cell_lookup.query_ball_point(p0,threshold))
                     cell_list = list(cell_list_outter.difference(cell_list_inner))
-                    ball_size = threshold*1.1
+                    cell_set = set(cell_list)
+                    cell_list = list(cell_set - tried)
+                    #ball_size = threshold*1.1
                     while len(cell_list) < 1:
+                        ball_size = threshold
                         cell_list_outter = set(boundary.cell_lookup.query_ball_point(p0,ball_size+ball_size*0.5))
                         cell_list_inner  = set(boundary.cell_lookup.query_ball_point(p0,ball_size))
-                        if threshold < ((volume)**(1/3)*(0.75**5)):
-                            cell_list = list(cell_list_outter)
+                        cell_list = list(cell_list_outter.difference(cell_list_inner))
+                        cell_set = set(cell_list)
+                        cell_list = list(cell_set - tried)
+                        #if threshold < ((volume)**(1/3)*(0.75**5)):
+                        if len(cell_list) < 1000:
+                            #cell_list = list(cell_list_outter)
                             max_attmpts = min(len(cell_list),1000)
                         else:
-                            cell_list = list(cell_list_outter.difference(cell_list_inner))
-                        ball_size *= 1.1
+                            print('Outter shell: {}'.format(threshold*1.5))
+                            cell_list = list(cell_list_outter)
+                            cell_set = set(cell_list)
+                            cell_list = list(cell_set - tried)
+                            max_attmpts = len(cell_list)//2
+                            #cell_list = list(cell_list_outter.difference(cell_list_inner))
+                        #cell_set = set(cell_list)
+                        #cell_list = list(cell_set - tried)
+                        if len(cell_list) > 1:
+                            ball_size *= 0.9
+                        else:
+                            ball_size *= 1.1
+                        threshold = ball_size
+                    print('Threshold: {}'.format(threshold))
                 #p1,_ = boundary.pick(homogeneous=True)
                 cell_id = cell_list.pop(0)
+                tried.add(cell_id)
                 p1,_ = boundary.pick_in_cell(cell_id)
                 lengths = [np.linalg.norm(p1-p0)]
                 subdivisions = 8

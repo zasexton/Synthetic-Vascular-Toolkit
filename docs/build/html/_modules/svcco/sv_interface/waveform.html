@@ -1,0 +1,521 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.sv_interface.waveform &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.waveform</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.sv_interface.waveform</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Script for determining the general waveform from Kassab</span>
+<span class="c1"># Am J Physiol Heart Circ Physiol291: H1074–H1087, 2006</span>
+<span class="c1"># Time in seconds</span>
+<span class="c1"># Flow in mL/min</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">splprep</span><span class="p">,</span> <span class="n">splev</span><span class="p">,</span> <span class="n">interp2d</span><span class="p">,</span> <span class="n">interp1d</span><span class="p">,</span> <span class="n">bisplrep</span><span class="p">,</span> <span class="n">bisplev</span><span class="p">,</span> <span class="n">LinearNDInterpolator</span><span class="p">,</span> <span class="n">NearestNDInterpolator</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">LAD_4500_time = [0, 0.012707403, 0.022236425, 0.028206212, 0.03536751,</span>
+<span class="sd">                 0.044919475, 0.054459204, 0.064003522, 0.074737821, 0.083081451,</span>
+<span class="sd">                 0.090232042, 0.097373455, 0.105698731, 0.11639785, 0.123523968,</span>
+<span class="sd">                 0.1330224, 0.138957008, 0.143698576, 0.150818576, 0.156751654,</span>
+<span class="sd">                 0.163868595, 0.174546301, 0.182847104, 0.188775594, 0.199454829,</span>
+<span class="sd">                 0.210135594, 0.222004809, 0.233877084, 0.24693781, 0.258811614,</span>
+<span class="sd">                 0.273063851, 0.288499949, 0.303934518, 0.322932911, 0.33956205,</span>
+<span class="sd">                 0.357371991, 0.372811149, 0.389437228, 0.407245641, 0.425058641,</span>
+<span class="sd">                 0.441680132, 0.461865447, 0.479683036, 0.499880587, 0.518891216,</span>
+<span class="sd">                 0.537906434, 0.552163259, 0.5628532, 0.57116471, 0.580663142,</span>
+<span class="sd">                 0.592532358, 0.60202926, 0.610336182, 0.618644633, 0.624576181,</span>
+<span class="sd">                 0.634077672, 0.643585281, 0.65309289, 0.660231244, 0.668562638,</span>
+<span class="sd">                 0.674523248, 0.68167231, 0.688827489, 0.695982668, 0.701952455,</span>
+<span class="sd">                 0.707920713, 0.713885912, 0.718665718, 0.723447054, 0.728225332,</span>
+<span class="sd">                 0.730625177, 0.735403454, 0.741370182, 0.747343028, 0.754501267,</span>
+<span class="sd">                 0.761653387, 0.767620115, 0.774770706, 0.784301258, 0.79025575,</span>
+<span class="sd">                 0.800959457, 0.811655517, 0.819967028, 0.828278538, 0.834208557,</span>
+<span class="sd">                 0.840137047, 0.847257047, 0.853188595, 0.860305536, 0.866235555,</span>
+<span class="sd">                 0.872165575, 0.880470967, 0.887587907, 0.89589177, 0.906575594,</span>
+<span class="sd">                 0.918447868, 0.929133222, 0.942198536, 0.951698497, 0.96357689,</span>
+<span class="sd">                 0.974263773, 0.987327558, 0.99682446, 1.006319833, 1.015816735,</span>
+<span class="sd">                 1.026503618, 1.040752795, 1.053813521, 1.069252679, 1.082313405,</span>
+<span class="sd">                 1.098941013, 1.108436386, 1.125060936, 1.139311642, 1.153560819,</span>
+<span class="sd">                 1.17018384, 1.186812978, 1.207012058, 1.22839806, 1.24740563,</span>
+<span class="sd">                 1.265220161, 1.28065473, 1.293712397, 1.30439622, 1.316266966,</span>
+<span class="sd">                 1.324575417, 1.338830712, 1.351909792, 1.3626135, 1.370946424,</span>
+<span class="sd">                 1.376905504, 1.381677663, 1.387638273, 1.393605001, 1.398374101]</span>
+
+<span class="sd">LAD_4500_flow = [30.40501077, 31.15657663, 31.96620486, 33.00793503, 34.16534744,</span>
+<span class="sd">                 35.84369869, 37.05873099, 38.44750789, 39.89405217, 40.81965762,</span>
+<span class="sd">                 41.57166596, 41.97618509, 42.20681213, 42.32131444, 42.14668489,</span>
+<span class="sd">                 41.79801575, 41.50770396, 41.04379505, 40.63750602, 40.28927936,</span>
+<span class="sd">                 39.7671606, 39.07085476, 38.37484391, 37.85287264, 37.21448167,</span>
+<span class="sd">                 36.63400557, 36.05338197, 35.58858812, 35.12364677, 34.71676778,</span>
+<span class="sd">                 34.36750868, 33.84435748, 33.26329141, 32.62386801, 32.27431392,</span>
+<span class="sd">                 31.635038, 31.22771654, 30.76233272, 30.06514194, 29.54169576,</span>
+<span class="sd">                 28.90256733, 28.20508156, 27.85537999, 27.62121316, 27.4451087,</span>
+<span class="sd">                 27.44274884, 27.26723434, 27.03424745, 26.74364067, 26.39497153,</span>
+<span class="sd">                 25.81434794, 25.40776394, 24.94341255, 24.53697604, 24.13083451,</span>
+<span class="sd">                 23.8979951, 23.89681517, 23.89563524, 24.18432464, 24.64661114,</span>
+<span class="sd">                 25.34085211, 26.03494558, 26.96069852, 27.88645146, 28.92818163,</span>
+<span class="sd">                 29.91199693, 30.7799825, 31.76394529, 32.80582295, 33.73187088,</span>
+<span class="sd">                 34.60029892, 35.52634684, 36.45224727, 37.60980718, 38.65138986,</span>
+<span class="sd">                 39.46131306, 40.3872135, 41.13922184, 42.00676493, 42.46934642,</span>
+<span class="sd">                 42.75759334, 42.75626592, 42.46565914, 42.17505236, 41.71099596,</span>
+<span class="sd">                 41.18902469, 40.78273567, 40.37659413, 39.85447537, 39.39041897,</span>
+<span class="sd">                 38.92636257, 38.40409632, 37.88197756, 37.30179644, 36.83715008,</span>
+<span class="sd">                 36.37235622, 35.96562472, 35.67442798, 35.38367371, 35.15053933,</span>
+<span class="sd">                 34.8017227, 34.45261109, 34.04602708, 33.58152821, 33.1749442,</span>
+<span class="sd">                 32.82612757, 32.36103873, 31.89609738, 31.48877592, 31.02383457,</span>
+<span class="sd">                 30.61636562, 30.15186675, 29.62856806, 29.22139409, 28.75630525,</span>
+<span class="sd">                 28.17509169, 27.82553761, 27.64928565, 27.41497134, 27.12303714,</span>
+<span class="sd">                 26.65750583, 26.07643976, 25.49566868, 25.03102231, 24.50831359,</span>
+<span class="sd">                 24.10187707, 23.8684477, 24.09848477, 24.38673169, 24.90693307,</span>
+<span class="sd">                 25.54325916, 26.23764761, 26.93188858, 27.85778901, 28.43634773]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">LAD_4500_time</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.012707403</span><span class="p">,</span> <span class="mf">0.022236425</span><span class="p">,</span> <span class="mf">0.028206212</span><span class="p">,</span> <span class="mf">0.03536751</span><span class="p">,</span>
+                 <span class="mf">0.044919475</span><span class="p">,</span> <span class="mf">0.054459204</span><span class="p">,</span> <span class="mf">0.064003522</span><span class="p">,</span> <span class="mf">0.074737821</span><span class="p">,</span> <span class="mf">0.083081451</span><span class="p">,</span>
+                 <span class="mf">0.090232042</span><span class="p">,</span> <span class="mf">0.097373455</span><span class="p">,</span> <span class="mf">0.105698731</span><span class="p">,</span> <span class="mf">0.11639785</span><span class="p">,</span> <span class="mf">0.123523968</span><span class="p">,</span>
+                 <span class="mf">0.1330224</span><span class="p">,</span> <span class="mf">0.138957008</span><span class="p">,</span> <span class="mf">0.143698576</span><span class="p">,</span> <span class="mf">0.150818576</span><span class="p">,</span> <span class="mf">0.156751654</span><span class="p">,</span>
+                 <span class="mf">0.163868595</span><span class="p">,</span> <span class="mf">0.174546301</span><span class="p">,</span> <span class="mf">0.182847104</span><span class="p">,</span> <span class="mf">0.188775594</span><span class="p">,</span> <span class="mf">0.199454829</span><span class="p">,</span>
+                 <span class="mf">0.210135594</span><span class="p">,</span> <span class="mf">0.222004809</span><span class="p">,</span> <span class="mf">0.233877084</span><span class="p">,</span> <span class="mf">0.24693781</span><span class="p">,</span> <span class="mf">0.258811614</span><span class="p">,</span>
+                 <span class="mf">0.273063851</span><span class="p">,</span> <span class="mf">0.288499949</span><span class="p">,</span> <span class="mf">0.303934518</span><span class="p">,</span> <span class="mf">0.322932911</span><span class="p">,</span> <span class="mf">0.33956205</span><span class="p">,</span>
+                 <span class="mf">0.357371991</span><span class="p">,</span> <span class="mf">0.372811149</span><span class="p">,</span> <span class="mf">0.389437228</span><span class="p">,</span> <span class="mf">0.407245641</span><span class="p">,</span> <span class="mf">0.425058641</span><span class="p">,</span>
+                 <span class="mf">0.441680132</span><span class="p">,</span> <span class="mf">0.461865447</span><span class="p">,</span> <span class="mf">0.479683036</span><span class="p">,</span> <span class="mf">0.499880587</span><span class="p">,</span> <span class="mf">0.518891216</span><span class="p">,</span>
+                 <span class="mf">0.537906434</span><span class="p">,</span> <span class="mf">0.552163259</span><span class="p">,</span> <span class="mf">0.5628532</span><span class="p">,</span> <span class="mf">0.57116471</span><span class="p">,</span> <span class="mf">0.580663142</span><span class="p">,</span>
+                 <span class="mf">0.592532358</span><span class="p">,</span> <span class="mf">0.60202926</span><span class="p">,</span> <span class="mf">0.610336182</span><span class="p">,</span> <span class="mf">0.618644633</span><span class="p">,</span> <span class="mf">0.624576181</span><span class="p">,</span>
+                 <span class="mf">0.634077672</span><span class="p">,</span> <span class="mf">0.643585281</span><span class="p">,</span> <span class="mf">0.65309289</span><span class="p">,</span> <span class="mf">0.660231244</span><span class="p">,</span> <span class="mf">0.668562638</span><span class="p">,</span>
+                 <span class="mf">0.674523248</span><span class="p">,</span> <span class="mf">0.68167231</span><span class="p">,</span> <span class="mf">0.688827489</span><span class="p">,</span> <span class="mf">0.695982668</span><span class="p">,</span> <span class="mf">0.701952455</span><span class="p">,</span>
+                 <span class="mf">0.707920713</span><span class="p">,</span> <span class="mf">0.713885912</span><span class="p">]</span>
+
+<span class="n">LAD_4500_flow</span> <span class="o">=</span> <span class="p">[</span><span class="mf">30.40501077</span><span class="p">,</span> <span class="mf">31.15657663</span><span class="p">,</span> <span class="mf">31.96620486</span><span class="p">,</span> <span class="mf">33.00793503</span><span class="p">,</span> <span class="mf">34.16534744</span><span class="p">,</span>
+                 <span class="mf">35.84369869</span><span class="p">,</span> <span class="mf">37.05873099</span><span class="p">,</span> <span class="mf">38.44750789</span><span class="p">,</span> <span class="mf">39.89405217</span><span class="p">,</span> <span class="mf">40.81965762</span><span class="p">,</span>
+                 <span class="mf">41.57166596</span><span class="p">,</span> <span class="mf">41.97618509</span><span class="p">,</span> <span class="mf">42.20681213</span><span class="p">,</span> <span class="mf">42.32131444</span><span class="p">,</span> <span class="mf">42.14668489</span><span class="p">,</span>
+                 <span class="mf">41.79801575</span><span class="p">,</span> <span class="mf">41.50770396</span><span class="p">,</span> <span class="mf">41.04379505</span><span class="p">,</span> <span class="mf">40.63750602</span><span class="p">,</span> <span class="mf">40.28927936</span><span class="p">,</span>
+                 <span class="mf">39.7671606</span><span class="p">,</span> <span class="mf">39.07085476</span><span class="p">,</span> <span class="mf">38.37484391</span><span class="p">,</span> <span class="mf">37.85287264</span><span class="p">,</span> <span class="mf">37.21448167</span><span class="p">,</span>
+                 <span class="mf">36.63400557</span><span class="p">,</span> <span class="mf">36.05338197</span><span class="p">,</span> <span class="mf">35.58858812</span><span class="p">,</span> <span class="mf">35.12364677</span><span class="p">,</span> <span class="mf">34.71676778</span><span class="p">,</span>
+                 <span class="mf">34.36750868</span><span class="p">,</span> <span class="mf">33.84435748</span><span class="p">,</span> <span class="mf">33.26329141</span><span class="p">,</span> <span class="mf">32.62386801</span><span class="p">,</span> <span class="mf">32.27431392</span><span class="p">,</span>
+                 <span class="mf">31.635038</span><span class="p">,</span> <span class="mf">31.22771654</span><span class="p">,</span> <span class="mf">30.76233272</span><span class="p">,</span> <span class="mf">30.06514194</span><span class="p">,</span> <span class="mf">29.54169576</span><span class="p">,</span>
+                 <span class="mf">28.90256733</span><span class="p">,</span> <span class="mf">28.20508156</span><span class="p">,</span> <span class="mf">27.85537999</span><span class="p">,</span> <span class="mf">27.62121316</span><span class="p">,</span> <span class="mf">27.4451087</span><span class="p">,</span>
+                 <span class="mf">27.44274884</span><span class="p">,</span> <span class="mf">27.26723434</span><span class="p">,</span> <span class="mf">27.03424745</span><span class="p">,</span> <span class="mf">26.74364067</span><span class="p">,</span> <span class="mf">26.39497153</span><span class="p">,</span>
+                 <span class="mf">25.81434794</span><span class="p">,</span> <span class="mf">25.40776394</span><span class="p">,</span> <span class="mf">24.94341255</span><span class="p">,</span> <span class="mf">24.53697604</span><span class="p">,</span> <span class="mf">24.13083451</span><span class="p">,</span>
+                 <span class="mf">23.8979951</span><span class="p">,</span> <span class="mf">23.89681517</span><span class="p">,</span> <span class="mf">23.89563524</span><span class="p">,</span> <span class="mf">24.18432464</span><span class="p">,</span> <span class="mf">24.64661114</span><span class="p">,</span>
+                 <span class="mf">25.34085211</span><span class="p">,</span> <span class="mf">26.03494558</span><span class="p">,</span> <span class="mf">26.96069852</span><span class="p">,</span> <span class="mf">27.88645146</span><span class="p">,</span> <span class="mf">28.92818163</span><span class="p">,</span>
+                 <span class="mf">29.91199693</span><span class="p">,</span> <span class="mf">30.40501077</span><span class="p">]</span>
+<span class="n">LAD_4500_func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">LAD_4500_time</span><span class="p">,</span><span class="n">LAD_4500_flow</span><span class="p">,</span><span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span><span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">LAD_66_7_time = [0, 0.01132623, 0.020844545, 0.025610586, 0.030378156,</span>
+<span class="sd">                 0.036338766, 0.041109396, 0.047066947, 0.054216008, 0.060181207,</span>
+<span class="sd">                 0.067328738, 0.07447627, 0.080432291, 0.087581352, 0.093535844,</span>
+<span class="sd">                 0.101865709, 0.114944789, 0.128017751, 0.136332321, 0.144642301,</span>
+<span class="sd">                 0.15176536, 0.160073811, 0.169570713, 0.176690713, 0.186187615,</span>
+<span class="sd">                 0.194491478, 0.20398838, 0.215859125, 0.22773293, 0.239608263,</span>
+<span class="sd">                 0.251482068, 0.263358931, 0.274045814, 0.288301109, 0.300174914,</span>
+<span class="sd">                 0.314428679, 0.331059347, 0.348873878, 0.364313035, 0.382130625,</span>
+<span class="sd">                 0.397569782, 0.415382783, 0.432011922, 0.44863953, 0.464077159,</span>
+<span class="sd">                 0.481891689, 0.50327922, 0.522294438, 0.540119675, 0.556753402,</span>
+<span class="sd">                 0.574569462, 0.590007091, 0.60544166, 0.619687778, 0.63037466,</span>
+<span class="sd">                 0.645821466, 0.657707506, 0.668409685, 0.675551098, 0.682695571,</span>
+<span class="sd">                 0.688653122, 0.694607613, 0.700565164, 0.706528833, 0.712489443,</span>
+<span class="sd">                 0.719641564, 0.724415252, 0.730388098, 0.737544807, 0.744703046,</span>
+<span class="sd">                 0.751856695, 0.759010345, 0.767353976, 0.774503037, 0.782840549,</span>
+<span class="sd">                 0.789985021, 0.799498749, 0.811387848, 0.822082379, 0.831583869,</span>
+<span class="sd">                 0.837516948, 0.845828458, 0.852948458, 0.86244383, 0.869562301,</span>
+<span class="sd">                 0.879059203, 0.888553046, 0.898049948, 0.908735301, 0.921799086,</span>
+<span class="sd">                 0.936051323, 0.951488951, 0.964552736, 0.977621109, 0.988309522,</span>
+<span class="sd">                 1.002557169, 1.015620954, 1.031061641, 1.050064623, 1.063126878,</span>
+<span class="sd">                 1.080942938, 1.09994592, 1.118950431, 1.137953412, 1.1533941,</span>
+<span class="sd">                 1.166456355, 1.184272415, 1.202096123, 1.21872832, 1.236550498,</span>
+<span class="sd">                 1.256749579, 1.271003344, 1.287627894, 1.301875541, 1.316124719,</span>
+<span class="sd">                 1.330375425, 1.34463225, 1.357706742, 1.366033547, 1.374366471,</span>
+<span class="sd">                 1.381512473, 1.388660004, 1.398185968]</span>
+
+<span class="sd">LAD_66_7_flow = [23.6289712, 23.85945074, 24.26367489, 24.72640387, 25.24704772,</span>
+<span class="sd">                 25.94128868, 26.57776226, 27.15617349, 27.85026696, 28.71825252,</span>
+<span class="sd">                 29.35443113, 29.99060973, 30.51110609, 31.20519956, 31.66778104,</span>
+<span class="sd">                 32.07215268, 32.30218975, 32.30056735, 32.12579031, 31.77726866,</span>
+<span class="sd">                 31.48680937, 31.08037286, 30.67378885, 30.26749983, 29.86091582,</span>
+<span class="sd">                 29.2807347, 28.8741507, 28.35144197, 27.94456298, 27.59559886,</span>
+<span class="sd">                 27.18871987, 26.89767062, 26.54885399, 26.31542463, 25.90854564,</span>
+<span class="sd">                 25.6172014, 25.32556219, 24.86003087, 24.45270941, 24.10300784,</span>
+<span class="sd">                 23.69568637, 23.17224019, 22.82268611, 22.41521716, 21.94998083,</span>
+<span class="sd">                 21.48444951, 21.30805007, 21.30569021, 21.24556297, 21.06975349,</span>
+<span class="sd">                 20.66213705, 20.19690072, 19.61583465, 19.03491608, 18.68609945,</span>
+<span class="sd">                 18.56835233, 18.62479228, 18.85512434, 19.25964346, 19.77999233,</span>
+<span class="sd">                 20.35840356, 20.82098504, 21.39939627, 22.20946697, 22.90370793,</span>
+<span class="sd">                 23.71363113, 24.46593445, 25.62349436, 26.60716217, 27.64874485,</span>
+<span class="sd">                 28.51658292, 29.384421, 30.31002645, 31.00411992, 31.6980659,</span>
+<span class="sd">                 32.21841476, 32.44889431, 32.621164, 32.56192171, 32.32908231,</span>
+<span class="sd">                 31.98085565, 31.69024887, 31.28395984, 30.81946097, 30.35525708,</span>
+<span class="sd">                 29.94867307, 29.42625933, 29.01967532, 28.61294383, 28.26383221,</span>
+<span class="sd">                 27.91457311, 27.44933678, 27.10022517, 26.92485816, 26.6339564,</span>
+<span class="sd">                 26.11095269, 25.76184108, 25.41243449, 24.94675569, 24.53972921,</span>
+<span class="sd">                 24.13211276, 23.66643396, 23.25867002, 22.79299122, 22.44358463,</span>
+<span class="sd">                 22.03655815, 21.6289417, 21.5108996, 21.27717525, 21.10121828,</span>
+<span class="sd">                 20.92496632, 20.63362209, 20.1103234, 19.58731969, 19.12223085,</span>
+<span class="sd">                 18.71505688, 18.53954238, 18.59583485, 18.88437675, 19.40457813,</span>
+<span class="sd">                 19.98284186, 20.61902046, 21.31281895]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">LAD_66_7_time</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.01132623</span><span class="p">,</span> <span class="mf">0.020844545</span><span class="p">,</span> <span class="mf">0.025610586</span><span class="p">,</span> <span class="mf">0.030378156</span><span class="p">,</span>
+                 <span class="mf">0.036338766</span><span class="p">,</span> <span class="mf">0.041109396</span><span class="p">,</span> <span class="mf">0.047066947</span><span class="p">,</span> <span class="mf">0.054216008</span><span class="p">,</span> <span class="mf">0.060181207</span><span class="p">,</span>
+                 <span class="mf">0.067328738</span><span class="p">,</span> <span class="mf">0.07447627</span><span class="p">,</span> <span class="mf">0.080432291</span><span class="p">,</span> <span class="mf">0.087581352</span><span class="p">,</span> <span class="mf">0.093535844</span><span class="p">,</span>
+                 <span class="mf">0.101865709</span><span class="p">,</span> <span class="mf">0.114944789</span><span class="p">,</span> <span class="mf">0.128017751</span><span class="p">,</span> <span class="mf">0.136332321</span><span class="p">,</span> <span class="mf">0.144642301</span><span class="p">,</span>
+                 <span class="mf">0.15176536</span><span class="p">,</span> <span class="mf">0.160073811</span><span class="p">,</span> <span class="mf">0.169570713</span><span class="p">,</span> <span class="mf">0.176690713</span><span class="p">,</span> <span class="mf">0.186187615</span><span class="p">,</span>
+                 <span class="mf">0.194491478</span><span class="p">,</span> <span class="mf">0.20398838</span><span class="p">,</span> <span class="mf">0.215859125</span><span class="p">,</span> <span class="mf">0.22773293</span><span class="p">,</span> <span class="mf">0.239608263</span><span class="p">,</span>
+                 <span class="mf">0.251482068</span><span class="p">,</span> <span class="mf">0.263358931</span><span class="p">,</span> <span class="mf">0.274045814</span><span class="p">,</span> <span class="mf">0.288301109</span><span class="p">,</span> <span class="mf">0.300174914</span><span class="p">,</span>
+                 <span class="mf">0.314428679</span><span class="p">,</span> <span class="mf">0.331059347</span><span class="p">,</span> <span class="mf">0.348873878</span><span class="p">,</span> <span class="mf">0.364313035</span><span class="p">,</span> <span class="mf">0.382130625</span><span class="p">,</span>
+                 <span class="mf">0.397569782</span><span class="p">,</span> <span class="mf">0.415382783</span><span class="p">,</span> <span class="mf">0.432011922</span><span class="p">,</span> <span class="mf">0.44863953</span><span class="p">,</span> <span class="mf">0.464077159</span><span class="p">,</span>
+                 <span class="mf">0.481891689</span><span class="p">,</span> <span class="mf">0.50327922</span><span class="p">,</span> <span class="mf">0.522294438</span><span class="p">,</span> <span class="mf">0.540119675</span><span class="p">,</span> <span class="mf">0.556753402</span><span class="p">,</span>
+                 <span class="mf">0.574569462</span><span class="p">,</span> <span class="mf">0.590007091</span><span class="p">,</span> <span class="mf">0.60544166</span><span class="p">,</span> <span class="mf">0.619687778</span><span class="p">,</span> <span class="mf">0.63037466</span><span class="p">,</span>
+                 <span class="mf">0.645821466</span><span class="p">,</span> <span class="mf">0.657707506</span><span class="p">,</span> <span class="mf">0.668409685</span><span class="p">,</span> <span class="mf">0.675551098</span><span class="p">,</span> <span class="mf">0.682695571</span><span class="p">,</span>
+                 <span class="mf">0.688653122</span><span class="p">,</span> <span class="mf">0.694607613</span><span class="p">,</span> <span class="mf">0.700565164</span><span class="p">,</span> <span class="mf">0.706528833</span><span class="p">,</span> <span class="mf">0.712489443</span><span class="p">,</span>
+                 <span class="mf">0.719641564</span><span class="p">]</span>
+
+<span class="n">LAD_66_7_flow</span> <span class="o">=</span> <span class="p">[</span><span class="mf">23.6289712</span><span class="p">,</span> <span class="mf">23.85945074</span><span class="p">,</span> <span class="mf">24.26367489</span><span class="p">,</span> <span class="mf">24.72640387</span><span class="p">,</span> <span class="mf">25.24704772</span><span class="p">,</span>
+                 <span class="mf">25.94128868</span><span class="p">,</span> <span class="mf">26.57776226</span><span class="p">,</span> <span class="mf">27.15617349</span><span class="p">,</span> <span class="mf">27.85026696</span><span class="p">,</span> <span class="mf">28.71825252</span><span class="p">,</span>
+                 <span class="mf">29.35443113</span><span class="p">,</span> <span class="mf">29.99060973</span><span class="p">,</span> <span class="mf">30.51110609</span><span class="p">,</span> <span class="mf">31.20519956</span><span class="p">,</span> <span class="mf">31.66778104</span><span class="p">,</span>
+                 <span class="mf">32.07215268</span><span class="p">,</span> <span class="mf">32.30218975</span><span class="p">,</span> <span class="mf">32.30056735</span><span class="p">,</span> <span class="mf">32.12579031</span><span class="p">,</span> <span class="mf">31.77726866</span><span class="p">,</span>
+                 <span class="mf">31.48680937</span><span class="p">,</span> <span class="mf">31.08037286</span><span class="p">,</span> <span class="mf">30.67378885</span><span class="p">,</span> <span class="mf">30.26749983</span><span class="p">,</span> <span class="mf">29.86091582</span><span class="p">,</span>
+                 <span class="mf">29.2807347</span><span class="p">,</span> <span class="mf">28.8741507</span><span class="p">,</span> <span class="mf">28.35144197</span><span class="p">,</span> <span class="mf">27.94456298</span><span class="p">,</span> <span class="mf">27.59559886</span><span class="p">,</span>
+                 <span class="mf">27.18871987</span><span class="p">,</span> <span class="mf">26.89767062</span><span class="p">,</span> <span class="mf">26.54885399</span><span class="p">,</span> <span class="mf">26.31542463</span><span class="p">,</span> <span class="mf">25.90854564</span><span class="p">,</span>
+                 <span class="mf">25.6172014</span><span class="p">,</span> <span class="mf">25.32556219</span><span class="p">,</span> <span class="mf">24.86003087</span><span class="p">,</span> <span class="mf">24.45270941</span><span class="p">,</span> <span class="mf">24.10300784</span><span class="p">,</span>
+                 <span class="mf">23.69568637</span><span class="p">,</span> <span class="mf">23.17224019</span><span class="p">,</span> <span class="mf">22.82268611</span><span class="p">,</span> <span class="mf">22.41521716</span><span class="p">,</span> <span class="mf">21.94998083</span><span class="p">,</span>
+                 <span class="mf">21.48444951</span><span class="p">,</span> <span class="mf">21.30805007</span><span class="p">,</span> <span class="mf">21.30569021</span><span class="p">,</span> <span class="mf">21.24556297</span><span class="p">,</span> <span class="mf">21.06975349</span><span class="p">,</span>
+                 <span class="mf">20.66213705</span><span class="p">,</span> <span class="mf">20.19690072</span><span class="p">,</span> <span class="mf">19.61583465</span><span class="p">,</span> <span class="mf">19.03491608</span><span class="p">,</span> <span class="mf">18.68609945</span><span class="p">,</span>
+                 <span class="mf">18.56835233</span><span class="p">,</span> <span class="mf">18.62479228</span><span class="p">,</span> <span class="mf">18.85512434</span><span class="p">,</span> <span class="mf">19.25964346</span><span class="p">,</span> <span class="mf">19.77999233</span><span class="p">,</span>
+                 <span class="mf">20.35840356</span><span class="p">,</span> <span class="mf">20.82098504</span><span class="p">,</span> <span class="mf">21.39939627</span><span class="p">,</span> <span class="mf">22.20946697</span><span class="p">,</span> <span class="mf">22.90370793</span><span class="p">,</span>
+                 <span class="mf">23.6289712</span><span class="p">]</span>
+<span class="n">LAD_66_7_func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">LAD_66_7_time</span><span class="p">,</span><span class="n">LAD_66_7_flow</span><span class="p">,</span><span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span><span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">LAD_22_2_time = [0, 0.015764949, 0.027660167, 0.037181542, 0.046699858,</span>
+<span class="sd">                 0.057409684, 0.065744137, 0.076453963, 0.087162259, 0.100247457,</span>
+<span class="sd">                 0.112136557, 0.125211049, 0.137092501, 0.150160875, 0.162040797,</span>
+<span class="sd">                 0.171540758, 0.183419151, 0.195294485, 0.205982898, 0.21667131,</span>
+<span class="sd">                 0.230928135, 0.243994979, 0.257063352, 0.270133256, 0.28439008,</span>
+<span class="sd">                 0.298645375, 0.314090651, 0.328347476, 0.346169654, 0.362801852,</span>
+<span class="sd">                 0.38062403, 0.397257757, 0.416265327, 0.432897524, 0.453095075,</span>
+<span class="sd">                 0.475667998, 0.494678628, 0.516067689, 0.537459809, 0.560037321,</span>
+<span class="sd">                 0.577859499, 0.600429363, 0.624187679, 0.642011386, 0.662215055,</span>
+<span class="sd">                 0.674104155, 0.68243096, 0.690759295, 0.699087631, 0.707420554,</span>
+<span class="sd">                 0.716941929, 0.726466363, 0.734803875, 0.744328309, 0.755042723,</span>
+<span class="sd">                 0.764565628, 0.774083943, 0.78717373, 0.80025434, 0.81214344,</span>
+<span class="sd">                 0.825214873, 0.837093266, 0.851350091, 0.862038503, 0.872726915,</span>
+<span class="sd">                 0.884603779, 0.897666034, 0.910732878, 0.926176625, 0.940433449,</span>
+<span class="sd">                 0.955877196, 0.973699374, 0.992710003, 1.012907554, 1.029538222,</span>
+<span class="sd">                 1.046170419, 1.062802616, 1.085378599, 1.107949993, 1.129334465,</span>
+<span class="sd">                 1.151908918, 1.169728037, 1.194680922, 1.22320069, 1.249342025,</span>
+<span class="sd">                 1.273106459, 1.29330248, 1.314683894, 1.334881444, 1.347952877,</span>
+<span class="sd">                 1.36221582, 1.375297959, 1.386003197, 1.399091454]</span>
+
+<span class="sd">LAD_22_2_flow = [11.6405935, 11.92839795, 12.33232712, 12.852381, 13.25660515,</span>
+<span class="sd">                 13.77651154, 14.35462778, 14.87453417, 15.3365257, 15.79822224,</span>
+<span class="sd">                 15.97049193, 16.0267844, 15.90947975, 15.73411274, 15.55889323,</span>
+<span class="sd">                 15.26813896, 15.03500457, 14.68604045, 14.39513869, 14.10423693,</span>
+<span class="sd">                 13.92872243, 13.69544056, 13.52007355, 13.40262141, 13.22710691,</span>
+<span class="sd">                 12.99367754, 12.81801556, 12.64250106, 12.46654409, 12.23281974,</span>
+<span class="sd">                 12.05686276, 11.88105328, 11.58911908, 11.35539474, 11.12122791,</span>
+<span class="sd">                 10.82885124, 10.65274678, 10.5342622, 10.53160736, 10.41297529,</span>
+<span class="sd">                 10.23701832, 9.828811909, 9.420458009, 9.302415905, 9.299908555,</span>
+<span class="sd">                 9.472178248, 9.76072015, 10.10717692, 10.45363369, 10.97383507,</span>
+<span class="sd">                 11.49388895, 12.12977257, 12.82371855, 13.45960217, 14.15325316,</span>
+<span class="sd">                 14.73122192, 15.13544606, 15.77088721, 16.05883915, 16.23110884,</span>
+<span class="sd">                 16.17157157, 15.93843718, 15.76292269, 15.47202092, 15.18111916,</span>
+<span class="sd">                 14.89006991, 14.48304343, 14.24976156, 14.0161847, 13.8406702,</span>
+<span class="sd">                 13.60709334, 13.43113637, 13.25503191, 13.02086508, 12.72922587,</span>
+<span class="sd">                 12.49550152, 12.26177717, 12.08523023, 11.73493869, 11.44270951,</span>
+<span class="sd">                 11.20824771, 10.916461, 10.73961908, 10.62024956, 10.44326014,</span>
+<span class="sd">                 10.26656572, 9.974484027, 9.566425109, 9.332258287, 9.272721016,</span>
+<span class="sd">                 9.32886599, 9.674732795, 10.02089458, 10.59842086]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">LAD_22_2_time</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.015764949</span><span class="p">,</span> <span class="mf">0.027660167</span><span class="p">,</span> <span class="mf">0.037181542</span><span class="p">,</span> <span class="mf">0.046699858</span><span class="p">,</span>
+                 <span class="mf">0.057409684</span><span class="p">,</span> <span class="mf">0.065744137</span><span class="p">,</span> <span class="mf">0.076453963</span><span class="p">,</span> <span class="mf">0.087162259</span><span class="p">,</span> <span class="mf">0.100247457</span><span class="p">,</span>
+                 <span class="mf">0.112136557</span><span class="p">,</span> <span class="mf">0.125211049</span><span class="p">,</span> <span class="mf">0.137092501</span><span class="p">,</span> <span class="mf">0.150160875</span><span class="p">,</span> <span class="mf">0.162040797</span><span class="p">,</span>
+                 <span class="mf">0.171540758</span><span class="p">,</span> <span class="mf">0.183419151</span><span class="p">,</span> <span class="mf">0.195294485</span><span class="p">,</span> <span class="mf">0.205982898</span><span class="p">,</span> <span class="mf">0.21667131</span><span class="p">,</span>
+                 <span class="mf">0.230928135</span><span class="p">,</span> <span class="mf">0.243994979</span><span class="p">,</span> <span class="mf">0.257063352</span><span class="p">,</span> <span class="mf">0.270133256</span><span class="p">,</span> <span class="mf">0.28439008</span><span class="p">,</span>
+                 <span class="mf">0.298645375</span><span class="p">,</span> <span class="mf">0.314090651</span><span class="p">,</span> <span class="mf">0.328347476</span><span class="p">,</span> <span class="mf">0.346169654</span><span class="p">,</span> <span class="mf">0.362801852</span><span class="p">,</span>
+                 <span class="mf">0.38062403</span><span class="p">,</span> <span class="mf">0.397257757</span><span class="p">,</span> <span class="mf">0.416265327</span><span class="p">,</span> <span class="mf">0.432897524</span><span class="p">,</span> <span class="mf">0.453095075</span><span class="p">,</span>
+                 <span class="mf">0.475667998</span><span class="p">,</span> <span class="mf">0.494678628</span><span class="p">,</span> <span class="mf">0.516067689</span><span class="p">,</span> <span class="mf">0.537459809</span><span class="p">,</span> <span class="mf">0.560037321</span><span class="p">,</span>
+                 <span class="mf">0.577859499</span><span class="p">,</span> <span class="mf">0.600429363</span><span class="p">,</span> <span class="mf">0.624187679</span><span class="p">,</span> <span class="mf">0.642011386</span><span class="p">,</span> <span class="mf">0.662215055</span><span class="p">,</span>
+                 <span class="mf">0.674104155</span><span class="p">,</span> <span class="mf">0.68243096</span><span class="p">,</span> <span class="mf">0.690759295</span><span class="p">,</span> <span class="mf">0.699087631</span><span class="p">,</span> <span class="mf">0.707420554</span><span class="p">,</span>
+                 <span class="mf">0.716941929</span><span class="p">]</span>
+
+<span class="n">LAD_22_2_flow</span> <span class="o">=</span> <span class="p">[</span><span class="mf">11.6405935</span><span class="p">,</span> <span class="mf">11.92839795</span><span class="p">,</span> <span class="mf">12.33232712</span><span class="p">,</span> <span class="mf">12.852381</span><span class="p">,</span> <span class="mf">13.25660515</span><span class="p">,</span>
+                 <span class="mf">13.77651154</span><span class="p">,</span> <span class="mf">14.35462778</span><span class="p">,</span> <span class="mf">14.87453417</span><span class="p">,</span> <span class="mf">15.3365257</span><span class="p">,</span> <span class="mf">15.79822224</span><span class="p">,</span>
+                 <span class="mf">15.97049193</span><span class="p">,</span> <span class="mf">16.0267844</span><span class="p">,</span> <span class="mf">15.90947975</span><span class="p">,</span> <span class="mf">15.73411274</span><span class="p">,</span> <span class="mf">15.55889323</span><span class="p">,</span>
+                 <span class="mf">15.26813896</span><span class="p">,</span> <span class="mf">15.03500457</span><span class="p">,</span> <span class="mf">14.68604045</span><span class="p">,</span> <span class="mf">14.39513869</span><span class="p">,</span> <span class="mf">14.10423693</span><span class="p">,</span>
+                 <span class="mf">13.92872243</span><span class="p">,</span> <span class="mf">13.69544056</span><span class="p">,</span> <span class="mf">13.52007355</span><span class="p">,</span> <span class="mf">13.40262141</span><span class="p">,</span> <span class="mf">13.22710691</span><span class="p">,</span>
+                 <span class="mf">12.99367754</span><span class="p">,</span> <span class="mf">12.81801556</span><span class="p">,</span> <span class="mf">12.64250106</span><span class="p">,</span> <span class="mf">12.46654409</span><span class="p">,</span> <span class="mf">12.23281974</span><span class="p">,</span>
+                 <span class="mf">12.05686276</span><span class="p">,</span> <span class="mf">11.88105328</span><span class="p">,</span> <span class="mf">11.58911908</span><span class="p">,</span> <span class="mf">11.35539474</span><span class="p">,</span> <span class="mf">11.12122791</span><span class="p">,</span>
+                 <span class="mf">10.82885124</span><span class="p">,</span> <span class="mf">10.65274678</span><span class="p">,</span> <span class="mf">10.5342622</span><span class="p">,</span> <span class="mf">10.53160736</span><span class="p">,</span> <span class="mf">10.41297529</span><span class="p">,</span>
+                 <span class="mf">10.23701832</span><span class="p">,</span> <span class="mf">9.828811909</span><span class="p">,</span> <span class="mf">9.420458009</span><span class="p">,</span> <span class="mf">9.302415905</span><span class="p">,</span> <span class="mf">9.299908555</span><span class="p">,</span>
+                 <span class="mf">9.472178248</span><span class="p">,</span> <span class="mf">9.76072015</span><span class="p">,</span> <span class="mf">10.10717692</span><span class="p">,</span> <span class="mf">10.45363369</span><span class="p">,</span> <span class="mf">10.97383507</span><span class="p">,</span>
+                 <span class="mf">11.6405935</span><span class="p">]</span>
+<span class="n">LAD_22_2_func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">LAD_22_2_time</span><span class="p">,</span><span class="n">LAD_22_2_flow</span><span class="p">,</span><span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">LAD_16_1_time = [0, 0.01798278, 0.035815664, 0.052466216, 0.066736807,</span>
+<span class="sd">                 0.081007398, 0.09765642, 0.115487775, 0.132126091, 0.153513622,</span>
+<span class="sd">                 0.177278056, 0.198660999, 0.223613883, 0.250942141, 0.275895026,</span>
+<span class="sd">                 0.303224813, 0.338872228, 0.373335781, 0.408981666, 0.448194435,</span>
+<span class="sd">                 0.480279556, 0.513553128, 0.551578975, 0.593173234, 0.630006042,</span>
+<span class="sd">                 0.657335829, 0.681112499, 0.701325345, 0.719164348, 0.737007939,</span>
+<span class="sd">                 0.758416884, 0.778637378, 0.807170912, 0.839257562, 0.86658429,</span>
+<span class="sd">                 0.891532586, 0.92480157, 0.959260534, 0.998473302, 1.041249895,</span>
+<span class="sd">                 1.082839566, 1.12799459, 1.162452024, 1.20998701, 1.249202838,</span>
+<span class="sd">                 1.291982489, 1.325249943, 1.359715025, 1.400134599]</span>
+
+
+<span class="sd">LAD_16_1_flow = [5.791191827, 5.904956687, 6.134403792, 6.59565786, 6.941377174,</span>
+<span class="sd">                 7.287096489, 7.690435689, 7.861967926, 7.859903049, 7.683503604,</span>
+<span class="sd">                 7.506809176, 7.156665126, 6.979823207, 6.744771438, 6.567929519,</span>
+<span class="sd">                 6.390792618, 6.15470841, 6.092516298, 5.798517222, 5.561990541,</span>
+<span class="sd">                 5.442178543, 5.322219054, 5.143754732, 5.080677673, 4.728616238,</span>
+<span class="sd">                 4.551479336, 4.838103853, 5.183085712, 5.644192289, 6.279043471,</span>
+<span class="sd">                 6.913452178, 7.548008377, 7.949872666, 7.887975536, 7.595008899,</span>
+<span class="sd">                 7.244422375, 6.950718282, 6.714781566, 6.478254884, 6.183370862,</span>
+<span class="sd">                 5.946549198, 5.709285061, 5.415433477, 5.293704093, 5.173007148,</span>
+<span class="sd">                 4.993952862, 4.6423339, 4.638056656, 5.096360901]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">LAD_16_1_time</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.01798278</span><span class="p">,</span> <span class="mf">0.035815664</span><span class="p">,</span> <span class="mf">0.052466216</span><span class="p">,</span> <span class="mf">0.066736807</span><span class="p">,</span>
+                 <span class="mf">0.081007398</span><span class="p">,</span> <span class="mf">0.09765642</span><span class="p">,</span> <span class="mf">0.115487775</span><span class="p">,</span> <span class="mf">0.132126091</span><span class="p">,</span> <span class="mf">0.153513622</span><span class="p">,</span>
+                 <span class="mf">0.198660999</span><span class="p">,</span> <span class="mf">0.223613883</span><span class="p">,</span> <span class="mf">0.250942141</span><span class="p">,</span> <span class="mf">0.275895026</span><span class="p">,</span>
+                 <span class="mf">0.303224813</span><span class="p">,</span> <span class="mf">0.338872228</span><span class="p">,</span> <span class="mf">0.408981666</span><span class="p">,</span> <span class="mf">0.448194435</span><span class="p">,</span>
+                 <span class="mf">0.480279556</span><span class="p">,</span> <span class="mf">0.513553128</span><span class="p">,</span> <span class="mf">0.551578975</span><span class="p">,</span>
+                 <span class="mf">0.657335829</span><span class="p">,</span> <span class="mf">0.681112499</span><span class="p">,</span> <span class="mf">0.701325345</span><span class="p">,</span> <span class="mf">0.719164348</span><span class="p">]</span>
+
+<span class="n">LAD_16_1_flow</span> <span class="o">=</span> <span class="p">[</span><span class="mf">5.791191827</span><span class="p">,</span> <span class="mf">5.904956687</span><span class="p">,</span> <span class="mf">6.134403792</span><span class="p">,</span> <span class="mf">6.59565786</span><span class="p">,</span> <span class="mf">6.941377174</span><span class="p">,</span>
+                 <span class="mf">7.287096489</span><span class="p">,</span> <span class="mf">7.690435689</span><span class="p">,</span> <span class="mf">7.861967926</span><span class="p">,</span> <span class="mf">7.859903049</span><span class="p">,</span> <span class="mf">7.683503604</span><span class="p">,</span>
+                 <span class="mf">7.156665126</span><span class="p">,</span> <span class="mf">6.979823207</span><span class="p">,</span> <span class="mf">6.744771438</span><span class="p">,</span> <span class="mf">6.567929519</span><span class="p">,</span>
+                 <span class="mf">6.390792618</span><span class="p">,</span> <span class="mf">6.15470841</span><span class="p">,</span> <span class="mf">5.798517222</span><span class="p">,</span> <span class="mf">5.561990541</span><span class="p">,</span>
+                 <span class="mf">5.442178543</span><span class="p">,</span> <span class="mf">5.322219054</span><span class="p">,</span> <span class="mf">5.143754732</span><span class="p">,</span>
+                 <span class="mf">4.551479336</span><span class="p">,</span> <span class="mf">4.838103853</span><span class="p">,</span> <span class="mf">5.183085712</span><span class="p">,</span> <span class="mf">5.791191827</span><span class="p">]</span>
+<span class="n">LAD_16_1_func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">LAD_16_1_time</span><span class="p">,</span><span class="n">LAD_16_1_flow</span><span class="p">,</span><span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span><span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">LAD_9_time = [0, 0.027369555, 0.052328558, 0.079667522, 0.110573369,</span>
+<span class="sd">                 0.146228432, 0.183065828, 0.225848539, 0.261502072, 0.309033998,</span>
+<span class="sd">                 0.349442866, 0.394602479, 0.433821365, 0.488485528, 0.536025102,</span>
+<span class="sd">                 0.579997793, 0.629908151, 0.673880842, 0.719046573,</span>
+<span class="sd">              0.760653069,</span>
+<span class="sd">              0.80582033, 0.858110649, 0.910397909, 0.962689758, 1.023297706,</span>
+<span class="sd">              1.087469478, 1.140949778, 1.193238568, 1.25028575, 1.297823795,</span>
+<span class="sd">              1.353677938, 1.40003365]</span>
+
+
+<span class="sd">LAD_9_flow = [1.331746984, 1.328502178, 1.383319731, 1.553672039, 1.78149674,</span>
+<span class="sd">              1.834986873, 1.656670043, 1.593445492, 1.589020757, 1.351461638,</span>
+<span class="sd">              1.404361806, 1.340842273, 1.335975064, 1.155445866, 1.207461087,</span>
+<span class="sd">              1.202003913, 1.02206468, 1.016607506, 1.184747446,</span>
+<span class="sd">              1.584989331,</span>
+<span class="sd">              1.811044139, 1.746639659, 1.566405443, 1.559915832, 1.436564046,</span>
+<span class="sd">              1.254854918, 1.248217815, 1.125898467, 1.176733759, 1.170834112,</span>
+<span class="sd">              1.04807229, 1.273979607]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># Selected Data for Smooth interpolation</span>
+<span class="n">LAD_9_time</span> <span class="o">=</span> <span class="p">[</span>   <span class="mi">0</span><span class="p">,</span>           <span class="mf">0.079667522</span><span class="p">,</span> <span class="mf">0.110573369</span><span class="p">,</span>
+                 <span class="mf">0.146228432</span><span class="p">,</span> <span class="mf">0.261502072</span><span class="p">,</span>
+                 <span class="mf">0.394602479</span><span class="p">,</span> <span class="mf">0.536025102</span><span class="p">,</span>
+                 <span class="mf">0.629908151</span><span class="p">,</span> <span class="mf">0.673880842</span><span class="p">,</span> <span class="mf">0.719046573</span><span class="p">]</span>
+
+<span class="n">LAD_9_flow</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.331746984</span><span class="p">,</span> <span class="mf">1.553672039</span><span class="p">,</span> <span class="mf">1.78149674</span><span class="p">,</span>
+              <span class="mf">1.834986873</span><span class="p">,</span> <span class="mf">1.589020757</span><span class="p">,</span>
+              <span class="mf">1.340842273</span><span class="p">,</span> <span class="mf">1.207461087</span><span class="p">,</span>
+              <span class="mf">1.02206468</span><span class="p">,</span> <span class="mf">1.016607506</span><span class="p">,</span> <span class="mf">1.331746984</span><span class="p">]</span>
+
+<span class="n">LAD_9_func</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">LAD_9_time</span><span class="p">,</span><span class="n">LAD_9_flow</span><span class="p">,</span><span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span><span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">)</span>
+
+
+<span class="n">LAD_time</span>  <span class="o">=</span> <span class="p">[</span><span class="n">LAD_4500_time</span><span class="p">,</span><span class="n">LAD_66_7_time</span><span class="p">,</span><span class="n">LAD_22_2_time</span><span class="p">,</span><span class="n">LAD_16_1_time</span><span class="p">,</span><span class="n">LAD_9_time</span><span class="p">]</span>
+<span class="n">LAD_flow</span>  <span class="o">=</span> <span class="p">[</span><span class="n">LAD_4500_flow</span><span class="p">,</span><span class="n">LAD_66_7_flow</span><span class="p">,</span><span class="n">LAD_22_2_flow</span><span class="p">,</span><span class="n">LAD_16_1_flow</span><span class="p">,</span><span class="n">LAD_9_flow</span><span class="p">]</span>
+<span class="n">LAD_funcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">LAD_4500_func</span><span class="p">,</span><span class="n">LAD_66_7_func</span><span class="p">,</span><span class="n">LAD_22_2_func</span><span class="p">,</span><span class="n">LAD_16_1_func</span><span class="p">,</span><span class="n">LAD_9_func</span><span class="p">]</span>
+<span class="n">LAD_diam</span>  <span class="o">=</span> <span class="p">[</span><span class="mf">0.45</span><span class="p">,</span><span class="mf">0.00667</span><span class="p">,</span><span class="mf">0.00222</span><span class="p">,</span><span class="mf">0.00161</span><span class="p">,</span><span class="mf">0.0009</span><span class="p">]</span>
+<div class="viewcode-block" id="generate_physiologic_wave"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.waveform.generate_physiologic_wave">[docs]</a><span class="k">def</span> <span class="nf">generate_physiologic_wave</span><span class="p">(</span><span class="n">flow_value</span><span class="p">,</span><span class="n">diameter</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="n">LAD_time</span><span class="p">,</span>
+                              <span class="n">flow</span><span class="o">=</span><span class="n">LAD_flow</span><span class="p">,</span><span class="n">normalize_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">one_cycle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">n_time_points</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span><span class="n">min_buffer</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                              <span class="n">pulse_by_diameter</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">LAD_diam</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.45</span><span class="p">,</span><span class="mf">0.00667</span><span class="p">,</span><span class="mf">0.00222</span><span class="p">,</span><span class="mf">0.00161</span><span class="p">,</span><span class="mf">0.0009</span><span class="p">]</span> <span class="c1">#in cm units</span>
+    <span class="n">LAD_amp_d</span>  <span class="o">=</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="nb">min</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span><span class="nb">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">-</span><span class="nb">min</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span>
+                <span class="nb">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">-</span><span class="nb">min</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span><span class="nb">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="o">-</span><span class="nb">min</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span><span class="o">/</span><span class="mi">60</span><span class="p">,</span>
+                <span class="nb">abs</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span><span class="o">-</span><span class="nb">min</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span><span class="o">/</span><span class="mi">60</span><span class="p">]</span>
+    <span class="n">LAD_amp_ff</span>  <span class="o">=</span> <span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">),(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">),(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">),</span>
+                   <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">),(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">)]</span>
+    <span class="n">LAD_amp_f</span>  <span class="o">=</span> <span class="p">[</span><span class="n">LAD_amp_d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">),</span><span class="n">LAD_amp_d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">),</span><span class="n">LAD_amp_d</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">),</span>
+                  <span class="n">LAD_amp_d</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">),</span><span class="n">LAD_amp_d</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span><span class="o">/</span><span class="mi">60</span><span class="p">)]</span>
+
+    <span class="n">amp_d</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">LAD_diam</span><span class="p">,</span><span class="n">LAD_amp_d</span><span class="p">,</span><span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">)</span>
+    <span class="n">amp_f</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">LAD_amp_ff</span><span class="p">,</span><span class="n">LAD_amp_f</span><span class="p">,</span><span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">vessel</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
+        <span class="n">time</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vessel</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">vessel</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flow</span><span class="p">):</span>
+        <span class="n">flow</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vessel</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">one_cycle</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span><span class="n">num</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">time</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">num</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+
+    <span class="n">flow_interp</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">time_interp</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">diam_interp</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">interp</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">time</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">flow</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">)</span>
+        <span class="n">flow_tmp</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">interp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">diam_interp</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flow_tmp</span><span class="p">))</span><span class="o">*</span><span class="n">LAD_diam</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">flow_interp</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flow_tmp</span><span class="p">)</span>
+        <span class="n">time_interp</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+    <span class="c1">#for i in range(len(t)):</span>
+    <span class="c1">#    fd = interp1d(LAD_diam,[flo[i] for flo in flow_interp],fill_value=&#39;extrapolate&#39;)</span>
+    <span class="n">diam_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">diam_interp</span><span class="p">)</span>
+    <span class="n">flow_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flow_interp</span><span class="p">)</span>
+    <span class="n">time_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">time_interp</span><span class="p">)</span>
+
+    <span class="n">ND_interp</span> <span class="o">=</span> <span class="n">LinearNDInterpolator</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">time_interp</span><span class="p">,</span><span class="n">diam_interp</span><span class="p">)),</span><span class="n">flow_interp</span><span class="p">)</span>
+    <span class="n">KND_interp</span> <span class="o">=</span> <span class="n">NearestNDInterpolator</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">time_interp</span><span class="p">,</span><span class="n">diam_interp</span><span class="p">)),</span><span class="n">flow_interp</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">num</span><span class="o">=</span><span class="n">n_time_points</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">))</span><span class="o">*</span><span class="n">diameter</span>
+    <span class="n">wave</span> <span class="o">=</span> <span class="n">ND_interp</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">d</span><span class="p">)</span><span class="o">/</span><span class="mi">60</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">wave</span><span class="p">)):</span>
+        <span class="n">wave</span> <span class="o">=</span> <span class="n">KND_interp</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">d</span><span class="p">)</span><span class="o">/</span><span class="mi">60</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pulse_by_diameter</span><span class="p">:</span>
+            <span class="n">post_wave_amp</span> <span class="o">=</span> <span class="n">amp_d</span><span class="p">(</span><span class="n">diameter</span><span class="p">)</span>
+            <span class="n">pre_wave_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
+            <span class="n">pre_wave_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
+            <span class="n">pre_wave_amp</span> <span class="o">=</span> <span class="n">pre_wave_max</span> <span class="o">-</span> <span class="n">pre_wave_min</span>
+            <span class="n">wave_amp_scale</span> <span class="o">=</span> <span class="n">post_wave_amp</span><span class="o">/</span><span class="n">pre_wave_amp</span>
+            <span class="n">wave</span> <span class="o">=</span> <span class="n">wave</span><span class="o">*</span><span class="n">wave_amp_scale</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">wave_amp_ratio</span> <span class="o">=</span> <span class="n">amp_f</span><span class="p">(</span><span class="n">flow_value</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ratio: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wave_amp_ratio</span><span class="p">))</span>
+            <span class="n">pre_wave_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
+            <span class="n">pre_wave_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
+            <span class="n">pre_wave_amp</span> <span class="o">=</span> <span class="n">pre_wave_max</span> <span class="o">-</span> <span class="n">pre_wave_min</span>
+            <span class="n">pre_amp_ratio</span> <span class="o">=</span> <span class="n">pre_wave_amp</span><span class="o">/</span><span class="n">flow_value</span>
+            <span class="c1">#wave_ratio_scale = wave_amp_ratio/pre_amp_ratio</span>
+            <span class="n">post_wave_amp</span> <span class="o">=</span> <span class="n">flow_value</span><span class="o">*</span><span class="n">wave_amp_ratio</span>
+            <span class="n">wave_amp_scale</span> <span class="o">=</span> <span class="n">post_wave_amp</span><span class="o">/</span><span class="n">pre_wave_amp</span>
+            <span class="n">wave</span> <span class="o">=</span> <span class="n">wave</span><span class="o">*</span><span class="n">wave_amp_scale</span>
+    <span class="c1">#wave_max = np.max(wave)</span>
+    <span class="n">wave_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
+    <span class="n">wave_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">wave</span><span class="p">)</span>
+    <span class="n">wave_diff</span> <span class="o">=</span> <span class="n">wave</span> <span class="o">-</span> <span class="n">wave_mean</span>
+    <span class="n">wave_diff_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">wave_diff</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">flow_value</span> <span class="o">+</span> <span class="n">wave_diff_min</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">wave_return</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">wave_diff_min</span><span class="p">)</span> <span class="o">+</span> <span class="n">wave_diff</span> <span class="o">+</span> <span class="n">flow_value</span><span class="o">*</span><span class="n">min_buffer</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">wave_return</span> <span class="o">=</span> <span class="n">flow_value</span> <span class="o">+</span> <span class="n">wave_diff</span>
+    <span class="k">return</span> <span class="n">t</span><span class="p">,</span> <span class="n">wave_return</span></div>
+
+<div class="viewcode-block" id="wave"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.waveform.wave">[docs]</a><span class="k">def</span> <span class="nf">wave</span><span class="p">(</span><span class="n">mean_flow</span><span class="p">,</span><span class="n">diameter</span><span class="p">,</span><span class="n">time</span><span class="o">=</span><span class="n">LAD_time</span><span class="p">,</span>
+         <span class="n">flow</span><span class="o">=</span><span class="n">LAD_flow</span><span class="p">,</span> <span class="n">diam</span><span class="o">=</span><span class="n">LAD_diam</span><span class="p">,</span><span class="n">n_time_points</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+    <span class="n">funcs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
+        <span class="n">time</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">time</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">/</span><span class="n">time</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">flow</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flow</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">diam</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">diam</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">funcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">interp1d</span><span class="p">(</span><span class="n">time</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">flow</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">fill_value</span><span class="o">=</span><span class="s1">&#39;extrapolate&#39;</span><span class="p">,</span><span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
+        <span class="n">tmp_time</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">n_time_points</span><span class="p">)</span>
+        <span class="n">tmp_diams</span> <span class="o">=</span> <span class="n">diam</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">n_time_points</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">tmp_coor</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">tmp_time</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">tmp_diams</span><span class="p">))</span>
+        <span class="n">tmp_flow</span>  <span class="o">=</span> <span class="n">funcs</span><span class="p">[</span><span class="n">i</span><span class="p">](</span><span class="n">tmp_time</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">COOR</span> <span class="o">=</span> <span class="n">tmp_coor</span>
+            <span class="n">FLOW</span> <span class="o">=</span> <span class="n">tmp_flow</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">COOR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">COOR</span><span class="p">,</span><span class="n">tmp_coor</span><span class="p">))</span>
+            <span class="n">FLOW</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">FLOW</span><span class="p">,</span><span class="n">tmp_flow</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">diameter</span> <span class="o">&gt;</span> <span class="n">LAD_diam</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">diameter</span> <span class="o">&lt;</span> <span class="n">LAD_diam</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">interp</span> <span class="o">=</span> <span class="n">NearestNDInterpolator</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">COOR</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span><span class="n">COOR</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">())),</span><span class="n">FLOW</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">interp</span> <span class="o">=</span> <span class="n">LinearNDInterpolator</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">COOR</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span><span class="n">COOR</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">())),</span><span class="n">FLOW</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="n">d_values</span> <span class="o">=</span> <span class="n">diameter</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_time_points</span><span class="p">)</span>
+    <span class="n">t_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">n_time_points</span><span class="p">)</span>
+    <span class="n">f_values</span> <span class="o">=</span> <span class="n">interp</span><span class="p">(</span><span class="n">t_values</span><span class="p">,</span><span class="n">d_values</span><span class="p">)</span>
+    <span class="n">amp</span>      <span class="o">=</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">f_values</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">f_values</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span>
+    <span class="n">f_mean</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">f_values</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mean_flow</span> <span class="o">&gt;</span> <span class="n">amp</span><span class="p">:</span>
+        <span class="n">f_values</span> <span class="o">=</span> <span class="n">f_values</span> <span class="o">-</span> <span class="n">f_mean</span> <span class="o">+</span> <span class="n">mean_flow</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING: Shifting Mean flow&#39;</span><span class="p">)</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">amp</span><span class="o">-</span><span class="n">mean_flow</span><span class="p">)</span>
+        <span class="n">mean_flow</span> <span class="o">=</span> <span class="n">mean_flow</span> <span class="o">+</span> <span class="n">shift</span><span class="o">*</span><span class="mf">1.1</span>
+        <span class="n">f_values</span> <span class="o">=</span> <span class="n">f_values</span> <span class="o">-</span> <span class="n">f_mean</span> <span class="o">+</span> <span class="n">mean_flow</span>
+    <span class="k">return</span> <span class="n">t_values</span><span class="p">,</span><span class="n">f_values</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.waveform</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

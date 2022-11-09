@@ -9,7 +9,7 @@ outlet_normal = np.array([0,0,-1])
 cube          = pv.Cube().triangulate().subdivide(3)
 
 s = svcco.surface()
-s.set_data(cube.points,normals=cube.point_normals)
+s.set_data(cube.points,cube.point_normals)
 s.solve()
 s.build()
 
@@ -23,11 +23,14 @@ t = svcco.forest(boundary=s,number_of_networks=1,trees_per_network=[2],convex=Tr
 #p = t.show()
 #p.show()
 
-t.networks[0][0].set_parameters(Pperm=5.045,Pterm=5,edge_num=1,Qterm=(0.25/21))
-t.networks[0][1].set_parameters(Pperm=5.045,Pterm=5,edge_num=1,Qterm=(0.25/21))
+t.networks[0][0].set_parameters(Pperm=5.1,Pterm=5,edge_num=1,Qterm=(0.25/21))
+t.networks[0][1].set_parameters(Pperm=5.1,Pterm=5,edge_num=1,Qterm=(0.25/21))
 
 t.set_roots()
-
+t.add(30)
+t.connect(curve_sample_size_min=11,curve_sample_size_max=19)
+p = t.forest_copy.show()
+p.show()
 #print(t.networks[0][0].data[0,20])
 
 #p = t.show()

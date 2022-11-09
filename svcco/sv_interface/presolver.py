@@ -12,13 +12,13 @@ presolver="""if not terminating:
         f_poly = mesher.get_face_polydata(face)
         mass.SetInputData(f_poly)
         resistance[face] = mass.GetSurfaceArea()
-        total_res += 1/resistance[face]
+        total_res += resistance[face]
         if resistance[face] > max_surface_area:
             skip = i + 1
             inlet = face
             max_surface_area = resistance[face]
         svpre_construction += 'set_surface_id_vtp mesh-complete/mesh-surfaces/cap_{{}}.vtp {{}}\\n'.format(face,i+1)
-    total_res -= 1/max_surface_area
+    #total_res -= 1/max_surface_area
     svpre_construction += 'fluid_density {}\\n'
     svpre_construction += 'fluid_viscosity {}\\n'
     svpre_construction += 'initial_pressure {}\\n'

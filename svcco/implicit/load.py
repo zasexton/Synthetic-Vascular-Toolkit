@@ -1,6 +1,8 @@
 import numpy as np
 import vtk
+import os
 from vtk.util import numpy_support
+from ..utils.remeshing.remesh import remesh_surface
 import pyvista as pv
 
 def load3d(filename,subdivisions=0):
@@ -94,3 +96,28 @@ def load3d(filename,subdivisions=0):
         # and PU angle thresholds the same to allow for non-singluar
         # matricies.
         return points,normals,data
+
+def load3d_pv(filename,subdivisions=0,remesh=True,max_points=10000,verbosity=0):
+    mesh = pv.read(filename)
+    if remesh:
+        hausd = 0.01
+        mesh = remesh_surface(mesh,hausd=hausd,verbosity=verbosity)
+        previous = mesh.points.shape[0]
+        while mesh.points.shape[0] > max_points and mesh.points.shape[0] <= previous:
+            hausd += 0.01
+            print('Target: {} | Current: {}'.format(max_points,mesh.points.shape[0]))
+            previous = mesh.points.shape[0]
+            mesh = remesh_surface(mesh,hausd=hausd,verbosity=verbosity)
+        print('End Point Number: {}'.format(mesh.points.shape[0]))
+    points  = mesh.points
+    normals = mesh.point_normals
+    upt,uid = np.unique(points,axis=0,return_index=True)
+    points = points[uid]
+    normals = normals[uid]
+    mesh.save(os.getcwd()+os.sep+'temp.vtp')
+    reader = vtk.vtkXMLPolyDataReader()
+    reader.SetFileName(os.getcwd()+os.sep+'temp.vtp')
+    reader.Update()
+    mesh = reader.GetOutput()
+    os.remove(os.getcwd()+os.sep+'temp.vtp')
+    return points,normals,mesh
