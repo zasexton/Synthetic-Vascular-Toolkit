@@ -1030,28 +1030,34 @@ def swap_contour(interp_xyz,t_list,c_idx,radius_buffer):
         value = t0
     return value
 
-def truncate(data,radius=None):
-    if radius is None:
+def truncate(data,radius=None,indicies=None):
+    if radius is None and indicies is None:
         radius = np.median(data[:,21])
     branches = get_branches(data)
-    large = []
-    small = []
+    include = []
+    exclude = []
     for branch in branches:
-        tmp_large = []
-        tmp_small = []
+        tmp_include = []
+        tmp_exclude = []
         for idx,vdx in enumerate(branch):
-            if data[vdx,21] >= radius:
-                tmp_large.append(vdx)
+            if indicies is None:
+                if data[vdx,21] >= radius:
+                    tmp_include.append(vdx)
+                else:
+                    tmp_exclude.append(vdx)
             else:
-                tmp_small.append(vdx)
-        if len(tmp_large) > 1:
-            large.append(tmp_large)
-        if len(tmp_small) > 0:
-            small.append(tmp_small)
-    return large, small
+                if vdx in indicies:
+                    tmp_include.append(vdx)
+                else:
+                    tmp_exclude.append(vdx)
+        if len(tmp_include) > 1:
+            include.append(tmp_include)
+        if len(tmp_exclude) > 0:
+            exclude.append(tmp_exclude)
+    return include, exclude
 
-def get_truncated_interpolated_sv_data(data,radius=None):
-    branches,_ = truncate(data,radius=radius)
+def get_truncated_interpolated_sv_data(data,radius=None,indicies=None):
+    branches,_ = truncate(data,radius=radius,indicies=indicies)
     points   = get_points(data,branches)
     #print("Points: {}".format(points[0]))
     radii    = get_radii(data,branches)

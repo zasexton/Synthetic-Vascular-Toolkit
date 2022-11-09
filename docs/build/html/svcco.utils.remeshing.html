@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>svcco.utils.remeshing package &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="svcco.utils.remeshing.Linux package" href="svcco.utils.remeshing.Linux.html" />
+    <link rel="prev" title="svcco.utils.perfusion package" href="svcco.utils.perfusion.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="svcco.utils.remeshing.Linux.html" title="svcco.utils.remeshing.Linux package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="svcco.utils.perfusion.html" title="svcco.utils.perfusion package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >svcco</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="svcco.html" >svcco package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="svcco.utils.html" accesskey="U">svcco.utils package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.utils.remeshing package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="svcco-utils-remeshing-package">
+<h1>svcco.utils.remeshing package<a class="headerlink" href="#svcco-utils-remeshing-package" title="Permalink to this heading">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="svcco.utils.remeshing.Linux.html">svcco.utils.remeshing.Linux package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.utils.remeshing.Linux.html#module-svcco.utils.remeshing.Linux">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="svcco.utils.remeshing.Windows.html">svcco.utils.remeshing.Windows package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.utils.remeshing.Windows.html#module-svcco.utils.remeshing.Windows">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-svcco.utils.remeshing.remesh">
+<span id="svcco-utils-remeshing-remesh-module"></span><h2>svcco.utils.remeshing.remesh module<a class="headerlink" href="#module-svcco.utils.remeshing.remesh" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.utils.remeshing.remesh.clean_medit">
+<span class="sig-prename descclassname"><span class="pre">svcco.utils.remeshing.remesh.</span></span><span class="sig-name descname"><span class="pre">clean_medit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/utils/remeshing/remesh.html#clean_medit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.utils.remeshing.remesh.clean_medit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.utils.remeshing.remesh.remesh_surface">
+<span class="sig-prename descclassname"><span class="pre">svcco.utils.remeshing.remesh.</span></span><span class="sig-name descname"><span class="pre">remesh_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pv_polydata_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hausd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/utils/remeshing/remesh.html#remesh_surface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.utils.remeshing.remesh.remesh_surface" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-svcco.utils.remeshing">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-svcco.utils.remeshing" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">svcco.utils.remeshing package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-svcco.utils.remeshing.remesh">svcco.utils.remeshing.remesh module</a><ul>
+<li><a class="reference internal" href="#svcco.utils.remeshing.remesh.clean_medit"><code class="docutils literal notranslate"><span class="pre">clean_medit()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.utils.remeshing.remesh.remesh_surface"><code class="docutils literal notranslate"><span class="pre">remesh_surface()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.utils.remeshing">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="svcco.utils.perfusion.html"
+                          title="previous chapter">svcco.utils.perfusion package</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="svcco.utils.remeshing.Linux.html"
+                          title="next chapter">svcco.utils.remeshing.Linux package</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/svcco.utils.remeshing.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="svcco.utils.remeshing.Linux.html" title="svcco.utils.remeshing.Linux package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="svcco.utils.perfusion.html" title="svcco.utils.perfusion package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >svcco</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="svcco.html" >svcco package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="svcco.utils.html" >svcco.utils package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.utils.remeshing package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

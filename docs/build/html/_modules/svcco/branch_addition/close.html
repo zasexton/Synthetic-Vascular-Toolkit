@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.branch_addition.close &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.branch_addition.close</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.branch_addition.close</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numba</span> <span class="k">as</span> <span class="nn">nb</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<div class="viewcode-block" id="close"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.close.close">[docs]</a><span class="nd">@nb</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">point</span><span class="p">,</span><span class="n">N</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">((</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="o">-</span><span class="n">point</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">N</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances</span><span class="p">):</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+    <span class="n">close_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">distances</span><span class="p">)[:</span><span class="n">N</span><span class="p">]</span>
+    <span class="n">distances</span><span class="o">=</span><span class="n">distances</span><span class="p">[</span><span class="n">close_edges</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">close_edges</span><span class="p">,</span> <span class="n">distances</span></div>
+
+<span class="c1">#@nb.jit(nopython=True,cache=True,nogil=True)</span>
+<div class="viewcode-block" id="close_exact"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.close.close_exact">[docs]</a><span class="k">def</span> <span class="nf">close_exact</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">point</span><span class="p">):</span>
+    <span class="n">line_direction</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span><span class="mi">12</span><span class="p">:</span><span class="mi">15</span><span class="p">]</span>
+    <span class="n">ss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">point</span><span class="p">,</span><span class="n">line_direction</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
+    <span class="n">tt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">point</span> <span class="o">-</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span><span class="n">line_direction</span><span class="p">[</span><span class="n">i</span><span class="p">,:])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
+    <span class="n">decision</span> <span class="o">=</span> <span class="p">[[</span><span class="n">ss</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">tt</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ss</span><span class="p">))]</span>
+    <span class="n">hh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">decision</span><span class="p">])</span>
+    <span class="n">cc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">((</span><span class="n">point</span> <span class="o">-</span> <span class="n">data</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]),</span><span class="n">line_direction</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">cc</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">line_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">hh</span><span class="p">,</span><span class="n">cd</span><span class="p">)</span>
+    <span class="n">vessel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">line_distances</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vessel</span><span class="p">,</span> <span class="n">line_distances</span></div>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">def close_exact(data,point):</span>
+<span class="sd">    line_direction = data[:,12:15]</span>
+<span class="sd">    ss = np.array([np.dot(data[i,0:3] - point,line_direction[i,:]) for i in range(data.shape[0])])</span>
+<span class="sd">    tt = np.array([np.dot(point - data[i,3:6],line_direction[i,:]) for i in range(data.shape[0])])</span>
+<span class="sd">    decision = [[ss[i],tt[i],0] for i in range(len(ss))]</span>
+<span class="sd">    hh = np.array([np.max(np.array(i)) for i in decision])</span>
+<span class="sd">    cc = np.cross((point - data[:,0:3]),line_direction,axis=1)</span>
+<span class="sd">    cd = np.linalg.norm(cc,axis=1)</span>
+<span class="sd">    line_distances = np.hypot(hh,cd)</span>
+<span class="sd">    vessel = np.argsort(line_distances)</span>
+<span class="sd">    return vessel, line_distances</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="close_binary_vectorize"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.close.close_binary_vectorize">[docs]</a><span class="nd">@nb</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">close_binary_vectorize</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">point</span><span class="p">):</span>
+    <span class="n">best_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">best</span>      <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+    <span class="k">for</span> <span class="n">vessel</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">line_direction</span> <span class="o">=</span> <span class="n">vessel</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">15</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">vessel</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span><span class="o">-</span><span class="n">point</span>
+        <span class="n">ss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">diff</span><span class="p">,</span><span class="n">line_direction</span><span class="p">)</span>
+        <span class="n">tt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">point</span><span class="o">-</span><span class="n">vessel</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span><span class="n">line_direction</span><span class="p">)</span>
+        <span class="n">hh</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">ss</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span><span class="n">tt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">diff2</span> <span class="o">=</span> <span class="p">(</span><span class="n">point</span><span class="o">-</span><span class="n">vessel</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span> <span class="c1">#.reshape(-1,1)</span>
+        <span class="n">line_direction2</span> <span class="o">=</span> <span class="n">line_direction</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">cc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">diff2</span><span class="p">,</span><span class="n">line_direction2</span><span class="p">)</span>
+        <span class="n">cd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">cc</span><span class="p">)</span>
+        <span class="n">ld</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">hh</span><span class="p">,</span><span class="n">cd</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ld</span> <span class="o">&lt;</span> <span class="n">best_dist</span><span class="p">:</span>
+            <span class="n">best_dist</span> <span class="o">=</span> <span class="n">ld</span>
+            <span class="n">best</span> <span class="o">=</span> <span class="n">vessel</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">best</span><span class="p">,</span><span class="n">best_dist</span></div>
+
+<div class="viewcode-block" id="close_binary_vectorize2"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.close.close_binary_vectorize2">[docs]</a><span class="nd">@nb</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">close_binary_vectorize2</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">point</span><span class="p">):</span>
+    <span class="n">best_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">best</span>      <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+    <span class="k">for</span> <span class="n">vessel</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">diff2</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">diff3</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cc</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">line_direction</span> <span class="o">=</span> <span class="n">vessel</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">15</span><span class="p">]</span>
+        <span class="n">diff</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vessel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">diff</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vessel</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">diff</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">vessel</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">ss</span> <span class="o">=</span> <span class="n">diff</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">diff</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">diff</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="c1">#ss = np.dot(diff,line_direction)</span>
+        <span class="n">diff2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">vessel</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">diff2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">vessel</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">diff2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">vessel</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+        <span class="c1">#tt = np.dot(point-vessel[3:6],line_direction)</span>
+        <span class="n">tt</span> <span class="o">=</span> <span class="n">diff2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">diff2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">diff2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="c1">#hh = max([ss,tt,0])</span>
+        <span class="k">if</span> <span class="n">ss</span> <span class="o">&gt;</span> <span class="n">tt</span> <span class="ow">and</span> <span class="n">ss</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">hh</span> <span class="o">=</span> <span class="n">ss</span>
+        <span class="k">elif</span> <span class="n">tt</span> <span class="o">&gt;</span> <span class="n">ss</span> <span class="ow">and</span> <span class="n">tt</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">hh</span><span class="o">=</span><span class="n">tt</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hh</span><span class="o">=</span><span class="mf">0.0</span>
+        <span class="c1">#diff2 = (point-vessel[0:3]) #.reshape(-1,1)</span>
+        <span class="n">diff3</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">vessel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">diff3</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">vessel</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">diff3</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">vessel</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="c1">#line_direction2 = line_direction.T</span>
+        <span class="c1">#cc = np.cross(diff2,line_direction2)</span>
+        <span class="n">cc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff3</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">diff3</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">cc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff3</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">diff3</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">cc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff3</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">diff3</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">line_direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1">#cd = np.linalg.norm(cc)</span>
+        <span class="n">cd</span> <span class="o">=</span> <span class="p">(</span><span class="n">cc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">cc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="n">cc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="c1">#ld = math.hypot(hh,cd).item()</span>
+        <span class="n">ld</span> <span class="o">=</span> <span class="p">(</span><span class="n">hh</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">cd</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ld</span> <span class="o">&lt;</span> <span class="n">best_dist</span><span class="p">:</span>
+            <span class="n">best_dist</span> <span class="o">=</span> <span class="n">ld</span>
+            <span class="n">best</span> <span class="o">=</span> <span class="n">vessel</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">best</span><span class="p">,</span><span class="n">best_dist</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.branch_addition.close</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

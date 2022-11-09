@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.sv_interface.ROM.centerlines &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css" />
+    
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.centerlines</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.sv_interface.ROM.centerlines</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Stanford University, The Regents of the University of</span>
+<span class="c1">#               California, and others.</span>
+<span class="c1">#</span>
+<span class="c1"># All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># See Copyright-SimVascular.txt for additional details.</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining</span>
+<span class="c1"># a copy of this software and associated documentation files (the</span>
+<span class="c1"># &quot;Software&quot;), to deal in the Software without restriction, including</span>
+<span class="c1"># without limitation the rights to use, copy, modify, merge, publish,</span>
+<span class="c1"># distribute, sublicense, and/or sell copies of the Software, and to</span>
+<span class="c1"># permit persons to whom the Software is furnished to do so, subject</span>
+<span class="c1"># to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included</span>
+<span class="c1"># in all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS</span>
+<span class="c1"># IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED</span>
+<span class="c1"># TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A</span>
+<span class="c1"># PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER</span>
+<span class="c1"># OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,</span>
+<span class="c1"># EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,</span>
+<span class="c1"># PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR</span>
+<span class="c1"># PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF</span>
+<span class="c1"># LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING</span>
+<span class="c1"># NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c1"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The module is used to extact centerlines from a surface mesh. </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">.manage</span> <span class="kn">import</span> <span class="n">get_logger_name</span>
+
+<span class="kn">import</span> <span class="nn">vtk</span>
+<span class="kn">from</span> <span class="nn">vtk.util.numpy_support</span> <span class="kn">import</span> <span class="n">vtk_to_numpy</span> <span class="k">as</span> <span class="n">v2n</span>
+
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">SurfaceFileFormats</span><span class="p">,</span> <span class="n">read_surface</span><span class="p">,</span> <span class="n">read_polydata</span>
+
+
+<div class="viewcode-block" id="Centerlines"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.centerlines.Centerlines">[docs]</a><span class="k">class</span> <span class="nc">Centerlines</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The Centerlines class is used to encapsulate centerline calculations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">inlet_face_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inlet_center</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outlet_centers</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cap_ids</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">get_logger_name</span><span class="p">())</span>
+
+<div class="viewcode-block" id="Centerlines.extract_center_lines"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.centerlines.Centerlines.extract_center_lines">[docs]</a>    <span class="k">def</span> <span class="nf">extract_center_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract the centerlines of a surface.</span>
+<span class="sd">        The centerline geometry is returned as a vtkPolyData object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Get the centers of the inlet and outlet surfaces.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_inlet_outlet_centers</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="c1"># Read the surface model used for centerline calculation.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Read surface model from </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">surface_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of points in params.outlet_centers </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outlet_centers</span><span class="p">))</span>
+
+        <span class="c1"># Extract centerlines using SimVascular.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Calculating surface centerlines ...&quot;</span><span class="p">)</span>
+
+        <span class="n">params_sv</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;surf_in&#39;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">surface_model</span><span class="p">,</span>
+                     <span class="s1">&#39;caps&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cap_ids</span><span class="p">,</span>
+                     <span class="s1">&#39;cent_out&#39;</span><span class="p">:</span> <span class="n">params</span><span class="o">.</span><span class="n">centerlines_output_file</span><span class="p">}</span>
+        <span class="n">sv_centerlines</span><span class="p">(</span><span class="n">params_sv</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">read_surface</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">centerlines_output_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;The surface centerlines have been calculated.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Write outlet face names.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_outlet_face_names</span><span class="p">(</span><span class="n">params</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Centerlines.read"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.centerlines.Centerlines.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read centerlines from a .vtp file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">read_polydata</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Centerlines.get_inlet_outlet_centers"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.centerlines.Centerlines.get_inlet_outlet_centers">[docs]</a>    <span class="k">def</span> <span class="nf">get_inlet_outlet_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the centers of the inlet and outlet surface geometry.</span>
+<span class="sd">        Surface inlet and outlet faces are identifed by their file name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">surf_mesh_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">boundary_surfaces_dir</span><span class="p">)</span>
+        <span class="n">inlet_file_name</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">inlet_face_input_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outlet_centers</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">face_file</span> <span class="ow">in</span> <span class="n">surf_mesh_dir</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+            <span class="n">file_name</span> <span class="o">=</span> <span class="n">face_file</span><span class="o">.</span><span class="n">name</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Surface file name: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">file_name</span><span class="p">)</span>
+            <span class="n">file_suffix</span> <span class="o">=</span> <span class="n">face_file</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+
+            <span class="k">if</span> <span class="n">file_suffix</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SurfaceFileFormats</span> <span class="ow">or</span> <span class="n">file_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;wall&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">file_name</span> <span class="o">==</span> <span class="n">inlet_file_name</span><span class="p">:</span>
+                <span class="n">inlet_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">face_file</span><span class="o">.</span><span class="n">absolute</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Inlet file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">inlet_path</span><span class="p">)</span>
+                <span class="n">polydata</span> <span class="o">=</span> <span class="n">read_surface</span><span class="p">(</span><span class="n">inlet_path</span><span class="p">,</span> <span class="n">file_suffix</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inlet_center</span> <span class="o">=</span> <span class="n">get_polydata_centroid</span><span class="p">(</span><span class="n">polydata</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inlet_face_name</span> <span class="o">=</span> <span class="n">face_file</span><span class="o">.</span><span class="n">stem</span> 
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outlet_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">face_file</span><span class="o">.</span><span class="n">absolute</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">face_file</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Outlet: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">file_name</span><span class="p">)</span>
+                <span class="n">polydata</span> <span class="o">=</span> <span class="n">read_surface</span><span class="p">(</span><span class="n">outlet_path</span><span class="p">,</span> <span class="n">file_suffix</span><span class="p">)</span>
+                <span class="c1"># Use extend because vmtk expects a list of floats.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">outlet_centers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">get_polydata_centroid</span><span class="p">(</span><span class="n">polydata</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">inlet_face_name</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No inlet face found in the boundary surface directory &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">params</span><span class="o">.</span><span class="n">boundary_surfaces_dir</span><span class="p">)</span>
+
+        <span class="c1"># get surface points closest to cap centers</span>
+        <span class="n">cp</span> <span class="o">=</span> <span class="n">ClosestPoints</span><span class="p">(</span><span class="n">read_surface</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">surface_model</span><span class="p">))</span>
+        <span class="n">caps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">inlet_center</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outlet_centers</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cap_ids</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">caps</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of outlet faces: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outlet_centers</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Centerlines.write_outlet_face_names"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.centerlines.Centerlines.write_outlet_face_names">[docs]</a>    <span class="k">def</span> <span class="nf">write_outlet_face_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write outlet face names</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">output_directory</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">CENTERLINES_OUTLET_FILE_NAME</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Write outlet face names to: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">file_name</span><span class="p">)</span> 
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names</span><span class="p">:</span>
+                <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="get_polydata_centroid"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.centerlines.get_polydata_centroid">[docs]</a><span class="k">def</span> <span class="nf">get_polydata_centroid</span><span class="p">(</span><span class="n">poly_data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the centroid of polydata</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">v2n</span><span class="p">(</span><span class="n">poly_data</span><span class="o">.</span><span class="n">GetPoints</span><span class="p">()</span><span class="o">.</span><span class="n">GetData</span><span class="p">()),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="sv_centerlines"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.centerlines.sv_centerlines">[docs]</a><span class="k">def</span> <span class="nf">sv_centerlines</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Call SimVascular centerline generation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">sv</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s1">&#39;Run with sv --python -- this_script.py&#39;</span><span class="p">)</span>
+
+    <span class="c1"># create a modeler</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">sv</span><span class="o">.</span><span class="n">modeling</span><span class="o">.</span><span class="n">Kernel</span><span class="o">.</span><span class="n">POLYDATA</span>
+    <span class="n">modeler</span> <span class="o">=</span> <span class="n">sv</span><span class="o">.</span><span class="n">modeling</span><span class="o">.</span><span class="n">Modeler</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span>
+
+    <span class="c1"># read surface mesh</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">modeler</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;surf_in&#39;</span><span class="p">])</span>
+    <span class="n">model_polydata</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_polydata</span><span class="p">()</span>
+
+    <span class="c1"># generate centerline</span>
+    <span class="c1"># todo: try use_face_ids</span>
+    <span class="n">centerlines_polydata</span> <span class="o">=</span> <span class="n">sv</span><span class="o">.</span><span class="n">vmtk</span><span class="o">.</span><span class="n">centerlines</span><span class="p">(</span><span class="n">model_polydata</span><span class="p">,</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;caps&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]],</span> <span class="n">p</span><span class="p">[</span><span class="s1">&#39;caps&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:],</span> <span class="n">use_face_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># write centerline to file</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkXMLPolyDataWriter</span><span class="p">()</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">SetFileName</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;cent_out&#39;</span><span class="p">])</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">SetInputData</span><span class="p">(</span><span class="n">centerlines_polydata</span><span class="p">)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">Write</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ClosestPoints"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.centerlines.ClosestPoints">[docs]</a><span class="k">class</span> <span class="nc">ClosestPoints</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find closest points within a geometry</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inp</span><span class="p">):</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPolyData</span><span class="p">()</span>
+        <span class="n">dataset</span><span class="o">.</span><span class="n">SetPoints</span><span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">GetPoints</span><span class="p">())</span>
+
+        <span class="n">locator</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkPointLocator</span><span class="p">()</span>
+        <span class="n">locator</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+        <span class="n">locator</span><span class="o">.</span><span class="n">SetDataSet</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+        <span class="n">locator</span><span class="o">.</span><span class="n">BuildLocator</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">locator</span> <span class="o">=</span> <span class="n">locator</span>
+
+<div class="viewcode-block" id="ClosestPoints.search"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.centerlines.ClosestPoints.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get ids of points in geometry closest to input points</span>
+<span class="sd">        Args:</span>
+<span class="sd">            points: list of points to be searched</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Id list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">points</span><span class="p">:</span>
+            <span class="n">ids</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">locator</span><span class="o">.</span><span class="n">FindClosestPoint</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">ids</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.centerlines</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

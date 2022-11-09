@@ -298,6 +298,7 @@ def create_vessels(contour_list,attempts=5):
         lofts = loft_all(contour_list)
         cap_solids = cap_all(lofts)
         success = check_cap_solids(cap_solids)
+        i += 1
     if success:
         print('Lofting Passed')
     else:

@@ -1,0 +1,1321 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>svcco.sv_interface.ROM package &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="svcco.utils package" href="svcco.utils.html" />
+    <link rel="prev" title="svcco.sv_interface package" href="svcco.sv_interface.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="svcco.utils.html" title="svcco.utils package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="svcco.sv_interface.html" title="svcco.sv_interface package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >svcco</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="svcco.html" >svcco package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="svcco.sv_interface.html" accesskey="U">svcco.sv_interface package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="svcco-sv-interface-rom-package">
+<h1>svcco.sv_interface.ROM package<a class="headerlink" href="#svcco-sv-interface-rom-package" title="Permalink to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-svcco.sv_interface.ROM.centerlines">
+<span id="svcco-sv-interface-rom-centerlines-module"></span><h2>svcco.sv_interface.ROM.centerlines module<a class="headerlink" href="#module-svcco.sv_interface.ROM.centerlines" title="Permalink to this heading">¶</a></h2>
+<p>The module is used to extact centerlines from a surface mesh.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.centerlines.Centerlines">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.centerlines.</span></span><span class="sig-name descname"><span class="pre">Centerlines</span></span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/centerlines.html#Centerlines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.centerlines.Centerlines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The Centerlines class is used to encapsulate centerline calculations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.centerlines.Centerlines.extract_center_lines">
+<span class="sig-name descname"><span class="pre">extract_center_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/centerlines.html#Centerlines.extract_center_lines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.centerlines.Centerlines.extract_center_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the centerlines of a surface.
+The centerline geometry is returned as a vtkPolyData object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.centerlines.Centerlines.get_inlet_outlet_centers">
+<span class="sig-name descname"><span class="pre">get_inlet_outlet_centers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/centerlines.html#Centerlines.get_inlet_outlet_centers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.centerlines.Centerlines.get_inlet_outlet_centers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the centers of the inlet and outlet surface geometry.
+Surface inlet and outlet faces are identifed by their file name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.centerlines.Centerlines.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/centerlines.html#Centerlines.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.centerlines.Centerlines.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read centerlines from a .vtp file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.centerlines.Centerlines.write_outlet_face_names">
+<span class="sig-name descname"><span class="pre">write_outlet_face_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/centerlines.html#Centerlines.write_outlet_face_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.centerlines.Centerlines.write_outlet_face_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write outlet face names</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.centerlines.ClosestPoints">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.centerlines.</span></span><span class="sig-name descname"><span class="pre">ClosestPoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/centerlines.html#ClosestPoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.centerlines.ClosestPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Find closest points within a geometry</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.centerlines.ClosestPoints.search">
+<span class="sig-name descname"><span class="pre">search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/centerlines.html#ClosestPoints.search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.centerlines.ClosestPoints.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get ids of points in geometry closest to input points
+Args:</p>
+<blockquote>
+<div><p>points: list of points to be searched</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>Id list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.centerlines.get_polydata_centroid">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.centerlines.</span></span><span class="sig-name descname"><span class="pre">get_polydata_centroid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">poly_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/centerlines.html#get_polydata_centroid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.centerlines.get_polydata_centroid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the centroid of polydata</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.centerlines.sv_centerlines">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.centerlines.</span></span><span class="sig-name descname"><span class="pre">sv_centerlines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/centerlines.html#sv_centerlines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.centerlines.sv_centerlines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call SimVascular centerline generation</p>
+</dd></dl>
+
+</section>
+<section id="module-svcco.sv_interface.ROM.generate_1d_mesh">
+<span id="svcco-sv-interface-rom-generate-1d-mesh-module"></span><h2>svcco.sv_interface.ROM.generate_1d_mesh module<a class="headerlink" href="#module-svcco.sv_interface.ROM.generate_1d_mesh" title="Permalink to this heading">¶</a></h2>
+<p>This module provides the interface to the modules creating a 1D mesh used for 1D simulations.</p>
+<p>Centerlines can be computed or read in. If centerline are read from a file then they must have
+been split and grouped along branches. If you are reading the centerlines computed by the SimVascular
+Models plugin then the Full_Centerlines.vtp file must be used.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.generate_1d_mesh.</span></span><span class="sig-name descname"><span class="pre">Args</span></span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/generate_1d_mesh.html#Args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class defines the command line arguments to the generate-1d-mesh script.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.BOUNDARY_SURFACE_DIR">
+<span class="sig-name descname"><span class="pre">BOUNDARY_SURFACE_DIR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'boundary_surfaces_directory'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.BOUNDARY_SURFACE_DIR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.CENTERLINE_INPUT_FILE">
+<span class="sig-name descname"><span class="pre">CENTERLINE_INPUT_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'centerlines_input_file'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.CENTERLINE_INPUT_FILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.CENTERLINE_OUTPUT_FILE">
+<span class="sig-name descname"><span class="pre">CENTERLINE_OUTPUT_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'centerlines_output_file'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.CENTERLINE_OUTPUT_FILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.COMPUTE_CENTERLINES">
+<span class="sig-name descname"><span class="pre">COMPUTE_CENTERLINES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'compute_centerlines'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.COMPUTE_CENTERLINES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.COMPUTE_MESH">
+<span class="sig-name descname"><span class="pre">COMPUTE_MESH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'compute_mesh'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.COMPUTE_MESH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.DENSITY">
+<span class="sig-name descname"><span class="pre">DENSITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'density'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.DENSITY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.ELEMENT_SIZE">
+<span class="sig-name descname"><span class="pre">ELEMENT_SIZE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'element_size'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.ELEMENT_SIZE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.INFLOW_INPUT_FILE">
+<span class="sig-name descname"><span class="pre">INFLOW_INPUT_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'inflow_input_file'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.INFLOW_INPUT_FILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.INLET_FACE_INPUT_FILE">
+<span class="sig-name descname"><span class="pre">INLET_FACE_INPUT_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'inlet_face_input_file'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.INLET_FACE_INPUT_FILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.LINEAR_MATERIAL_EHR">
+<span class="sig-name descname"><span class="pre">LINEAR_MATERIAL_EHR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'linear_material_ehr'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.LINEAR_MATERIAL_EHR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.LINEAR_MATERIAL_PRESSURE">
+<span class="sig-name descname"><span class="pre">LINEAR_MATERIAL_PRESSURE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'linear_material_pressure'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.LINEAR_MATERIAL_PRESSURE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.MATERIAL_MODEL">
+<span class="sig-name descname"><span class="pre">MATERIAL_MODEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'material_model'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.MATERIAL_MODEL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.MESH_OUTPUT_FILE">
+<span class="sig-name descname"><span class="pre">MESH_OUTPUT_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mesh_output_file'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.MESH_OUTPUT_FILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.MINIMUM_NUMBER_ELEMENTS">
+<span class="sig-name descname"><span class="pre">MINIMUM_NUMBER_ELEMENTS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'min_num_elements'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.MINIMUM_NUMBER_ELEMENTS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.MODEL_NAME">
+<span class="sig-name descname"><span class="pre">MODEL_NAME</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'model_name'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.MODEL_NAME" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.MODEL_ORDER">
+<span class="sig-name descname"><span class="pre">MODEL_ORDER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'model_order'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.MODEL_ORDER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.NUM_TIME_STEPS">
+<span class="sig-name descname"><span class="pre">NUM_TIME_STEPS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'num_time_steps'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.NUM_TIME_STEPS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_EXP">
+<span class="sig-name descname"><span class="pre">OLUFSEN_MATERIAL_EXP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'olufsen_material_exp'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_EXP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_K1">
+<span class="sig-name descname"><span class="pre">OLUFSEN_MATERIAL_K1</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'olufsen_material_k1'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_K1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_K2">
+<span class="sig-name descname"><span class="pre">OLUFSEN_MATERIAL_K2</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'olufsen_material_k2'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_K2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_K3">
+<span class="sig-name descname"><span class="pre">OLUFSEN_MATERIAL_K3</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'olufsen_material_k3'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_K3" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_PRESSURE">
+<span class="sig-name descname"><span class="pre">OLUFSEN_MATERIAL_PRESSURE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'olufsen_material_pressure'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_PRESSURE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTFLOW_BC_INPUT_FILE">
+<span class="sig-name descname"><span class="pre">OUTFLOW_BC_INPUT_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'outflow_bc_input_file'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTFLOW_BC_INPUT_FILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTFLOW_BC_TYPE">
+<span class="sig-name descname"><span class="pre">OUTFLOW_BC_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'outflow_bc_type'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTFLOW_BC_TYPE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTLET_FACE_NAMES_INPUT_FILE">
+<span class="sig-name descname"><span class="pre">OUTLET_FACE_NAMES_INPUT_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'outlet_face_names_input_file'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTLET_FACE_NAMES_INPUT_FILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTPUT_DIRECTORY">
+<span class="sig-name descname"><span class="pre">OUTPUT_DIRECTORY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'output_directory'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTPUT_DIRECTORY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.PREFIX">
+<span class="sig-name descname"><span class="pre">PREFIX</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'--'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.PREFIX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.SAVE_DATA_FREQUENCY">
+<span class="sig-name descname"><span class="pre">SAVE_DATA_FREQUENCY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'save_data_frequency'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SAVE_DATA_FREQUENCY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.SEGMENT_MINIMUM_NUMBER">
+<span class="sig-name descname"><span class="pre">SEGMENT_MINIMUM_NUMBER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'seg_min_num'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SEGMENT_MINIMUM_NUMBER" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.SEGMENT_SIZE">
+<span class="sig-name descname"><span class="pre">SEGMENT_SIZE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'seg_size'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SEGMENT_SIZE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.SEGMENT_SIZE_ADAPTIVE">
+<span class="sig-name descname"><span class="pre">SEGMENT_SIZE_ADAPTIVE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'seg_size_adaptive'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SEGMENT_SIZE_ADAPTIVE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.SOLVER_OUTPUT_FILE">
+<span class="sig-name descname"><span class="pre">SOLVER_OUTPUT_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'solver_output_file'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SOLVER_OUTPUT_FILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.SURFACE_MODEL">
+<span class="sig-name descname"><span class="pre">SURFACE_MODEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'surface_model'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SURFACE_MODEL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.TIME_STEP">
+<span class="sig-name descname"><span class="pre">TIME_STEP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'time_step'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.TIME_STEP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.UNIFORM_BC">
+<span class="sig-name descname"><span class="pre">UNIFORM_BC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'uniform_bc'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.UNIFORM_BC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.UNITS">
+<span class="sig-name descname"><span class="pre">UNITS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'units'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.UNITS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.VISCOSITY">
+<span class="sig-name descname"><span class="pre">VISCOSITY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'viscosity'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.VISCOSITY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.WALL_PROPERTIES_INPUT_FILE">
+<span class="sig-name descname"><span class="pre">WALL_PROPERTIES_INPUT_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'wall_properties_input_file'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.WALL_PROPERTIES_INPUT_FILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.Args.WALL_PROPERTIES_OUTPUT_FILE">
+<span class="sig-name descname"><span class="pre">WALL_PROPERTIES_OUTPUT_FILE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'wall_properties_output_file'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.WALL_PROPERTIES_OUTPUT_FILE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.cmd">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.generate_1d_mesh.</span></span><span class="sig-name descname"><span class="pre">cmd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/generate_1d_mesh.html#cmd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.cmd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an argparse command argument.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.compute_centerlines">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.generate_1d_mesh.</span></span><span class="sig-name descname"><span class="pre">compute_centerlines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/generate_1d_mesh.html#compute_centerlines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.compute_centerlines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the centerlines for a surface model.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.parse_args">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.generate_1d_mesh.</span></span><span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/generate_1d_mesh.html#parse_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.parse_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse command-line arguments.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.read_centerlines">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.generate_1d_mesh.</span></span><span class="sig-name descname"><span class="pre">read_centerlines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/generate_1d_mesh.html#read_centerlines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.read_centerlines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read centerlines for a surface model from a file.</p>
+<p>The centerlines must have had</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.run">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.generate_1d_mesh.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/generate_1d_mesh.html#run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the 1D mesh generation using passed parameters.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.run_from_c">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.generate_1d_mesh.</span></span><span class="sig-name descname"><span class="pre">run_from_c</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/generate_1d_mesh.html#run_from_c"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.run_from_c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the 1D mesh generation using passed parameters from c++</p>
+<p>The '<a href="#id1"><span class="problematic" id="id2">*</span></a>args' argument contains the directory to write the log file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.generate_1d_mesh.set_parameters">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.generate_1d_mesh.</span></span><span class="sig-name descname"><span class="pre">set_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/generate_1d_mesh.html#set_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.generate_1d_mesh.set_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the values of parameters input from the command line.</p>
+<p>The <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs argument can originate from the command line or from a direct
+call to the 'run()' function, in which case parser.parse_args() is not called
+and so we need to check here if required arguments have been passed.</p>
+</dd></dl>
+
+</section>
+<section id="module-svcco.sv_interface.ROM.io_0d">
+<span id="svcco-sv-interface-rom-io-0d-module"></span><h2>svcco.sv_interface.ROM.io_0d module<a class="headerlink" href="#module-svcco.sv_interface.ROM.io_0d" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_0d.write_0d_solver_file">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_0d.</span></span><span class="sig-name descname"><span class="pre">write_0d_solver_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_0d.html#write_0d_solver_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_0d.write_0d_solver_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate 0d solver input file (.json)</p>
+</dd></dl>
+
+</section>
+<section id="module-svcco.sv_interface.ROM.io_1d">
+<span id="svcco-sv-interface-rom-io-1d-module"></span><h2>svcco.sv_interface.ROM.io_1d module<a class="headerlink" href="#module-svcco.sv_interface.ROM.io_1d" title="Permalink to this heading">¶</a></h2>
+<p>This module handles file i/o for the SimVascular 1D solver (<a class="reference external" href="https://github.com/SimVascular/oneDSolver">https://github.com/SimVascular/oneDSolver</a>).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.FlowData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">FlowData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flow</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.FlowData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.FlowData.flow">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">flow</span></span><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.FlowData.flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.FlowData.time">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">time</span></span><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.FlowData.time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.add_array">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">add_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#add_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.add_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add array to vtkPolyData
+Args:</p>
+<blockquote>
+<div><p>data: vtkPolyData object
+identifier: array association (point or cell)
+array: scalar list or numpy array
+name: display name of array</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.coronary_sv_to_oned">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">coronary_sv_to_oned</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#coronary_sv_to_oned"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.coronary_sv_to_oned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert format of coronary boundary condition parameters from svSimVascular to svOneDSolver</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.read_inflow_file">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">read_inflow_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#read_inflow_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.read_inflow_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the inflow file.</p>
+<p>The file can be formatted as space- or comma-separated value pairs.</p>
+<dl class="simple">
+<dt>Example:</dt><dd><p>&lt;time1&gt;  &lt;flow1&gt;
+&lt;time2&gt;  &lt;flow2&gt;
+...
+&lt;timeN&gt;  &lt;flowN&gt;</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.read_outlet_face_names">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">read_outlet_face_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#read_outlet_face_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.read_outlet_face_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in outlet face names file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.read_variable_outflow_bcs">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">read_variable_outflow_bcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#read_variable_outflow_bcs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.read_variable_outflow_bcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in data for variable flow boundary conditions from file (RCR, resistance, coronary)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.write_mesh">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">write_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#write_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.write_mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the 1D mesh to a VTK VTP format file.
+Args:</p>
+<blockquote>
+<div><p>mesh: Mesh object
+params: 1d model parameters</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.write_solver_file">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">write_solver_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#write_solver_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.write_solver_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a solver input file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.write_solver_joints">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">write_solver_joints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ofile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#write_solver_joints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.write_solver_joints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a solver input file joints section.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.write_solver_material">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">write_solver_material</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ofile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#write_solver_material"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.write_solver_material" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a solver input file material section.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.write_solver_nodes">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">write_solver_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ofile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#write_solver_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.write_solver_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a solver input file nodes section.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.write_solver_options">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">write_solver_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ofile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#write_solver_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.write_solver_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a solver input file options section.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.write_solver_output">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">write_solver_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ofile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#write_solver_output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.write_solver_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a solver input file output section.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.write_solver_section_header">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">write_solver_section_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ofile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#write_solver_section_header"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.write_solver_section_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a solver input file section header.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_1d.write_solver_segments">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_1d.</span></span><span class="sig-name descname"><span class="pre">write_solver_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ofile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_1d.html#write_solver_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_1d.write_solver_segments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a solver input file joints section.</p>
+</dd></dl>
+
+</section>
+<section id="module-svcco.sv_interface.ROM.io_headers">
+<span id="svcco-sv-interface-rom-io-headers-module"></span><h2>svcco.sv_interface.ROM.io_headers module<a class="headerlink" href="#module-svcco.sv_interface.ROM.io_headers" title="Permalink to this heading">¶</a></h2>
+<p>This file contains i/o headers for the SimVascular 1D solver (<a class="reference external" href="https://github.com/SimVascular/oneDSolver">https://github.com/SimVascular/oneDSolver</a>).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.io_headers.</span></span><span class="sig-name descname"><span class="pre">Headers</span></span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_headers.html#Headers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Collection of headers of all oneDSolver input-file sections</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.element">
+<span class="sig-name descname"><span class="pre">element</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#</span> <span class="pre">=============',</span> <span class="pre">'#</span> <span class="pre">ELEMENT</span> <span class="pre">CARD',</span> <span class="pre">'#</span> <span class="pre">=============',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">1d_segment_name',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">1d_segment_number</span> <span class="pre">/</span> <span class="pre">0d_element_number',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">average_radius',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">length',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">blood_density',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">blood_dynamic_viscosity',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Eh/r',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">inlet_node_number',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">outlet_node_number',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">vessel_vector_x_coor',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">vessel_vector_y_coor',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">vessel_vector_z_coor',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">boundary_condition_type',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">boundary_condition_datatable_name',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">0d_element_type,</span> <span class="pre">i.e.</span> <span class="pre">R,</span> <span class="pre">RC,</span> <span class="pre">RL,</span> <span class="pre">RCL,</span> <span class="pre">L,</span> <span class="pre">C,</span> <span class="pre">etc.',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">0d_element_values</span> <span class="pre">in</span> <span class="pre">format</span> <span class="pre">of:</span> <span class="pre">R</span> <span class="pre">or</span> <span class="pre">R</span> <span class="pre">C</span> <span class="pre">or</span> <span class="pre">R</span> <span class="pre">L</span> <span class="pre">or</span> <span class="pre">R</span> <span class="pre">C</span> <span class="pre">L</span> <span class="pre">or</span> <span class="pre">L</span> <span class="pre">or</span> <span class="pre">C</span> <span class="pre">or</span> <span class="pre">blank</span> <span class="pre">for</span> <span class="pre">custom</span> <span class="pre">0d</span> <span class="pre">elements',</span> <span class="pre">'']</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.element" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.inlet_bc">
+<span class="sig-name descname"><span class="pre">inlet_bc</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#</span> <span class="pre">==============================',</span> <span class="pre">'#</span> <span class="pre">INLET</span> <span class="pre">BOUNDARY</span> <span class="pre">CONDITION</span> <span class="pre">CARD',</span> <span class="pre">'#</span> <span class="pre">==============================',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">inlet_segment_number',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">inlet_boundary_condition_type',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">inlet_boundary_condition_datatable_name',</span> <span class="pre">'']</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.inlet_bc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.joint1">
+<span class="sig-name descname"><span class="pre">joint1</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#',</span> <span class="pre">'#</span> <span class="pre">==========',</span> <span class="pre">'#</span> <span class="pre">JOINT</span> <span class="pre">CARD',</span> <span class="pre">'#</span> <span class="pre">==========',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Joint</span> <span class="pre">Name</span> <span class="pre">(string)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Joint</span> <span class="pre">Node</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Joint</span> <span class="pre">Inlet</span> <span class="pre">Name</span> <span class="pre">(string)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Joint</span> <span class="pre">Outlet</span> <span class="pre">Name</span> <span class="pre">(string)',</span> <span class="pre">'']</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.joint1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.joint2">
+<span class="sig-name descname"><span class="pre">joint2</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#',</span> <span class="pre">'#</span> <span class="pre">================================',</span> <span class="pre">'#</span> <span class="pre">JOINTINLET</span> <span class="pre">AND</span> <span class="pre">JOINTOUTLET</span> <span class="pre">CARDS',</span> <span class="pre">'#</span> <span class="pre">================================',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Inlet/Outlet</span> <span class="pre">Name</span> <span class="pre">(string)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Total</span> <span class="pre">Number</span> <span class="pre">of</span> <span class="pre">segments</span> <span class="pre">(int)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">List</span> <span class="pre">of</span> <span class="pre">segments</span> <span class="pre">(list</span> <span class="pre">of</span> <span class="pre">int)',</span> <span class="pre">'']</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.joint2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.junction">
+<span class="sig-name descname"><span class="pre">junction</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#',</span> <span class="pre">'#</span> <span class="pre">==========',</span> <span class="pre">'#</span> <span class="pre">JUNCTION</span> <span class="pre">MODEL</span> <span class="pre">CARD',</span> <span class="pre">'#</span> <span class="pre">==========',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">joint_name',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">junction_type,</span> <span class="pre">i.e.</span> <span class="pre">NORMAL_JUNCTION,</span> <span class="pre">etc.',</span> <span class="pre">'']</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.junction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.material">
+<span class="sig-name descname"><span class="pre">material</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#</span> <span class="pre">=============',</span> <span class="pre">'#</span> <span class="pre">MATERIAL</span> <span class="pre">CARD',</span> <span class="pre">'#</span> <span class="pre">=============',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Material</span> <span class="pre">Name</span> <span class="pre">(string)',</span> <span class="pre">&quot;#</span> <span class="pre">-</span> <span class="pre">Material</span> <span class="pre">Type</span> <span class="pre">(string</span> <span class="pre">-</span> <span class="pre">'LINEAR','OLUFSEN')&quot;,</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Material</span> <span class="pre">Density</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Material</span> <span class="pre">Viscosity</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Material</span> <span class="pre">PRef</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Material</span> <span class="pre">Exponent</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Material</span> <span class="pre">Parameter</span> <span class="pre">1</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Material</span> <span class="pre">Parameter</span> <span class="pre">2</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Material</span> <span class="pre">Parameter</span> <span class="pre">3</span> <span class="pre">(double)',</span> <span class="pre">'']</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.material" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.model">
+<span class="sig-name descname"><span class="pre">model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/io_headers.html#Headers.model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write model header</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.node">
+<span class="sig-name descname"><span class="pre">node</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#',</span> <span class="pre">'#</span> <span class="pre">==========',</span> <span class="pre">'#</span> <span class="pre">NODE</span> <span class="pre">CARD',</span> <span class="pre">'#</span> <span class="pre">==========',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Node</span> <span class="pre">Name</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Node</span> <span class="pre">X</span> <span class="pre">Coordinate</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Node</span> <span class="pre">Y</span> <span class="pre">Coordinate</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Node</span> <span class="pre">Z</span> <span class="pre">Coordinate</span> <span class="pre">(double)',</span> <span class="pre">'']</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.output">
+<span class="sig-name descname"><span class="pre">output</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#</span> <span class="pre">============',</span> <span class="pre">'#</span> <span class="pre">OUTPUT</span> <span class="pre">CARD',</span> <span class="pre">'#</span> <span class="pre">============',</span> <span class="pre">'#',</span> <span class="pre">'#</span> <span class="pre">1.</span> <span class="pre">Output</span> <span class="pre">file</span> <span class="pre">format.</span> <span class="pre">The</span> <span class="pre">following</span> <span class="pre">output</span> <span class="pre">types</span> <span class="pre">are</span> <span class="pre">supported:',</span> <span class="pre">'#\t\tTEXT.</span> <span class="pre">The</span> <span class="pre">output</span> <span class="pre">of</span> <span class="pre">every</span> <span class="pre">segment</span> <span class="pre">is</span> <span class="pre">written</span> <span class="pre">in</span> <span class="pre">separate</span> <span class="pre">text</span> <span class="pre">files</span> <span class="pre">for</span> <span class="pre">the</span> <span class="pre">flow</span> <span class="pre">rate,</span> <span class="pre">pressure,</span> <span class="pre">area</span> <span class="pre">and</span> <span class="pre">Reynolds</span> <span class="pre">number.</span> <span class="pre">The</span> <span class="pre">rows</span> <span class="pre">contain</span> <span class="pre">output</span> <span class="pre">values</span> <span class="pre">at</span> <span class="pre">varying</span> <span class="pre">locations</span> <span class="pre">along</span> <span class="pre">the</span> <span class="pre">segment</span> <span class="pre">while</span> <span class="pre">columns</span> <span class="pre">contains</span> <span class="pre">results</span> <span class="pre">at</span> <span class="pre">various</span> <span class="pre">time</span> <span class="pre">instants.',</span> <span class="pre">'#\t\tVTK.</span> <span class="pre">The</span> <span class="pre">results</span> <span class="pre">for</span> <span class="pre">all</span> <span class="pre">time</span> <span class="pre">steps</span> <span class="pre">are</span> <span class="pre">plotted</span> <span class="pre">to</span> <span class="pre">a</span> <span class="pre">3D-like</span> <span class="pre">model</span> <span class="pre">using</span> <span class="pre">the</span> <span class="pre">XML</span> <span class="pre">VTK</span> <span class="pre">file</span> <span class="pre">format.',</span> <span class="pre">'#</span> <span class="pre">2.</span> <span class="pre">VTK</span> <span class="pre">export</span> <span class="pre">option.</span> <span class="pre">Two</span> <span class="pre">options</span> <span class="pre">are</span> <span class="pre">available</span> <span class="pre">for</span> <span class="pre">VTK</span> <span class="pre">file</span> <span class="pre">outputs:',</span> <span class="pre">'#\t\t0</span> <span class="pre">-</span> <span class="pre">Multiple</span> <span class="pre">files</span> <span class="pre">(default).</span> <span class="pre">A</span> <span class="pre">separate</span> <span class="pre">file</span> <span class="pre">is</span> <span class="pre">written</span> <span class="pre">for</span> <span class="pre">each</span> <span class="pre">saved</span> <span class="pre">increment.</span> <span class="pre">A</span> <span class="pre">pvd</span> <span class="pre">file</span> <span class="pre">is</span> <span class="pre">also</span> <span class="pre">provided</span> <span class="pre">which</span> <span class="pre">contains</span> <span class="pre">the</span> <span class="pre">time</span> <span class="pre">information</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">sequence.</span> <span class="pre">This</span> <span class="pre">is</span> <span class="pre">the</span> <span class="pre">best</span> <span class="pre">option</span> <span class="pre">to</span> <span class="pre">create</span> <span class="pre">animations.',</span> <span class="pre">'#\t\t1</span> <span class="pre">-</span> <span class="pre">The</span> <span class="pre">results</span> <span class="pre">for</span> <span class="pre">all</span> <span class="pre">time</span> <span class="pre">steps</span> <span class="pre">are</span> <span class="pre">plotted</span> <span class="pre">to</span> <span class="pre">a</span> <span class="pre">single</span> <span class="pre">XML</span> <span class="pre">VTK</span> <span class="pre">file.',</span> <span class="pre">'']</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.segment">
+<span class="sig-name descname"><span class="pre">segment</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#</span> <span class="pre">============',</span> <span class="pre">'#</span> <span class="pre">SEGMENT</span> <span class="pre">CARD',</span> <span class="pre">'#</span> <span class="pre">============',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Segment</span> <span class="pre">Name</span> <span class="pre">(string)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Segment</span> <span class="pre">ID</span> <span class="pre">(int)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Segment</span> <span class="pre">Length</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Total</span> <span class="pre">Finite</span> <span class="pre">Elements</span> <span class="pre">in</span> <span class="pre">Segment</span> <span class="pre">(int)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Segment</span> <span class="pre">Inlet</span> <span class="pre">Node</span> <span class="pre">(int)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Segment</span> <span class="pre">Outlet</span> <span class="pre">Node</span> <span class="pre">(int)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Segment</span> <span class="pre">Inlet</span> <span class="pre">Area</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Segment</span> <span class="pre">Outlet</span> <span class="pre">Area</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Segment</span> <span class="pre">Inflow</span> <span class="pre">Value</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Segment</span> <span class="pre">Material</span> <span class="pre">(string)',</span> <span class="pre">&quot;#</span> <span class="pre">-</span> <span class="pre">Type</span> <span class="pre">of</span> <span class="pre">Loss</span> <span class="pre">(string</span> <span class="pre">-</span> <span class="pre">'NONE','STENOSIS','BRANCH_THROUGH_DIVIDING','BRANCH_SIDE_DIVIDING','BRANCH_THROUGH_CONVERGING',&quot;,</span> <span class="pre">&quot;#</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">'BRANCH_SIDE_CONVERGING','BIFURCATION_BRANCH')&quot;,</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Branch</span> <span class="pre">Angle</span> <span class="pre">(double)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Upstream</span> <span class="pre">Segment</span> <span class="pre">ID</span> <span class="pre">(int)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Branch</span> <span class="pre">Segment</span> <span class="pre">ID</span> <span class="pre">(int)',</span> <span class="pre">&quot;#</span> <span class="pre">-</span> <span class="pre">Boundary</span> <span class="pre">Condition</span> <span class="pre">Type</span> <span class="pre">(string</span> <span class="pre">-</span> <span class="pre">'NOBOUND','PRESSURE','AREA','FLOW','RESISTANCE','RESISTANCE_TIME','PRESSURE_WAVE',&quot;,</span> <span class="pre">&quot;#</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">'WAVE','RCR','CORONARY','IMPEDANCE','PULMONARY')&quot;,</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Data</span> <span class="pre">Table</span> <span class="pre">Name</span> <span class="pre">(string)',</span> <span class="pre">'']</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.segment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.solveroptions">
+<span class="sig-name descname"><span class="pre">solveroptions</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#</span> <span class="pre">==================',</span> <span class="pre">'#</span> <span class="pre">SOLVEROPTIONS</span> <span class="pre">CARD',</span> <span class="pre">'#</span> <span class="pre">==================',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Solver</span> <span class="pre">Time</span> <span class="pre">Step</span> <span class="pre">(double),</span> <span class="pre">',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Steps</span> <span class="pre">Between</span> <span class="pre">Saves</span> <span class="pre">(int),</span> <span class="pre">',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Max</span> <span class="pre">Number</span> <span class="pre">of</span> <span class="pre">Steps</span> <span class="pre">(int)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Number</span> <span class="pre">of</span> <span class="pre">quadrature</span> <span class="pre">points</span> <span class="pre">for</span> <span class="pre">finite</span> <span class="pre">elements</span> <span class="pre">(int),</span> <span class="pre">',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Name</span> <span class="pre">of</span> <span class="pre">Datatable</span> <span class="pre">for</span> <span class="pre">inlet</span> <span class="pre">conditions</span> <span class="pre">(string)',</span> <span class="pre">&quot;#</span> <span class="pre">-</span> <span class="pre">Type</span> <span class="pre">of</span> <span class="pre">boundary</span> <span class="pre">condition</span> <span class="pre">(string</span> <span class="pre">-</span> <span class="pre">'NOBOUND','PRESSURE','AREA','FLOW','RESISTANCE','RESISTANCE_TIME','PRESSURE_WAVE',&quot;,</span> <span class="pre">&quot;#</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">'WAVE','RCR','CORONARY','IMPEDANCE','PULMONARY')&quot;,</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Convergence</span> <span class="pre">tolerance</span> <span class="pre">(double),</span> <span class="pre">',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Formulation</span> <span class="pre">Type</span> <span class="pre">(int</span> <span class="pre">-</span> <span class="pre">0</span> <span class="pre">Advective,</span> <span class="pre">1</span> <span class="pre">Conservative),</span> <span class="pre">',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">Stabilization</span> <span class="pre">(int</span> <span class="pre">-</span> <span class="pre">0</span> <span class="pre">No</span> <span class="pre">stabilization,</span> <span class="pre">1</span> <span class="pre">With</span> <span class="pre">stabilization)',</span> <span class="pre">'']</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.solveroptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.io_headers.Headers.solveroptions_0d">
+<span class="sig-name descname"><span class="pre">solveroptions_0d</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['#</span> <span class="pre">==================',</span> <span class="pre">'#</span> <span class="pre">SOLVEROPTIONS_0D</span> <span class="pre">CARD',</span> <span class="pre">'#</span> <span class="pre">==================',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">number_of_time_pts_per_cardiac_cycle</span> <span class="pre">(int)',</span> <span class="pre">'#</span> <span class="pre">-</span> <span class="pre">number_of_cardiac_cycles</span> <span class="pre">(int)',</span> <span class="pre">'']</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.io_headers.Headers.solveroptions_0d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-svcco.sv_interface.ROM.manage">
+<span id="svcco-sv-interface-rom-manage-module"></span><h2>svcco.sv_interface.ROM.manage module<a class="headerlink" href="#module-svcco.sv_interface.ROM.manage" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.manage.get_log_file_name">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.manage.</span></span><span class="sig-name descname"><span class="pre">get_log_file_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/manage.html#get_log_file_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.manage.get_log_file_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.manage.get_logger_name">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.manage.</span></span><span class="sig-name descname"><span class="pre">get_logger_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/manage.html#get_logger_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.manage.get_logger_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.manage.init_logging">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.manage.</span></span><span class="sig-name descname"><span class="pre">init_logging</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputDir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'./'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/manage.html#init_logging"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.manage.init_logging" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-svcco.sv_interface.ROM.mesh">
+<span id="svcco-sv-interface-rom-mesh-module"></span><h2>svcco.sv_interface.ROM.mesh module<a class="headerlink" href="#module-svcco.sv_interface.ROM.mesh" title="Permalink to this heading">¶</a></h2>
+<p>This module is used to create an input file for the SimVascular 1D solver (<a class="reference external" href="https://github.com/SimVascular/oneDSolver">https://github.com/SimVascular/oneDSolver</a>).</p>
+<p>A 1D mesh is generated from the centerline geometry caculated from a closed polygonal surface.</p>
+<p>A centerline consists of m cells, m=number of tract ids, the length of a cell/line is an approximation of a group.
+In Cell Data, lines are listed from 0 to m. For each line, the first number is the number of points for this line
+followed by 1st point to the last point.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Bifurcation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.mesh.</span></span><span class="sig-name descname"><span class="pre">Bifurcation</span></span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Bifurcation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Bifurcation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Simple class to track inlet and outlets of a bifurcation</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Bifurcation.add_inflow">
+<span class="sig-name descname"><span class="pre">add_inflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Bifurcation.add_inflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Bifurcation.add_inflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add inflow branch i (can only be executed once)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Bifurcation.add_outflow">
+<span class="sig-name descname"><span class="pre">add_outflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Bifurcation.add_outflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Bifurcation.add_outflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add outflow branch i</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.mesh.</span></span><span class="sig-name descname"><span class="pre">Mesh</span></span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The Mesh class is used to encapsulate 1D mesh calculations.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.CellDataFields">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">CellDataFields</span></span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.CellDataFields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.CellDataFields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class defines the required field cell data field names.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.Open">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.Open"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.Open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class wraps the 'open' class and adds a method to automatically
+write newlines.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.Open.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.Open.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.Open.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.Open.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.Open.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.Open.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.Open.writeln">
+<span class="sig-name descname"><span class="pre">writeln</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">string</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.Open.writeln"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.Open.writeln" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.PointDataFields">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PointDataFields</span></span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.PointDataFields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class defines the required field point data field names.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.AREA">
+<span class="sig-name descname"><span class="pre">AREA</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CenterlineSectionArea'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.AREA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.BIFURCATION">
+<span class="sig-name descname"><span class="pre">BIFURCATION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'BifurcationId'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.BIFURCATION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.BRANCH">
+<span class="sig-name descname"><span class="pre">BRANCH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'BranchId'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.BRANCH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.CENT">
+<span class="sig-name descname"><span class="pre">CENT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CenterlineId'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.CENT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.NODEID">
+<span class="sig-name descname"><span class="pre">NODEID</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'GlobalNodeId'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.NODEID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.NORMAL">
+<span class="sig-name descname"><span class="pre">NORMAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CenterlineSectionNormal'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.NORMAL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.PATH">
+<span class="sig-name descname"><span class="pre">PATH</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Path'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.PATH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.check_centerline_region">
+<span class="sig-name descname"><span class="pre">check_centerline_region</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.check_centerline_region"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.check_centerline_region" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if centerline is one connected region</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.check_centerlines_data">
+<span class="sig-name descname"><span class="pre">check_centerlines_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.check_centerlines_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.check_centerlines_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that the centerline data contains all of the required fields.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.discretize">
+<span class="sig-name descname"><span class="pre">discretize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.discretize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.discretize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do the actual discretization</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.discretize_bifurcations">
+<span class="sig-name descname"><span class="pre">discretize_bifurcations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.discretize_bifurcations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.discretize_bifurcations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create refined sub-segment connectivity</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.discretize_branches">
+<span class="sig-name descname"><span class="pre">discretize_branches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.discretize_branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.discretize_branches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create refined physical quantities: nodes / areas / segment lengths</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">centerlines</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a mesh.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.get_cell_data">
+<span class="sig-name descname"><span class="pre">get_cell_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.get_cell_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.get_cell_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the data for the given cell field names.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.get_junction_length">
+<span class="sig-name descname"><span class="pre">get_junction_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">br</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.get_junction_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.get_junction_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the length of the part of a branch that is within the upstream junction
+Args:</p>
+<blockquote>
+<div><p>br: BranchId</p>
+</div></blockquote>
+<p>Returns:
+path length within junction</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.get_outlet_branches">
+<span class="sig-name descname"><span class="pre">get_outlet_branches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.get_outlet_branches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.get_outlet_branches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of branches connected to outlets</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.get_point_data">
+<span class="sig-name descname"><span class="pre">get_point_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.get_point_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.get_point_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the data for the given cell field names.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.get_sampling">
+<span class="sig-name descname"><span class="pre">get_sampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">br</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.get_sampling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.get_sampling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get sampling points along branch br in interval [0, 1]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.sample_branch">
+<span class="sig-name descname"><span class="pre">sample_branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">br</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.sample_branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.sample_branch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample points and areas of a centerline group along a path
+Args:</p>
+<blockquote>
+<div><p>br: BranchId
+sample: optional, sample points in [0, 1] (default: sample at centerline points)</p>
+</div></blockquote>
+<p>Returns:
+path of centerline points in [0, 1],sampled points, sampled areas</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.set_outlet_face_names">
+<span class="sig-name descname"><span class="pre">set_outlet_face_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.set_outlet_face_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.set_outlet_face_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set outlet face names.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.Mesh.set_variable_outflow_bcs">
+<span class="sig-name descname"><span class="pre">set_variable_outflow_bcs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#Mesh.set_variable_outflow_bcs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.Mesh.set_variable_outflow_bcs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read in data for variable flow boundary conditions.</p>
+<p>Parameters for outflow BCs (resistance or RCR) are read from a file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.curvature_radius">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.mesh.</span></span><span class="sig-name descname"><span class="pre">curvature_radius</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#curvature_radius"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.curvature_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate curvature radius from list of points with three adjacent points each</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.find_stenoses">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.mesh.</span></span><span class="sig-name descname"><span class="pre">find_stenoses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">area</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#find_stenoses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.find_stenoses" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns stenosis locations and coefficients along a branch</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.get_1d_seg_num">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.mesh.</span></span><span class="sig-name descname"><span class="pre">get_1d_seg_num</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">area</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#get_1d_seg_num"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.get_1d_seg_num" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get number of segments for 1d solver</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.get_connectivity">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.mesh.</span></span><span class="sig-name descname"><span class="pre">get_connectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cent</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#get_connectivity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.get_connectivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the connectivity (which branches are connected to which bifurcation) from a centerline</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.mesh.interp1d">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.mesh.</span></span><span class="sig-name descname"><span class="pre">interp1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/mesh.html#interp1d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.mesh.interp1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mimic behavior of scipy.interpolate.interp1d (extend np.interp to multi-dimensional function values)
+Args:</p>
+<blockquote>
+<div><p>x: sample points
+xp: data points
+fp: data values (xD)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>y: interpolated values (xD)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-svcco.sv_interface.ROM.models">
+<span id="svcco-sv-interface-rom-models-module"></span><h2>svcco.sv_interface.ROM.models module<a class="headerlink" href="#module-svcco.sv_interface.ROM.models" title="Permalink to this heading">¶</a></h2>
+<p>Contains all ROM building blocks (currently onky 1D)</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.models.ZeroD">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.models.</span></span><span class="sig-name descname"><span class="pre">ZeroD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/models.html#ZeroD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.models.ZeroD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Contains all 0D building blocks</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.models.ZeroD.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/models.html#ZeroD.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.models.ZeroD.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>bla</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.models.ZeroD.get_capacitance">
+<span class="sig-name descname"><span class="pre">get_capacitance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avg_radius</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/models.html#ZeroD.get_capacitance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.models.ZeroD.get_capacitance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute capacitance using Poiseuille flow</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.models.ZeroD.get_factor_stenosis">
+<span class="sig-name descname"><span class="pre">get_factor_stenosis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">br</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/models.html#ZeroD.get_factor_stenosis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.models.ZeroD.get_factor_stenosis" title="Permalink to this definition">¶</a></dt>
+<dd><p>See (7) in Mirramezani and Shadden, 2020</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.models.ZeroD.get_inductance">
+<span class="sig-name descname"><span class="pre">get_inductance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avg_radius</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/models.html#ZeroD.get_inductance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.models.ZeroD.get_inductance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute inductance using Poiseuille flow</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.models.ZeroD.get_resistance_viscous">
+<span class="sig-name descname"><span class="pre">get_resistance_viscous</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">avg_radius</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/models.html#ZeroD.get_resistance_viscous"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.models.ZeroD.get_resistance_viscous" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate viscous resistance using Poiseuille flow</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.models.ZeroD.get_segment_avg_radius">
+<span class="sig-name descname"><span class="pre">get_segment_avg_radius</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">br</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/models.html#ZeroD.get_segment_avg_radius"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.models.ZeroD.get_segment_avg_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute average segment radius from inlet and outlet area</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.models.ZeroD.get_vessel_stiffness">
+<span class="sig-name descname"><span class="pre">get_vessel_stiffness</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/models.html#ZeroD.get_vessel_stiffness"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.models.ZeroD.get_vessel_stiffness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get vessel stiffness depending on constitutive law</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-svcco.sv_interface.ROM.parameters">
+<span id="svcco-sv-interface-rom-parameters-module"></span><h2>svcco.sv_interface.ROM.parameters module<a class="headerlink" href="#module-svcco.sv_interface.ROM.parameters" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.MaterialModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.parameters.</span></span><span class="sig-name descname"><span class="pre">MaterialModel</span></span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/parameters.html#MaterialModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.MaterialModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.MaterialModel.LINEAR">
+<span class="sig-name descname"><span class="pre">LINEAR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'LINEAR'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.MaterialModel.LINEAR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.MaterialModel.OLUFSEN">
+<span class="sig-name descname"><span class="pre">OLUFSEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'OLUFSEN'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.MaterialModel.OLUFSEN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.parameters.</span></span><span class="sig-name descname"><span class="pre">OutflowBoundaryConditionType</span></span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/parameters.html#OutflowBoundaryConditionType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.CORONARY">
+<span class="sig-name descname"><span class="pre">CORONARY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'coronary'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.CORONARY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.ONED_TO_SV">
+<span class="sig-name descname"><span class="pre">ONED_TO_SV</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'coronary':</span> <span class="pre">'cort.dat',</span> <span class="pre">'rcr':</span> <span class="pre">'rcrt.dat',</span> <span class="pre">'resistance':</span> <span class="pre">'resistance.dat'}</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.ONED_TO_SV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.RCR">
+<span class="sig-name descname"><span class="pre">RCR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'rcr'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.RCR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.RESISTANCE">
+<span class="sig-name descname"><span class="pre">RESISTANCE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'resistance'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.RESISTANCE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.SV_TO_ONED">
+<span class="sig-name descname"><span class="pre">SV_TO_ONED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'cort.dat':</span> <span class="pre">'coronary',</span> <span class="pre">'rcrt.dat':</span> <span class="pre">'rcr',</span> <span class="pre">'resistance.dat':</span> <span class="pre">'resistance'}</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.SV_TO_ONED" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.Parameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.parameters.</span></span><span class="sig-name descname"><span class="pre">Parameters</span></span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/parameters.html#Parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.Parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The Parameter class stores the input parameters for a 1D mesh generation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.Parameters.Units">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Units</span></span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/parameters.html#Parameters.Units"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.Parameters.Units" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.Parameters.Units.CM">
+<span class="sig-name descname"><span class="pre">CM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cm'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.Parameters.Units.CM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.Parameters.Units.MM">
+<span class="sig-name descname"><span class="pre">MM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mm'</span></em><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.Parameters.Units.MM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.parameters.Parameters.set_units">
+<span class="sig-name descname"><span class="pre">set_units</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">units</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/parameters.html#Parameters.set_units"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.parameters.Parameters.set_units" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-svcco.sv_interface.ROM.utils">
+<span id="svcco-sv-interface-rom-utils-module"></span><h2>svcco.sv_interface.ROM.utils module<a class="headerlink" href="#module-svcco.sv_interface.ROM.utils" title="Permalink to this heading">¶</a></h2>
+<p>The module contains utilities used to read files, calculate centers, etc.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.utils.read_polydata">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.utils.</span></span><span class="sig-name descname"><span class="pre">read_polydata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datatype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/utils.html#read_polydata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.utils.read_polydata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a vtp file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>file_name (str): The input polydata file.
+datatype (str): Additional parameter for vtkIdList objects.</p>
+</dd>
+<dt>Returns:</dt><dd><p>polydata (vtkDataObject): Geometry read in from the input file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.utils.read_surface">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.utils.</span></span><span class="sig-name descname"><span class="pre">read_surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'vtp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datatype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/utils.html#read_surface"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.utils.read_surface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read surface geometry from a file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>file_name (str): Path to input file.
+file_format (str): File format (.vtp, .stl, etc.).
+datatype (str): Additional parameter for vtkIdList objects.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>polyData (vtkSTL/vtkPolyData/vtkXMLStructured/</dt><dd><p>vtkXMLRectilinear/vtkXMLPolydata/vtkXMLUnstructured/
+vtkXMLImage/Tecplot): Output data.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.sv_interface.ROM.utils.write_polydata">
+<span class="sig-prename descclassname"><span class="pre">svcco.sv_interface.ROM.utils.</span></span><span class="sig-name descname"><span class="pre">write_polydata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datatype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/sv_interface/ROM/utils.html#write_polydata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.sv_interface.ROM.utils.write_polydata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the given VTK object to a file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>file_name (str): The name of the file to write.
+data (vtkDataObject): Data to write.
+datatype (str): Additional parameter for vtkIdList objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-svcco.sv_interface.ROM">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-svcco.sv_interface.ROM" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">svcco.sv_interface.ROM package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-svcco.sv_interface.ROM.centerlines">svcco.sv_interface.ROM.centerlines module</a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.centerlines.Centerlines"><code class="docutils literal notranslate"><span class="pre">Centerlines</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.centerlines.Centerlines.extract_center_lines"><code class="docutils literal notranslate"><span class="pre">Centerlines.extract_center_lines()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.centerlines.Centerlines.get_inlet_outlet_centers"><code class="docutils literal notranslate"><span class="pre">Centerlines.get_inlet_outlet_centers()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.centerlines.Centerlines.read"><code class="docutils literal notranslate"><span class="pre">Centerlines.read()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.centerlines.Centerlines.write_outlet_face_names"><code class="docutils literal notranslate"><span class="pre">Centerlines.write_outlet_face_names()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.centerlines.ClosestPoints"><code class="docutils literal notranslate"><span class="pre">ClosestPoints</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.centerlines.ClosestPoints.search"><code class="docutils literal notranslate"><span class="pre">ClosestPoints.search()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.centerlines.get_polydata_centroid"><code class="docutils literal notranslate"><span class="pre">get_polydata_centroid()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.centerlines.sv_centerlines"><code class="docutils literal notranslate"><span class="pre">sv_centerlines()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.sv_interface.ROM.generate_1d_mesh">svcco.sv_interface.ROM.generate_1d_mesh module</a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args"><code class="docutils literal notranslate"><span class="pre">Args</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.BOUNDARY_SURFACE_DIR"><code class="docutils literal notranslate"><span class="pre">Args.BOUNDARY_SURFACE_DIR</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.CENTERLINE_INPUT_FILE"><code class="docutils literal notranslate"><span class="pre">Args.CENTERLINE_INPUT_FILE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.CENTERLINE_OUTPUT_FILE"><code class="docutils literal notranslate"><span class="pre">Args.CENTERLINE_OUTPUT_FILE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.COMPUTE_CENTERLINES"><code class="docutils literal notranslate"><span class="pre">Args.COMPUTE_CENTERLINES</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.COMPUTE_MESH"><code class="docutils literal notranslate"><span class="pre">Args.COMPUTE_MESH</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.DENSITY"><code class="docutils literal notranslate"><span class="pre">Args.DENSITY</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.ELEMENT_SIZE"><code class="docutils literal notranslate"><span class="pre">Args.ELEMENT_SIZE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.INFLOW_INPUT_FILE"><code class="docutils literal notranslate"><span class="pre">Args.INFLOW_INPUT_FILE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.INLET_FACE_INPUT_FILE"><code class="docutils literal notranslate"><span class="pre">Args.INLET_FACE_INPUT_FILE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.LINEAR_MATERIAL_EHR"><code class="docutils literal notranslate"><span class="pre">Args.LINEAR_MATERIAL_EHR</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.LINEAR_MATERIAL_PRESSURE"><code class="docutils literal notranslate"><span class="pre">Args.LINEAR_MATERIAL_PRESSURE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.MATERIAL_MODEL"><code class="docutils literal notranslate"><span class="pre">Args.MATERIAL_MODEL</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.MESH_OUTPUT_FILE"><code class="docutils literal notranslate"><span class="pre">Args.MESH_OUTPUT_FILE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.MINIMUM_NUMBER_ELEMENTS"><code class="docutils literal notranslate"><span class="pre">Args.MINIMUM_NUMBER_ELEMENTS</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.MODEL_NAME"><code class="docutils literal notranslate"><span class="pre">Args.MODEL_NAME</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.MODEL_ORDER"><code class="docutils literal notranslate"><span class="pre">Args.MODEL_ORDER</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.NUM_TIME_STEPS"><code class="docutils literal notranslate"><span class="pre">Args.NUM_TIME_STEPS</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_EXP"><code class="docutils literal notranslate"><span class="pre">Args.OLUFSEN_MATERIAL_EXP</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_K1"><code class="docutils literal notranslate"><span class="pre">Args.OLUFSEN_MATERIAL_K1</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_K2"><code class="docutils literal notranslate"><span class="pre">Args.OLUFSEN_MATERIAL_K2</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_K3"><code class="docutils literal notranslate"><span class="pre">Args.OLUFSEN_MATERIAL_K3</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OLUFSEN_MATERIAL_PRESSURE"><code class="docutils literal notranslate"><span class="pre">Args.OLUFSEN_MATERIAL_PRESSURE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTFLOW_BC_INPUT_FILE"><code class="docutils literal notranslate"><span class="pre">Args.OUTFLOW_BC_INPUT_FILE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTFLOW_BC_TYPE"><code class="docutils literal notranslate"><span class="pre">Args.OUTFLOW_BC_TYPE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTLET_FACE_NAMES_INPUT_FILE"><code class="docutils literal notranslate"><span class="pre">Args.OUTLET_FACE_NAMES_INPUT_FILE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.OUTPUT_DIRECTORY"><code class="docutils literal notranslate"><span class="pre">Args.OUTPUT_DIRECTORY</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.PREFIX"><code class="docutils literal notranslate"><span class="pre">Args.PREFIX</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SAVE_DATA_FREQUENCY"><code class="docutils literal notranslate"><span class="pre">Args.SAVE_DATA_FREQUENCY</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SEGMENT_MINIMUM_NUMBER"><code class="docutils literal notranslate"><span class="pre">Args.SEGMENT_MINIMUM_NUMBER</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SEGMENT_SIZE"><code class="docutils literal notranslate"><span class="pre">Args.SEGMENT_SIZE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SEGMENT_SIZE_ADAPTIVE"><code class="docutils literal notranslate"><span class="pre">Args.SEGMENT_SIZE_ADAPTIVE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SOLVER_OUTPUT_FILE"><code class="docutils literal notranslate"><span class="pre">Args.SOLVER_OUTPUT_FILE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.SURFACE_MODEL"><code class="docutils literal notranslate"><span class="pre">Args.SURFACE_MODEL</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.TIME_STEP"><code class="docutils literal notranslate"><span class="pre">Args.TIME_STEP</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.UNIFORM_BC"><code class="docutils literal notranslate"><span class="pre">Args.UNIFORM_BC</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.UNITS"><code class="docutils literal notranslate"><span class="pre">Args.UNITS</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.VISCOSITY"><code class="docutils literal notranslate"><span class="pre">Args.VISCOSITY</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.WALL_PROPERTIES_INPUT_FILE"><code class="docutils literal notranslate"><span class="pre">Args.WALL_PROPERTIES_INPUT_FILE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.Args.WALL_PROPERTIES_OUTPUT_FILE"><code class="docutils literal notranslate"><span class="pre">Args.WALL_PROPERTIES_OUTPUT_FILE</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.cmd"><code class="docutils literal notranslate"><span class="pre">cmd()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.compute_centerlines"><code class="docutils literal notranslate"><span class="pre">compute_centerlines()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.parse_args"><code class="docutils literal notranslate"><span class="pre">parse_args()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.read_centerlines"><code class="docutils literal notranslate"><span class="pre">read_centerlines()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.run"><code class="docutils literal notranslate"><span class="pre">run()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.run_from_c"><code class="docutils literal notranslate"><span class="pre">run_from_c()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.generate_1d_mesh.set_parameters"><code class="docutils literal notranslate"><span class="pre">set_parameters()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.sv_interface.ROM.io_0d">svcco.sv_interface.ROM.io_0d module</a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_0d.write_0d_solver_file"><code class="docutils literal notranslate"><span class="pre">write_0d_solver_file()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.sv_interface.ROM.io_1d">svcco.sv_interface.ROM.io_1d module</a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.FlowData"><code class="docutils literal notranslate"><span class="pre">FlowData</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.FlowData.flow"><code class="docutils literal notranslate"><span class="pre">FlowData.flow</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.FlowData.time"><code class="docutils literal notranslate"><span class="pre">FlowData.time</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.add_array"><code class="docutils literal notranslate"><span class="pre">add_array()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.coronary_sv_to_oned"><code class="docutils literal notranslate"><span class="pre">coronary_sv_to_oned()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.read_inflow_file"><code class="docutils literal notranslate"><span class="pre">read_inflow_file()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.read_outlet_face_names"><code class="docutils literal notranslate"><span class="pre">read_outlet_face_names()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.read_variable_outflow_bcs"><code class="docutils literal notranslate"><span class="pre">read_variable_outflow_bcs()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.write_mesh"><code class="docutils literal notranslate"><span class="pre">write_mesh()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.write_solver_file"><code class="docutils literal notranslate"><span class="pre">write_solver_file()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.write_solver_joints"><code class="docutils literal notranslate"><span class="pre">write_solver_joints()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.write_solver_material"><code class="docutils literal notranslate"><span class="pre">write_solver_material()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.write_solver_nodes"><code class="docutils literal notranslate"><span class="pre">write_solver_nodes()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.write_solver_options"><code class="docutils literal notranslate"><span class="pre">write_solver_options()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.write_solver_output"><code class="docutils literal notranslate"><span class="pre">write_solver_output()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.write_solver_section_header"><code class="docutils literal notranslate"><span class="pre">write_solver_section_header()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_1d.write_solver_segments"><code class="docutils literal notranslate"><span class="pre">write_solver_segments()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.sv_interface.ROM.io_headers">svcco.sv_interface.ROM.io_headers module</a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers"><code class="docutils literal notranslate"><span class="pre">Headers</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.element"><code class="docutils literal notranslate"><span class="pre">Headers.element</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.inlet_bc"><code class="docutils literal notranslate"><span class="pre">Headers.inlet_bc</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.joint1"><code class="docutils literal notranslate"><span class="pre">Headers.joint1</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.joint2"><code class="docutils literal notranslate"><span class="pre">Headers.joint2</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.junction"><code class="docutils literal notranslate"><span class="pre">Headers.junction</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.material"><code class="docutils literal notranslate"><span class="pre">Headers.material</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.model"><code class="docutils literal notranslate"><span class="pre">Headers.model()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.node"><code class="docutils literal notranslate"><span class="pre">Headers.node</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.output"><code class="docutils literal notranslate"><span class="pre">Headers.output</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.segment"><code class="docutils literal notranslate"><span class="pre">Headers.segment</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.solveroptions"><code class="docutils literal notranslate"><span class="pre">Headers.solveroptions</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.io_headers.Headers.solveroptions_0d"><code class="docutils literal notranslate"><span class="pre">Headers.solveroptions_0d</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.sv_interface.ROM.manage">svcco.sv_interface.ROM.manage module</a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.manage.get_log_file_name"><code class="docutils literal notranslate"><span class="pre">get_log_file_name()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.manage.get_logger_name"><code class="docutils literal notranslate"><span class="pre">get_logger_name()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.manage.init_logging"><code class="docutils literal notranslate"><span class="pre">init_logging()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.sv_interface.ROM.mesh">svcco.sv_interface.ROM.mesh module</a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Bifurcation"><code class="docutils literal notranslate"><span class="pre">Bifurcation</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Bifurcation.add_inflow"><code class="docutils literal notranslate"><span class="pre">Bifurcation.add_inflow()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Bifurcation.add_outflow"><code class="docutils literal notranslate"><span class="pre">Bifurcation.add_outflow()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh"><code class="docutils literal notranslate"><span class="pre">Mesh</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.CellDataFields"><code class="docutils literal notranslate"><span class="pre">Mesh.CellDataFields</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.Open"><code class="docutils literal notranslate"><span class="pre">Mesh.Open</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.Open.close"><code class="docutils literal notranslate"><span class="pre">Mesh.Open.close()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.Open.write"><code class="docutils literal notranslate"><span class="pre">Mesh.Open.write()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.Open.writeln"><code class="docutils literal notranslate"><span class="pre">Mesh.Open.writeln()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields"><code class="docutils literal notranslate"><span class="pre">Mesh.PointDataFields</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.AREA"><code class="docutils literal notranslate"><span class="pre">Mesh.PointDataFields.AREA</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.BIFURCATION"><code class="docutils literal notranslate"><span class="pre">Mesh.PointDataFields.BIFURCATION</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.BRANCH"><code class="docutils literal notranslate"><span class="pre">Mesh.PointDataFields.BRANCH</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.CENT"><code class="docutils literal notranslate"><span class="pre">Mesh.PointDataFields.CENT</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.NODEID"><code class="docutils literal notranslate"><span class="pre">Mesh.PointDataFields.NODEID</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.NORMAL"><code class="docutils literal notranslate"><span class="pre">Mesh.PointDataFields.NORMAL</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields.PATH"><code class="docutils literal notranslate"><span class="pre">Mesh.PointDataFields.PATH</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.check_centerline_region"><code class="docutils literal notranslate"><span class="pre">Mesh.check_centerline_region()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.check_centerlines_data"><code class="docutils literal notranslate"><span class="pre">Mesh.check_centerlines_data()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.discretize"><code class="docutils literal notranslate"><span class="pre">Mesh.discretize()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.discretize_bifurcations"><code class="docutils literal notranslate"><span class="pre">Mesh.discretize_bifurcations()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.discretize_branches"><code class="docutils literal notranslate"><span class="pre">Mesh.discretize_branches()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.generate"><code class="docutils literal notranslate"><span class="pre">Mesh.generate()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.get_cell_data"><code class="docutils literal notranslate"><span class="pre">Mesh.get_cell_data()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.get_junction_length"><code class="docutils literal notranslate"><span class="pre">Mesh.get_junction_length()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.get_outlet_branches"><code class="docutils literal notranslate"><span class="pre">Mesh.get_outlet_branches()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.get_point_data"><code class="docutils literal notranslate"><span class="pre">Mesh.get_point_data()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.get_sampling"><code class="docutils literal notranslate"><span class="pre">Mesh.get_sampling()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.sample_branch"><code class="docutils literal notranslate"><span class="pre">Mesh.sample_branch()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.set_outlet_face_names"><code class="docutils literal notranslate"><span class="pre">Mesh.set_outlet_face_names()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.Mesh.set_variable_outflow_bcs"><code class="docutils literal notranslate"><span class="pre">Mesh.set_variable_outflow_bcs()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.curvature_radius"><code class="docutils literal notranslate"><span class="pre">curvature_radius()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.find_stenoses"><code class="docutils literal notranslate"><span class="pre">find_stenoses()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.get_1d_seg_num"><code class="docutils literal notranslate"><span class="pre">get_1d_seg_num()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.get_connectivity"><code class="docutils literal notranslate"><span class="pre">get_connectivity()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.mesh.interp1d"><code class="docutils literal notranslate"><span class="pre">interp1d()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.sv_interface.ROM.models">svcco.sv_interface.ROM.models module</a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.models.ZeroD"><code class="docutils literal notranslate"><span class="pre">ZeroD</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.models.ZeroD.generate"><code class="docutils literal notranslate"><span class="pre">ZeroD.generate()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.models.ZeroD.get_capacitance"><code class="docutils literal notranslate"><span class="pre">ZeroD.get_capacitance()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.models.ZeroD.get_factor_stenosis"><code class="docutils literal notranslate"><span class="pre">ZeroD.get_factor_stenosis()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.models.ZeroD.get_inductance"><code class="docutils literal notranslate"><span class="pre">ZeroD.get_inductance()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.models.ZeroD.get_resistance_viscous"><code class="docutils literal notranslate"><span class="pre">ZeroD.get_resistance_viscous()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.models.ZeroD.get_segment_avg_radius"><code class="docutils literal notranslate"><span class="pre">ZeroD.get_segment_avg_radius()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.models.ZeroD.get_vessel_stiffness"><code class="docutils literal notranslate"><span class="pre">ZeroD.get_vessel_stiffness()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.sv_interface.ROM.parameters">svcco.sv_interface.ROM.parameters module</a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.MaterialModel"><code class="docutils literal notranslate"><span class="pre">MaterialModel</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.MaterialModel.LINEAR"><code class="docutils literal notranslate"><span class="pre">MaterialModel.LINEAR</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.MaterialModel.OLUFSEN"><code class="docutils literal notranslate"><span class="pre">MaterialModel.OLUFSEN</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType"><code class="docutils literal notranslate"><span class="pre">OutflowBoundaryConditionType</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.CORONARY"><code class="docutils literal notranslate"><span class="pre">OutflowBoundaryConditionType.CORONARY</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.ONED_TO_SV"><code class="docutils literal notranslate"><span class="pre">OutflowBoundaryConditionType.ONED_TO_SV</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.RCR"><code class="docutils literal notranslate"><span class="pre">OutflowBoundaryConditionType.RCR</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.RESISTANCE"><code class="docutils literal notranslate"><span class="pre">OutflowBoundaryConditionType.RESISTANCE</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType.SV_TO_ONED"><code class="docutils literal notranslate"><span class="pre">OutflowBoundaryConditionType.SV_TO_ONED</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.Parameters"><code class="docutils literal notranslate"><span class="pre">Parameters</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.Parameters.Units"><code class="docutils literal notranslate"><span class="pre">Parameters.Units</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.Parameters.Units.CM"><code class="docutils literal notranslate"><span class="pre">Parameters.Units.CM</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.Parameters.Units.MM"><code class="docutils literal notranslate"><span class="pre">Parameters.Units.MM</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.parameters.Parameters.set_units"><code class="docutils literal notranslate"><span class="pre">Parameters.set_units()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.sv_interface.ROM.utils">svcco.sv_interface.ROM.utils module</a><ul>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.utils.read_polydata"><code class="docutils literal notranslate"><span class="pre">read_polydata()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.utils.read_surface"><code class="docutils literal notranslate"><span class="pre">read_surface()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.sv_interface.ROM.utils.write_polydata"><code class="docutils literal notranslate"><span class="pre">write_polydata()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.sv_interface.ROM">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="svcco.sv_interface.html"
+                          title="previous chapter">svcco.sv_interface package</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="svcco.utils.html"
+                          title="next chapter">svcco.utils package</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/svcco.sv_interface.ROM.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="svcco.utils.html" title="svcco.utils package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="svcco.sv_interface.html" title="svcco.sv_interface package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >svcco</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="svcco.html" >svcco package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="svcco.sv_interface.html" >svcco.sv_interface package</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

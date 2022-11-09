@@ -14,8 +14,8 @@ from pathlib import Path
 from setuptools import setup, find_packages
 import os
 import glob
-from tqdm import tqdm
-from importlib_metadata import version
+#from tqdm import tqdm
+#from importlib_metadata import version
 
 here = Path(__file__).parent
 
@@ -24,7 +24,7 @@ long_description = (here / "README.md").read_text("utf8")
 #VERSION = re.search(
 #    r'__version__ = "(.+?)"', (here / "svcco" / "__init__.py").read_text("utf8")
 #).group(1)
-VERSION = '0.5.34'
+VERSION = '0.5.51'
 
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'License :: OSI Approved :: MIT License',
@@ -42,6 +42,7 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
 ALL_FILE_LIST = glob.glob("./**/*.py",recursive=True)
 ALL_FILE_LIST = [file for file in ALL_FILE_LIST if "__init__" not in file and "CCO_" not in file]
 MODULES = []
+"""
 for filename in tqdm(ALL_FILE_LIST):
     file = open(filename,'r')
     lines = [line for line in file.readlines() if 'import' in line and line[0] != '#']
@@ -52,10 +53,12 @@ for filename in tqdm(ALL_FILE_LIST):
                 mod = words[1].split(".")[0].replace('\n','')
                 if mod not in MODULES:
                     MODULES.append(mod)
+    file.close()
+
 print(MODULES)
 INSTALL_REQUIREMENTS = []
 for mod in MODULES:
-    if mod == 'svcco' or mod == 'importlib_metadata':
+    if mod == 'svcco' or mod == 'importlib_metadata' or mod == 'pip' or mod == 'svZeroDSolver' or mod == 'svzerodsolver':
         continue
     try:
         install_version = version(mod)
@@ -63,6 +66,15 @@ for mod in MODULES:
     except:
         pass
 print(INSTALL_REQUIREMENTS)
+"""
+# temporarily change pyvista version to 0.34.2 for colab integration, original version = 0.33.3
+INSTALL_REQUIREMENTS = ['pyvista==0.34.2', 'numpy>=1.21.6', 'setuptools>=62.3.3', 'tqdm>=4.63.0',
+                        'matplotlib>=3.3.4', 'vtk>=9.0.0', 'binarytree>=6.5.1', 'memory_profiler>=0.60.0',
+                        'networkx>=2.5.1', 'pydotplus>=2.0.2', 'numba>=0.55.1', 'seaborn>=0.11.2',
+                        'tetgen>=0.6.0', 'scipy>=1.6.0', 'pymeshfix>=0.15.0', 'geomdl>=5.3.1',
+                        'sympy>=1.9', 'plotly>=5.1.0','scikit-image>=0.16.1','meshio==5.3.4','importlib_metadata',
+                        'nlopt==2.7.1']
+
 PACKAGES = find_packages(include=["svcco","svcco.*"]) #['svcco']+['svcco.'+ pkg for pkg in find_packages('svcco')]
 print(PACKAGES)
 OPTIONS  = None
@@ -70,7 +82,7 @@ OPTIONS  = None
 INSTALL_REQUIREMENTS = ['numpy>=1.16.0',
                         'numba>=0.53.0',
                         'scipy>=1.5.0',
-                        'pyvista>=0.30.1',
+                        'pyvista==0.30.1',
                         'matplotlib>=3.3.4',
                         'seaborn>=0.11.0',
                         'sympy>=1.8.0',
@@ -97,7 +109,10 @@ setup_info = dict(
     python_requires='>=3.7',
     classifiers=CLASSIFIERS,
     install_requires=INSTALL_REQUIREMENTS,
-    packages=PACKAGES
+    packages=PACKAGES,
+    include_package_data=True,
+    zip_safe=False,
+    package_data={'':['svcco/utils/remeshing/Linux/mmg*']}
     )
 
 setup(**setup_info)

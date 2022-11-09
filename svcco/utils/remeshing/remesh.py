@@ -1,6 +1,7 @@
 # Remeshing utility based on MMG executables
 
 import os
+import stat
 import platform
 import subprocess
 import pyvista as pv
@@ -20,9 +21,17 @@ def remesh_surface(pv_polydata_object,auto=True,hausd=0.01,verbosity=1):
         _EXE_ = dirpath+os.sep+"Mac"+os.sep+"mmgs_O3"
     devnull = open(os.devnull, 'w')
     if verbosity == 0:
-        subprocess.check_call([_EXE_,"tmp.mesh","-hausd",str(hausd),"-v",str(verbosity)],stdout=devnull,stderr=devnull)
+        try:
+            subprocess.check_call([_EXE_,"tmp.mesh","-hausd",str(hausd),"-v",str(verbosity)],stdout=devnull,stderr=devnull)
+        except:
+            os.chmod(_EXE_,stat.S_IXUSR|stat.S_IXGRP|stat.S_IXOTH)
+            subprocess.check_call([_EXE_,"tmp.mesh","-hausd",str(hausd),"-v",str(verbosity)],stdout=devnull,stderr=devnull)
     else:
-        subprocess.check_call([_EXE_,"tmp.mesh","-hausd",str(hausd),"-v",str(verbosity)])
+        try:
+            subprocess.check_call([_EXE_,"tmp.mesh","-hausd",str(hausd),"-v",str(verbosity)])
+        except:
+            os.chmod(_EXE_,stat.S_IXUSR|stat.S_IXGRP|stat.S_IXOTH)
+            subprocess.check_call([_EXE_,"tmp.mesh","-hausd",str(hausd),"-v",str(verbosity)])
     clean_medit("tmp.o.mesh")
     remeshed = pv.read("tmp.o.mesh")
     remeshed_surface = remeshed.extract_surface()

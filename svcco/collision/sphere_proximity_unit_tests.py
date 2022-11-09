@@ -3,7 +3,7 @@
 ##########
 
 import numpy as np
-from sphere_proximity import sphere_proximity
+from .sphere_proximity import sphere_proximity
 
 point_0 = np.array([0,0,-1])
 point_1 = np.array([0,0,1])

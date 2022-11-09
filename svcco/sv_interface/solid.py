@@ -60,8 +60,9 @@ if not terminating:
     while len(walls) > 1:
         target = walls[0]
         lose = walls[1]
-        combined = mesh_utils.combine_faces(model.get_polydata(),target,lose)
-        model.set_surface(combined)
+        model.combine_faces(target,[lose])
+        #combined = mesh_utils.combine_faces(model.get_polydata(),target,lose)
+        #model.set_surface(combined)
         ids = model.get_face_ids()
         caps = model.identify_caps()
         walls = [ids[i] for i,x in enumerate(caps) if not x]
@@ -85,8 +86,9 @@ if not terminating:
         while len(remove_list) > 0:
             target = walls[0]
             lose = remove_list.pop(-1)
-            combined = mesh_utils.combine_faces(model.get_polydata(),target,lose)
-            model.set_surface(combined)
+            model.combine_faces(target,[lose])
+            #combined = mesh_utils.combine_faces(model.get_polydata(),target,lose)
+            #model.set_surface(combined)
             print(remove_list)
         print(model.get_face_ids())
     ###############################

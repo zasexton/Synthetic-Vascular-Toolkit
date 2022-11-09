@@ -1,0 +1,333 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.forest_utils.connect &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.forest_utils.connect</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.forest_utils.connect</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Script for connecting trees of closed vascular networks</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="connect"><a class="viewcode-back" href="../../../svcco.forest_utils.html#svcco.forest_utils.connect.connect">[docs]</a><span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="n">forest</span><span class="p">,</span><span class="n">network_id</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span><span class="n">buffer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">connections</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">assignments</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">network_id</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">network</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">forest</span><span class="o">.</span><span class="n">number_of_networks</span><span class="p">):</span>
+            <span class="n">network_connections</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">network_assignments</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">tree_0</span> <span class="o">=</span> <span class="n">forest</span><span class="o">.</span><span class="n">networks</span><span class="p">[</span><span class="n">network</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">tree_1</span> <span class="o">=</span> <span class="n">forest</span><span class="o">.</span><span class="n">networks</span><span class="p">[</span><span class="n">network</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+            <span class="n">terminals_0</span> <span class="o">=</span> <span class="n">tree_0</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">tree_0</span><span class="p">[:,</span><span class="mi">15</span><span class="p">]</span><span class="o">==-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),:]</span>
+            <span class="n">terminals_0</span> <span class="o">=</span> <span class="n">terminals_0</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">terminals_0</span><span class="p">[:,</span><span class="mi">16</span><span class="p">]</span><span class="o">==-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),:]</span>
+            <span class="n">terminals_0_ind</span> <span class="o">=</span> <span class="n">terminals_0</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">terminals_0_pts</span> <span class="o">=</span> <span class="n">terminals_0</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+            <span class="n">terminals_1</span> <span class="o">=</span> <span class="n">tree_1</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">tree_1</span><span class="p">[:,</span><span class="mi">15</span><span class="p">]</span><span class="o">==-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),:]</span>
+            <span class="n">terminals_1</span> <span class="o">=</span> <span class="n">terminals_1</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">terminals_1</span><span class="p">[:,</span><span class="mi">16</span><span class="p">]</span><span class="o">==-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),:]</span>
+            <span class="n">terminals_1_ind</span> <span class="o">=</span> <span class="n">terminals_1</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">terminals_1_pts</span> <span class="o">=</span> <span class="n">terminals_1</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+            <span class="n">network_assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">terminals_0_ind</span><span class="p">)</span>
+
+            <span class="n">C</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">terminals_0_pts</span><span class="p">,</span><span class="n">terminals_1_pts</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">forest</span><span class="o">.</span><span class="n">convex</span><span class="p">:</span>
+                <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">penalty</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                        <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">terminals_0_pts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">terminals_1_pts</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+                        <span class="n">mid</span> <span class="o">=</span> <span class="n">mid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">forest</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">within</span><span class="p">(</span><span class="n">mid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">mid</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">mid</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="mi">2</span><span class="p">):</span>
+                            <span class="n">W</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">penalty</span>
+                <span class="n">C</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">W</span>
+            <span class="n">_</span><span class="p">,</span><span class="n">assignment</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
+            <span class="n">network_assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">terminals_1_ind</span><span class="p">[</span><span class="n">assignment</span><span class="p">])</span>
+            <span class="n">midpoints</span>  <span class="o">=</span> <span class="p">(</span><span class="n">terminals_0_pts</span> <span class="o">+</span> <span class="n">terminals_1_pts</span><span class="p">[</span><span class="n">assignment</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+            <span class="n">network_connections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">midpoints</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">forest</span><span class="o">.</span><span class="n">trees_per_network</span><span class="p">[</span><span class="n">network</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">N</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">forest</span><span class="o">.</span><span class="n">trees_per_network</span><span class="p">[</span><span class="n">network</span><span class="p">]):</span>
+                    <span class="n">tree_n</span> <span class="o">=</span> <span class="n">forest</span><span class="o">.</span><span class="n">networks</span><span class="p">[</span><span class="n">network</span><span class="p">][</span><span class="n">N</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+                    <span class="n">terminals_n</span> <span class="o">=</span> <span class="n">tree_n</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">tree_n</span><span class="p">[:,</span><span class="mi">15</span><span class="p">]</span><span class="o">==-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),:]</span>
+                    <span class="n">terminals_n</span> <span class="o">=</span> <span class="n">terminals_n</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">terminals_n</span><span class="p">[:,</span><span class="mi">16</span><span class="p">]</span><span class="o">==-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),:]</span>
+                    <span class="n">terminals_n_ind</span> <span class="o">=</span> <span class="n">terminals_n</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                    <span class="n">terminals_n_pts</span> <span class="o">=</span> <span class="n">terminals_n</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+
+                    <span class="n">C</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">midpoints</span><span class="p">,</span><span class="n">terminals_n_pts</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">forest</span><span class="o">.</span><span class="n">convex</span><span class="p">:</span>
+                        <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                        <span class="n">penalty</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                                <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">midpoints</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">terminals_n_pts</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+                                <span class="n">mid</span> <span class="o">=</span> <span class="n">mid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="n">forest</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">within</span><span class="p">(</span><span class="n">mid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">mid</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">mid</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="mi">2</span><span class="p">):</span>
+                                    <span class="n">W</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">penalty</span>
+                        <span class="n">C</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">W</span>
+                    <span class="n">_</span><span class="p">,</span><span class="n">assignment</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
+                    <span class="n">network_assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">terminals_n_ind</span><span class="p">[</span><span class="n">assignment</span><span class="p">])</span>
+            <span class="n">connections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">network_connections</span><span class="p">)</span>
+            <span class="n">assignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">network_assignments</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">connections</span><span class="p">,</span> <span class="n">assignments</span></div>
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">pyvista</span> <span class="k">as</span> <span class="nn">pv</span>
+
+<div class="viewcode-block" id="rotate"><a class="viewcode-back" href="../../../svcco.forest_utils.html#svcco.forest_utils.connect.rotate">[docs]</a><span class="k">def</span> <span class="nf">rotate</span><span class="p">(</span><span class="n">R0</span><span class="p">,</span><span class="n">R1</span><span class="p">,</span><span class="n">P0</span><span class="p">,</span><span class="n">P1</span><span class="p">,</span><span class="n">theta</span><span class="p">):</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="p">(</span><span class="n">theta</span><span class="o">/</span><span class="mi">180</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="n">Rvector</span> <span class="o">=</span> <span class="n">R1</span><span class="o">-</span><span class="n">R0</span>
+    <span class="n">Rvector</span> <span class="o">=</span> <span class="n">Rvector</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">Rvector</span><span class="p">)</span>
+    <span class="n">vector</span> <span class="o">=</span> <span class="n">P1</span><span class="o">-</span><span class="n">P0</span>
+    <span class="n">vector</span> <span class="o">=</span> <span class="n">vector</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+    <span class="n">vector_parallel</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span><span class="n">Rvector</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Rvector</span><span class="p">,</span><span class="n">Rvector</span><span class="o">.</span><span class="n">T</span><span class="p">))</span><span class="o">*</span><span class="n">Rvector</span>
+    <span class="n">vector_perp</span>     <span class="o">=</span> <span class="n">vector</span><span class="o">-</span><span class="n">vector_parallel</span>
+    <span class="n">w</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">Rvector</span><span class="p">,</span><span class="n">vector_perp</span><span class="p">)</span>
+    <span class="n">vector_perp_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector_perp</span><span class="p">)</span>
+    <span class="n">w_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">vector_perp_norm</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">w_norm</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">x1</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector_perp</span><span class="p">)</span>
+        <span class="n">x2</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+        <span class="n">rotated_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector_perp</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">x1</span><span class="o">*</span><span class="n">vector_perp</span><span class="o">+</span><span class="n">x2</span><span class="o">*</span><span class="n">w</span><span class="p">)</span><span class="o">+</span><span class="n">vector_parallel</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1">#print(vector_perp)</span>
+        <span class="c1">#print(w)</span>
+        <span class="n">rotated_vector</span> <span class="o">=</span> <span class="n">vector_parallel</span>
+    <span class="n">new_point</span> <span class="o">=</span> <span class="n">P0</span><span class="o">+</span><span class="n">rotated_vector</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">P1</span><span class="o">-</span><span class="n">P0</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">new_point</span></div>
+
+<div class="viewcode-block" id="angle"><a class="viewcode-back" href="../../../svcco.forest_utils.html#svcco.forest_utils.connect.angle">[docs]</a><span class="k">def</span> <span class="nf">angle</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span><span class="n">P1</span><span class="p">,</span><span class="n">P2</span><span class="p">):</span>
+    <span class="n">vector_1</span> <span class="o">=</span> <span class="n">P0</span> <span class="o">-</span> <span class="n">P1</span>
+    <span class="n">vector_2</span> <span class="o">=</span> <span class="n">P2</span> <span class="o">-</span> <span class="n">P1</span>
+    <span class="n">vector_1</span> <span class="o">=</span> <span class="n">vector_1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector_1</span><span class="p">)</span>
+    <span class="n">vector_2</span> <span class="o">=</span> <span class="n">vector_2</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector_2</span><span class="p">)</span>
+    <span class="n">result</span>   <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vector_1</span><span class="p">,</span><span class="n">vector_2</span><span class="p">))</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">*</span><span class="mi">180</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="parallel"><a class="viewcode-back" href="../../../svcco.forest_utils.html#svcco.forest_utils.connect.parallel">[docs]</a><span class="k">def</span> <span class="nf">parallel</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span><span class="n">P1</span><span class="p">,</span><span class="n">P2</span><span class="p">):</span>
+    <span class="n">vector_1</span> <span class="o">=</span> <span class="n">P0</span> <span class="o">-</span> <span class="n">P1</span>
+    <span class="n">vector_2</span> <span class="o">=</span> <span class="n">P2</span> <span class="o">-</span> <span class="n">P1</span>
+    <span class="n">vector_1</span> <span class="o">=</span> <span class="n">vector_1</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector_1</span><span class="p">)</span>
+    <span class="n">vector_2</span> <span class="o">=</span> <span class="n">vector_2</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector_2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">vector_1</span><span class="p">,</span><span class="n">vector_2</span><span class="p">))</span></div>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">def rotate_terminals(forest_copy):</span>
+<span class="sd">    ANGLE_STEP = 5</span>
+<span class="sd">    for ndx in range(forest_copy.number_of_networks):</span>
+<span class="sd">        #for tdx in range(forest_copy.trees_per_network[ndx]):</span>
+<span class="sd">        #A = forest_copy.assignments[ndx][tdx]</span>
+<span class="sd">        #T = forest_copy.networks[ndx][tdx].data</span>
+<span class="sd">        #C = forest_copy.connections[ndx][0]</span>
+<span class="sd">        for edx in range(len(forest_copy.connections[ndx][0])):</span>
+<span class="sd">            #CC = []</span>
+<span class="sd">            #if T[A[edx],17] &lt; 0:</span>
+<span class="sd">            #    #Terminal root (cannot rotate)</span>
+<span class="sd">            #    continue</span>
+<span class="sd">            #elif parallel(T[A[edx],0:3],T[A[edx],3:6],TT[AA[edx],3:6]):</span>
+<span class="sd">            #    continue</span>
+<span class="sd">            #ANGLE = angle(T[A[edx],0:3],T[A[edx],3:6],TT[AA[edx],3:6])</span>
+<span class="sd">            #attempt = 0</span>
+<span class="sd">            #parent  = int(T[A[edx],17])</span>
+<span class="sd">            #score  = [ANGLE]</span>
+<span class="sd">            #center = (T[A[edx],3:6]+TT[AA[edx],3:6])/2</span>
+<span class="sd">            #CC.append(center)</span>
+<span class="sd">            #pts   = [deepcopy(T[A[edx],3:6])]</span>
+<span class="sd">            max_attempt = int(360/ANGLE_STEP)</span>
+<span class="sd">            CC = []</span>
+<span class="sd">            C = forest_copy.connections[ndx][0]</span>
+<span class="sd">            score  = [ANGLE]</span>
+<span class="sd">            for kdx in range(forest_copy.trees_per_network[ndx]):</span>
+<span class="sd">                A = forest_copy.assignments[ndx][kdx]</span>
+<span class="sd">                T = forest_copy.networks[ndx][kdx].data</span>
+<span class="sd">                #C = forest_copy.connections[ndx][0]</span>
+<span class="sd">                ANGLE = angle(T[A[edx],0:3],T[A[edx],3:6],C[edx]])</span>
+<span class="sd">                attempt = 0</span>
+<span class="sd">                parent  = int(T[A[edx],17])</span>
+<span class="sd">                score  = [ANGLE]</span>
+<span class="sd">                CC.append(deepcopy(C[edx]))</span>
+<span class="sd">                T = T = forest_copy.networks[ndx][tdx].data</span>
+<span class="sd">                while attempt &lt; max_attempt:</span>
+<span class="sd">                    R0 = deepcopy(T[parent,0:3])</span>
+<span class="sd">                    R1 = deepcopy(T[parent,3:6])</span>
+<span class="sd">                    P0 = deepcopy(T[A[edx],0:3])</span>
+<span class="sd">                    P1 = deepcopy(T[A[edx],3:6])</span>
+<span class="sd">                    T[A[edx],3:6] = rotate(R0,R1,P0,P1,ANGLE_STEP)</span>
+<span class="sd">                    T[A[edx],12:15] = (T[A[edx],3:6]-T[A[edx],0:3])/np.linalg.norm(T[A[edx],3:6]-T[A[edx],0:3])</span>
+<span class="sd">                    center = np.zeros(3)</span>
+<span class="sd">                    for tdx in range(forest_copy.trees_per_network[ndx]):</span>
+<span class="sd">                        AA = forest_copy.assignments[ndx][tdx]</span>
+<span class="sd">                        TT = forest_copy.networks[ndx][tdx].data</span>
+<span class="sd">                        center += TT[AA[edx],3:6]</span>
+<span class="sd">                    center = center/len(forest_copy.trees_per_network[ndx])</span>
+<span class="sd">                    C[edx] = center</span>
+<span class="sd">                    ANGLE = angle(T[A[edx],0:3],T[A[edx],3:6],C[edx]])</span>
+<span class="sd">                    #center = (T[A[edx],3:6]+TT[AA[edx],3:6])/2</span>
+<span class="sd">                    CC.append(deepcopy(C[edx]))</span>
+<span class="sd">                    #view(forest_copy,highlight=[ndx,tdx,int(T[A[edx],-1])])</span>
+<span class="sd">                    score.append(ANGLE)</span>
+<span class="sd">                    pts.append(deepcopy(T[A[edx],3:6]))</span>
+<span class="sd">                    attempt += 1</span>
+<span class="sd">            if max(score) &lt; 90:</span>
+<span class="sd">                print(&quot;Fail&quot;)</span>
+<span class="sd">                print(max(score))</span>
+<span class="sd">            best = np.argmax(score)</span>
+<span class="sd">            T[A[edx],3:6] = pts[best]</span>
+<span class="sd">            T[A[edx],12:15] = (T[A[edx],3:6]-T[A[edx],0:3])/np.linalg.norm(T[A[edx],3:6]-T[A[edx],0:3])</span>
+<span class="sd">            C[edx] = CC[best]</span>
+
+<span class="sd">from itertools import product</span>
+
+<span class="sd">def rotate_terminals(forest_copy):</span>
+<span class="sd">    ANGLE_STEP = 5</span>
+<span class="sd">    for ndx in range(forest_copy.number_of_networks):</span>
+<span class="sd">        for edx in range(len(forest_copy.connections[ndx][0])):</span>
+<span class="sd">            pts = []</span>
+<span class="sd">            non_pts = []</span>
+<span class="sd">            for tdx in range(forest_copy.trees_per_network[ndx]):</span>
+<span class="sd">                rotated_pts = []</span>
+<span class="sd">                non_rotated_pts = []</span>
+<span class="sd">                T  = forest_copy.networks[ndx][tdx].data</span>
+<span class="sd">                A  = forest_copy.assignments[ndx][tdx]</span>
+<span class="sd">                parent = int(T[A[edx],17])</span>
+<span class="sd">                R0 = deepcopy(T[parent,0:3])</span>
+<span class="sd">                R1 = deepcopy(T[parent,3:6])</span>
+<span class="sd">                P0 = deepcopy(T[A[edx],0:3])</span>
+<span class="sd">                P1 = deepcopy(T[A[edx],3:6])</span>
+<span class="sd">                for theta in np.arange(0,360,ANGLE_STEP):</span>
+<span class="sd">                     non_rotated_pts.append(P0)</span>
+<span class="sd">                     rotated_pts.append(rotate(R0,R1,P0,P1,theta))</span>
+<span class="sd">                pts.append(np.array(rotated_pts))</span>
+<span class="sd">                non_pts.append(np.array(non_rotated_pts))</span>
+<span class="sd">            pts = np.array(pts)</span>
+<span class="sd">            non_pts = np.array(non_pts)</span>
+<span class="sd">            comb = np.array(list(product(*[range(len(rotated_pts))]*forest_copy.trees_per_network[ndx])))</span>
+<span class="sd">            CENTERS = pts[0,comb[:,0],:]</span>
+<span class="sd">            for tdx in range(1,forest_copy.trees_per_network[ndx]):</span>
+<span class="sd">                CENTERS += pts[tdx,comb[:,tdx],:]</span>
+<span class="sd">            CENTERS = CENTERS/pts.shape[0]</span>
+<span class="sd">            ANGLES  = []</span>
+<span class="sd">            for tdx in range(forest_copy.trees_per_network[ndx]):</span>
+
+<span class="sd">                VECTOR_1 = non_pts[tdx,comb[:,tdx],:] - pts[tdx,comb[:,tdx],:]</span>
+<span class="sd">                VECTOR_2 = CENTERS - pts[tdx,comb[:,tdx],:]</span>
+<span class="sd">                VECTOR_1 = VECTOR_1/np.linalg.norm(VECTOR_1,axis=1).reshape(-1,1)</span>
+<span class="sd">                VECTOR_2 = VECTOR_2/np.linalg.norm(VECTOR_2,axis=1).reshape(-1,1)</span>
+<span class="sd">                print(VECTOR_1[0:3,:])</span>
+<span class="sd">                print(VECTOR_2[0:3,:])</span>
+<span class="sd">                DOT      = np.array([np.dot(VECTOR_1[i,:],VECTOR_2[i,:]) for i in range(VECTOR_1.shape[0])])</span>
+<span class="sd">                ang      = (np.arccos(DOT)/np.pi)*180</span>
+
+<span class="sd">                ANGLES.append(ang)</span>
+<span class="sd">            ANGLES = np.array(ANGLES)</span>
+<span class="sd">            return</span>
+
+<span class="sd">def view(forest,highlight=None):</span>
+<span class="sd">    model_networks = []</span>
+<span class="sd">    for net_id,network in enumerate(forest.networks):</span>
+<span class="sd">        model_trees = []</span>
+<span class="sd">        for tree_id,network_tree in enumerate(network):</span>
+<span class="sd">            model = []</span>
+<span class="sd">            for edge in range(network_tree.data.shape[0]):</span>
+<span class="sd">                if network_tree.data[edge,15]==-1 and network_tree.data[edge,16]==-1 and edge != 0:</span>
+<span class="sd">                    dis_point = (network_tree.data[edge,0:3] + network_tree.data[edge,3:6])/2</span>
+<span class="sd">                    vessel_length = network_tree.data[edge,20]/2</span>
+<span class="sd">                else:</span>
+<span class="sd">                    dis_point = network_tree.data[edge,3:6]</span>
+<span class="sd">                    vessel_length = network_tree.data[edge,20]</span>
+<span class="sd">                center = tuple((network_tree.data[edge,0:3] + dis_point)/2)</span>
+<span class="sd">                radius = network_tree.data[edge,21]</span>
+<span class="sd">                direction = tuple(network_tree.data[edge,12:15])</span>
+<span class="sd">                model.append(pv.Cylinder(radius=radius,height=vessel_length,</span>
+<span class="sd">                                         center=center,direction=direction,</span>
+<span class="sd">                                         resolution=100))</span>
+<span class="sd">            model_trees.append(model)</span>
+<span class="sd">        model_networks.append(model_trees)</span>
+<span class="sd">    plot = pv.Plotter()</span>
+<span class="sd">    #colors = [&#39;r&#39;,&#39;b&#39;,&#39;g&#39;,&#39;y&#39;]</span>
+<span class="sd">    #plot.set_background(color=[253,250,219])</span>
+<span class="sd">    for net_idx,model_network in enumerate(model_networks):</span>
+<span class="sd">        for tree_idx, model_tree in enumerate(model_network):</span>
+<span class="sd">            for vessel_idx,model in enumerate(model_tree):</span>
+<span class="sd">                if net_idx == highlight[0] and tree_idx == highlight[1] and vessel_idx==highlight[2]:</span>
+<span class="sd">                    plot.add_mesh(model,color=&#39;g&#39;)</span>
+<span class="sd">                else:</span>
+<span class="sd">                    plot.add_mesh(model,color=&#39;r&#39;)</span>
+<span class="sd">    plot.show()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.forest_utils.connect</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

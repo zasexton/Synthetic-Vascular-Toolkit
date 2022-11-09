@@ -1,0 +1,442 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.utils.gui.gui_helper &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css" />
+    
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.utils.gui.gui_helper</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.utils.gui.gui_helper</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+<span class="kn">from</span> <span class="nn">tkinter</span> <span class="kn">import</span> <span class="n">ttk</span>
+
+<div class="viewcode-block" id="OptionsEntry"><a class="viewcode-back" href="../../../../svcco.utils.gui.html#svcco.utils.gui.gui_helper.OptionsEntry">[docs]</a><span class="k">class</span> <span class="nc">OptionsEntry</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">main</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Tk</span><span class="p">()</span>
+        <span class="n">main</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Simulation Input Parameters&quot;</span><span class="p">)</span>
+        <span class="n">main</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="s2">&quot;400x500&quot;</span><span class="p">)</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="n">main</span><span class="o">.</span><span class="n">rowconfigure</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span><span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">main</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span><span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">nb</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Notebook</span><span class="p">(</span><span class="n">main</span><span class="p">)</span>
+        <span class="n">nb</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">columnspan</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;NESW&quot;</span><span class="p">)</span>
+        <span class="n">nb</span><span class="o">.</span><span class="n">enable_traversal</span><span class="p">()</span>
+
+        <span class="n">geometry_tab</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span>
+        <span class="n">nb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">geometry_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Geometry&quot;</span><span class="p">)</span>
+
+        <span class="n">lofting_tab</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span>
+        <span class="n">nb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Lofting&quot;</span><span class="p">)</span>
+
+        <span class="n">modeling_tab</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span>
+        <span class="n">nb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">modeling_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Modeling&quot;</span><span class="p">)</span>
+
+        <span class="n">meshing_tab</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span>
+        <span class="n">nb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Meshing&quot;</span><span class="p">)</span>
+
+        <span class="n">simulation_tab</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span>
+        <span class="n">nb</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Simulation&quot;</span><span class="p">)</span>
+
+        <span class="c1">#Options for Geometry Tab</span>
+        <span class="n">geom_label1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">geometry_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Number of Sample Points&quot;</span><span class="p">)</span>
+        <span class="n">geom_label1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">geom_entry1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">geometry_tab</span><span class="p">)</span>
+        <span class="n">geom_entry1</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;50&quot;</span><span class="p">)</span>
+        <span class="n">geom_entry1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">geom_label2</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">geometry_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Use Distance Alignment&quot;</span><span class="p">)</span>
+        <span class="n">geom_label2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">geom_entry2</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="n">geom_entry2</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;False&quot;</span><span class="p">)</span>
+        <span class="n">geom_entry2_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;False&quot;</span><span class="p">,</span><span class="s2">&quot;True&quot;</span><span class="p">]</span>
+        <span class="n">geom_entry2_drop</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">OptionMenu</span><span class="p">(</span><span class="n">geometry_tab</span><span class="p">,</span><span class="n">geom_entry2</span><span class="p">,</span><span class="o">*</span><span class="n">geom_entry2_options</span><span class="p">)</span>
+        <span class="n">geom_entry2_drop</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Options for Lofting Tab</span>
+        <span class="n">loft_label1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;U Knot Span Type&quot;</span><span class="p">)</span>
+        <span class="n">loft_label1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_entry1</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="n">loft_entry1</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;derivative&quot;</span><span class="p">)</span>
+        <span class="n">loft_entry1_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;derivative&#39;</span><span class="p">,</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span><span class="s1">&#39;average&#39;</span><span class="p">]</span>
+        <span class="n">loft_entry1_drop</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">OptionMenu</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">loft_entry1</span><span class="p">,</span><span class="o">*</span><span class="n">loft_entry1_options</span><span class="p">)</span>
+        <span class="n">loft_entry1_drop</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_label2</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;U Parametric Span Type&quot;</span><span class="p">)</span>
+        <span class="n">loft_label2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_entry2</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="n">loft_entry2</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;centripetal&quot;</span><span class="p">)</span>
+        <span class="n">loft_entry2_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;centripetal&#39;</span><span class="p">,</span><span class="s1">&#39;chord&#39;</span><span class="p">,</span><span class="s1">&#39;equal&#39;</span><span class="p">]</span>
+        <span class="n">loft_entry2_drop</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">OptionMenu</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">loft_entry2</span><span class="p">,</span><span class="o">*</span><span class="n">loft_entry2_options</span><span class="p">)</span>
+        <span class="n">loft_entry2_drop</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_label3</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;U Degree&quot;</span><span class="p">)</span>
+        <span class="n">loft_label3</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_entry3</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">)</span>
+        <span class="n">loft_entry3</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;2&quot;</span><span class="p">)</span>
+        <span class="n">loft_entry3</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_label4</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;V Knot Span Type&quot;</span><span class="p">)</span>
+        <span class="n">loft_label4</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_entry4</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="n">loft_entry4</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;average&quot;</span><span class="p">)</span>
+        <span class="n">loft_entry4_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;derivative&#39;</span><span class="p">,</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span><span class="s1">&#39;average&#39;</span><span class="p">]</span>
+        <span class="n">loft_entry4_drop</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">OptionMenu</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">loft_entry4</span><span class="p">,</span><span class="o">*</span><span class="n">loft_entry4_options</span><span class="p">)</span>
+        <span class="n">loft_entry4_drop</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_label5</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;V Parametric Span Type&quot;</span><span class="p">)</span>
+        <span class="n">loft_label5</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_entry5</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="n">loft_entry5</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;chord&quot;</span><span class="p">)</span>
+        <span class="n">loft_entry5_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;centripetal&#39;</span><span class="p">,</span><span class="s1">&#39;chord&#39;</span><span class="p">,</span><span class="s1">&#39;equal&#39;</span><span class="p">]</span>
+        <span class="n">loft_entry5_drop</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">OptionMenu</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">loft_entry5</span><span class="p">,</span><span class="o">*</span><span class="n">loft_entry5_options</span><span class="p">)</span>
+        <span class="n">loft_entry5_drop</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_label6</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;V Degree&quot;</span><span class="p">)</span>
+        <span class="n">loft_label6</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_entry6</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">)</span>
+        <span class="n">loft_entry6</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;2&quot;</span><span class="p">)</span>
+        <span class="n">loft_entry6</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_label7</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Boundary Face Angle&quot;</span><span class="p">)</span>
+        <span class="n">loft_label7</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">loft_entry7</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">lofting_tab</span><span class="p">)</span>
+        <span class="n">loft_entry7</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;45&quot;</span><span class="p">)</span>
+        <span class="n">loft_entry7</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="c1">#Options for Modeling Tab</span>
+        <span class="n">model_label1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">modeling_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Minimum Number of Face Cells&quot;</span><span class="p">)</span>
+        <span class="n">model_label1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">model_entry1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">modeling_tab</span><span class="p">)</span>
+        <span class="n">model_entry1</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;200&quot;</span><span class="p">)</span>
+        <span class="n">model_entry1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">model_label2</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">modeling_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;hmin&quot;</span><span class="p">)</span>
+        <span class="n">model_label2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">model_entry2</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">modeling_tab</span><span class="p">)</span>
+        <span class="n">model_entry2</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;0.02&quot;</span><span class="p">)</span>
+        <span class="n">model_entry2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">model_label3</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">modeling_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;hmax&quot;</span><span class="p">)</span>
+        <span class="n">model_label3</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">model_entry3</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">modeling_tab</span><span class="p">)</span>
+        <span class="n">model_entry3</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;0.02&quot;</span><span class="p">)</span>
+        <span class="n">model_entry3</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">model_label4</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">modeling_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Boundary Face Angle&quot;</span><span class="p">)</span>
+        <span class="n">model_label4</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">model_entry4</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">modeling_tab</span><span class="p">)</span>
+        <span class="n">model_entry4</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;45&quot;</span><span class="p">)</span>
+        <span class="n">model_entry4</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="c1">#Options for Meshing Tab</span>
+
+        <span class="n">mesh_label1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Global Edge Size&quot;</span><span class="p">)</span>
+        <span class="n">mesh_label1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh_entry1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">)</span>
+        <span class="n">mesh_entry1</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;0.01&quot;</span><span class="p">)</span>
+        <span class="n">mesh_entry1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh_label2</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Surface Mesh Flag&quot;</span><span class="p">)</span>
+        <span class="n">mesh_label2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh_entry2</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="n">mesh_entry2</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;True&quot;</span><span class="p">)</span>
+        <span class="n">mesh_entry2_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;True&quot;</span><span class="p">,</span><span class="s2">&quot;False&quot;</span><span class="p">]</span>
+        <span class="n">mesh_entry2_drop</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">OptionMenu</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">,</span><span class="n">mesh_entry2</span><span class="p">,</span><span class="o">*</span><span class="n">mesh_entry2_options</span><span class="p">)</span>
+        <span class="n">mesh_entry2_drop</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh_label3</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Volume Mesh Flag&quot;</span><span class="p">)</span>
+        <span class="n">mesh_label3</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh_entry3</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="n">mesh_entry3</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;True&quot;</span><span class="p">)</span>
+        <span class="n">mesh_entry3_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;True&quot;</span><span class="p">,</span><span class="s2">&quot;False&quot;</span><span class="p">]</span>
+        <span class="n">mesh_entry3_drop</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">OptionMenu</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">,</span><span class="n">mesh_entry3</span><span class="p">,</span><span class="o">*</span><span class="n">mesh_entry3_options</span><span class="p">)</span>
+        <span class="n">mesh_entry3_drop</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh_label4</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;No Merge&quot;</span><span class="p">)</span>
+        <span class="n">mesh_label4</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh_entry4</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="n">mesh_entry4</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;False&quot;</span><span class="p">)</span>
+        <span class="n">mesh_entry4_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;True&quot;</span><span class="p">,</span><span class="s2">&quot;False&quot;</span><span class="p">]</span>
+        <span class="n">mesh_entry4_drop</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">OptionMenu</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">,</span><span class="n">mesh_entry4</span><span class="p">,</span><span class="o">*</span><span class="n">mesh_entry4_options</span><span class="p">)</span>
+        <span class="n">mesh_entry4_drop</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh_label5</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Optimization Level&quot;</span><span class="p">)</span>
+        <span class="n">mesh_label5</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh_entry5</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="n">mesh_entry5</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="p">)</span>
+        <span class="n">mesh_entry5_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">,</span><span class="s2">&quot;2&quot;</span><span class="p">,</span><span class="s2">&quot;3&quot;</span><span class="p">,</span><span class="s2">&quot;4&quot;</span><span class="p">,</span><span class="s2">&quot;5&quot;</span><span class="p">]</span>
+        <span class="n">mesh_entry5_drop</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">OptionMenu</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">,</span><span class="n">mesh_entry5</span><span class="p">,</span><span class="o">*</span><span class="n">mesh_entry5_options</span><span class="p">)</span>
+        <span class="n">mesh_entry5_drop</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh_label6</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Global Edge Size&quot;</span><span class="p">)</span>
+        <span class="n">mesh_label6</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh_entry6</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">meshing_tab</span><span class="p">)</span>
+        <span class="n">mesh_entry6</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;18.0&quot;</span><span class="p">)</span>
+        <span class="n">mesh_entry6</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="c1">#Options for Simulation Tab</span>
+        <span class="n">sim_label1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;SV Presolver Filename&quot;</span><span class="p">)</span>
+        <span class="n">sim_label1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry1</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry1</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;cco&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry1</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label2</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Fluid Density&quot;</span><span class="p">)</span>
+        <span class="n">sim_label2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry2</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry2</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;1.06&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry2</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label3</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Fluid Viscosity&quot;</span><span class="p">)</span>
+        <span class="n">sim_label3</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry3</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry3</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;0.04&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry3</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label4</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Initial Pressure&quot;</span><span class="p">)</span>
+        <span class="n">sim_label4</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry4</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry4</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry4</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label5</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Initial Velocity&quot;</span><span class="p">)</span>
+        <span class="n">sim_label5</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry5</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry5</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;[0.0001,0.0001,0.0001]&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry5</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label6</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;BCT Analytical Shape&quot;</span><span class="p">)</span>
+        <span class="n">sim_label6</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry6</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry6</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;parabolic&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry6</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label7</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Inflow Filename&quot;</span><span class="p">)</span>
+        <span class="n">sim_label7</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry7</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry7</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;inflow&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry7</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label8</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Period&quot;</span><span class="p">)</span>
+        <span class="n">sim_label8</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry8</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry8</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry8</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label9</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;BCT Point Number&quot;</span><span class="p">)</span>
+        <span class="n">sim_label9</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry9</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry9</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;2&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry9</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label10</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Fourier Mode&quot;</span><span class="p">)</span>
+        <span class="n">sim_label10</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry10</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry10</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry10</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label11</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Pressures&quot;</span><span class="p">)</span>
+        <span class="n">sim_label11</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry11</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry11</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry11</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label12</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;svsolver Filename&quot;</span><span class="p">)</span>
+        <span class="n">sim_label12</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry12</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry12</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;solver&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry12</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label13</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Number of Timesteps&quot;</span><span class="p">)</span>
+        <span class="n">sim_label13</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry13</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry13</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;200&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry13</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label14</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Timestep Size&quot;</span><span class="p">)</span>
+        <span class="n">sim_label14</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry14</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry14</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;0.02&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry14</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label15</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Number of Timesteps Between Restarts&quot;</span><span class="p">)</span>
+        <span class="n">sim_label15</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry15</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry15</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;50&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry15</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label16</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Number of Force Surfaces&quot;</span><span class="p">)</span>
+        <span class="n">sim_label16</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry16</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry16</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry16</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label17</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;ID of Force Surface Calculation&quot;</span><span class="p">)</span>
+        <span class="n">sim_label17</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry17</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry17</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;1&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry17</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_label18</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">,</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Force Calculation Method&quot;</span><span class="p">)</span>
+        <span class="n">sim_label18</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">)</span>
+
+        <span class="n">sim_entry18</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">simulation_tab</span><span class="p">)</span>
+        <span class="n">sim_entry18</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="s2">&quot;Velocity Based&quot;</span><span class="p">)</span>
+        <span class="n">sim_entry18</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span><span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                          svpre_name=&#39;cco&#39;,fluid_density=1.06,</span>
+<span class="sd">                          fluid_viscosity=0.04, initial_pressure=0,</span>
+<span class="sd">                          initial_velocity=[0.0001,0.0001,0.0001],</span>
+<span class="sd">                          bct_analytical_shape=&#39;parabolic&#39;,</span>
+<span class="sd">                          inflow_file=&#39;inflow&#39;,</span>
+<span class="sd">                          period=1,bct_point_number=2,</span>
+<span class="sd">                          fourier_mode=1,pressures=0,</span>
+<span class="sd">                          svsolver=&#39;solver&#39;,number_timesteps=200,</span>
+<span class="sd">                          timestep_size=0.02,number_restarts=50,</span>
+<span class="sd">                          number_force_surfaces=1,</span>
+<span class="sd">                          surface_id_force_calc=1,</span>
+<span class="sd">                          force_calc_method=&#39;Velocity Based&#39;,</span>
+<span class="sd">                          print_avg_solution=True,</span>
+<span class="sd">                          print_error_indicators=False,</span>
+<span class="sd">                          varying_time_from_file=True,</span>
+<span class="sd">                          step_construction=&#39;0 1 0 1&#39;,</span>
+<span class="sd">                          pressure_coupling=&#39;Implicit&#39;,</span>
+<span class="sd">                          backflow_stabilization=0.2,</span>
+<span class="sd">                          residual_control=True,</span>
+<span class="sd">                          residual_criteria=0.01,</span>
+<span class="sd">                          minimum_req_iter=2,</span>
+<span class="sd">                          svLS_type=&#39;NS&#39;,num_krylov=100,</span>
+<span class="sd">                          num_solves_per_left=1,</span>
+<span class="sd">                          tolerance_momentum=0.05,</span>
+<span class="sd">                          tolerance_continuity=0.4,</span>
+<span class="sd">                          tolerance_svLS_NS=0.4,</span>
+<span class="sd">                          max_iter_NS=2,max_iter_momentum=4,</span>
+<span class="sd">                          max_iter_continuity=400,</span>
+<span class="sd">                          time_integration_rule=&#39;Second Order&#39;,</span>
+<span class="sd">                          time_integration_rho=0.5,</span>
+<span class="sd">                          flow_advection_form=&#39;Convective&#39;,</span>
+<span class="sd">                          quadrature_interior=2,</span>
+<span class="sd">                          quadrature_boundary=3,procs=24,</span>
+<span class="sd">                          svpost=&#39;cco&#39;,start=0,vtu=True,</span>
+<span class="sd">                          vtp=False,vtkcombo=False,</span>
+<span class="sd">                          all_arg=True,wss=False,</span>
+<span class="sd">                          sim_units_mm=False,</span>
+<span class="sd">                          sim_units_cm=True,</span>
+<span class="sd">                          global_edge_size=0.01,</span>
+<span class="sd">                          distal_resistance=0</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.utils.gui.gui_helper</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

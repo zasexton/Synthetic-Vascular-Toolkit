@@ -1,0 +1,297 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Installation &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Basics" href="basics.html" />
+    <link rel="prev" title="Contributing" href="contributing.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="basics.html" title="Basics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="contributing.html" title="Contributing"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h1>
+<p><strong>Installation via pip is the recommended method for all platforms.</strong>
+Manual methods are only recommended for advanced users and developers.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This package contains dependancies which rely on python versions 3.6, 3.7,
+3.8, or 3.9 in order function properly. Users should consider building a
+virtual python environment to accommodate python requirements without affecting
+other installed packages.</p>
+</div>
+<section id="install-via-pip">
+<h2>Install via pip<a class="headerlink" href="#install-via-pip" title="Permalink to this heading">¶</a></h2>
+<p>The easiest method to install or upgrade SVCCO is using <a class="reference external" href="https://pip.pypa.io/en/stable/">pip</a>.
+The following commands will download and install the SVCCO module from the
+Python Package Index (<a class="reference external" href="https://pypi.org/project/svcco/">PyPi</a>).</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pip install --user svcco
+</pre></div>
+</div>
+<p>Upgrade a current version of SVCCO to the latest version</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pip install svcco --upgrade
+</pre></div>
+</div>
+<p>Install a specific version</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pip install <span class="nv">svcco</span><span class="o">==</span><span class="m">0</span>.5.50
+</pre></div>
+</div>
+</section>
+<section id="manual-installation">
+<h2>Manual Installation<a class="headerlink" href="#manual-installation" title="Permalink to this heading">¶</a></h2>
+<p>To manually install the module first clone the repository via <code class="docutils literal notranslate"><span class="pre">git</span></code> or download
+a ZIP archive from the <a class="reference external" href="https://github.com/zasexton/Synthetic-Vascular-Toolkit">project repository page</a>
+on GitHub. The package will include a <em>setup.py</em> script which will automatically
+handle dependancy fetching, linking, and building of required files to your Python
+distribution's <em>site-packages</em> directory.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pip install --user .
+</pre></div>
+</div>
+<p>To upgrade a current manual build, please pull the latest commits from the repository
+via <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span> <span class="pre">--rebase</span></code> and then re-execute the above command to rebuild the module.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Manual installation will only allow a user to build the latest version of the
+module release. If older versions are desired, users should refer to pip installation
+of a specific version.</p>
+</div>
+</section>
+<section id="checking-installation">
+<h2>Checking Installation<a class="headerlink" href="#checking-installation" title="Permalink to this heading">¶</a></h2>
+<p>If you need to verify your current installation, you may print the current module
+version within the python interpreter using <code class="docutils literal notranslate"><span class="pre">svcco.__version__</span></code> variable after
+importing the module. The following blocks of code demonstrate this for Windows
+and Unix command platforms, respectively.</p>
+<p>For Windows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Windows</span> <span class="n">PowerShell</span>
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="n">Microsoft</span> <span class="n">Corporation</span><span class="o">.</span> <span class="n">All</span> <span class="n">rights</span> <span class="n">reserved</span><span class="o">.</span>
+
+<span class="n">PS</span> <span class="n">C</span><span class="p">:</span>\<span class="o">&gt;</span> <span class="n">python</span>
+<span class="n">Python</span> <span class="mf">3.7.9</span> <span class="p">(</span><span class="n">tags</span><span class="o">/</span><span class="n">v3</span><span class="mf">.7.9</span><span class="p">:</span><span class="mi">13</span><span class="n">c94747c7</span><span class="p">,</span> <span class="n">Aug</span> <span class="mi">17</span> <span class="mi">2020</span><span class="p">,</span> <span class="mi">18</span><span class="p">:</span><span class="mi">58</span><span class="p">:</span><span class="mi">18</span><span class="p">)</span> <span class="p">[</span><span class="n">MSC</span> <span class="n">v</span><span class="mf">.1900</span> <span class="mi">64</span> <span class="n">bit</span> <span class="p">(</span><span class="n">AMD64</span><span class="p">)]</span> <span class="n">on</span> <span class="n">win32</span>
+<span class="n">Type</span> <span class="s2">&quot;help&quot;</span><span class="p">,</span> <span class="s2">&quot;copyright&quot;</span><span class="p">,</span> <span class="s2">&quot;credits&quot;</span> <span class="ow">or</span> <span class="s2">&quot;license&quot;</span> <span class="k">for</span> <span class="n">more</span> <span class="n">information</span><span class="o">.</span>
+<span class="o">&gt;&gt;&gt;</span><span class="kn">import</span> <span class="nn">svcco</span>
+<span class="o">&gt;&gt;&gt;</span><span class="n">svcco</span><span class="o">.</span><span class="n">__version__</span>
+<span class="s1">&#39;0.5.30&#39;</span>
+<span class="o">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>For Unix:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$python
+Python 3.7.13 (defualt, Oct 18 2022, 18:57:03)
+[GCC 11.2.0] :: on linux
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt;import svcco
+&gt;&gt;&gt;svcco.__version__
+&#39;0.5.30&#39;
+&gt;&gt;&gt;
+</pre></div>
+</div>
+</section>
+<section id="installing-into-an-anaconda-environment">
+<h2>Installing into an Anaconda Environment<a class="headerlink" href="#installing-into-an-anaconda-environment" title="Permalink to this heading">¶</a></h2>
+<p>Because of limitations in Python version that must be used with this module, it
+may be beneficial for users to install SVCCO within a virtual python environment.
+A common platform to for creating and managing python environments is with <code class="docutils literal notranslate"><span class="pre">conda</span></code>
+using the <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html">miniconda</a>
+or full <a class="reference external" href="https://www.anaconda.com/">Anaconda</a> distributions. <code class="docutils literal notranslate"><span class="pre">conda</span></code> works
+across Windows, macOS, and Linux platforms.</p>
+<p>After installation of miniconda or Anaconda, users should have access to the
+command line tools <code class="docutils literal notranslate"><span class="pre">conda</span></code> which can create new virtual python environments.
+If already within the conda base environment, users will notice &quot;(base)&quot; in front
+of the working directory in the command line as shown below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(base) username:~$
+</pre></div>
+</div>
+<p>If not in the base environment, use <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span></code> to enter the conda base
+environment. To see more information about conda command line tools, please refer
+to the <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/commands.html">documentation</a>.
+From here, users can create a new environment suitable for SVCCO
+with the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(base) username:~$conda create -n cco python=3.7
+</pre></div>
+</div>
+<p>The following message will be prompted to allow additional packages
+to be installed for setting up the virtual environment. If reasonable, proceed.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Collecting package metadata (current_repodata.json): done
+Solving environment: done
+
+
+==&gt; WARNING: A newer version of conda exists. &lt;==
+  current version: 4.10.3
+  latest version: 22.9.0
+
+Please update conda by running
+
+    $ conda update -n base -c defaults conda
+
+
+
+## Package Plan ##
+
+  environment location: /home/zack/anaconda3/envs/test
+
+  added / updated specs:
+    - python=3.7
+
+
+The following packages will be downloaded:
+
+    package                    |            build
+    ---------------------------|-----------------
+    setuptools-65.5.0          |   py37h06a4308_0         1.1 MB
+    ------------------------------------------------------------
+                                           Total:         1.1 MB
+
+The following NEW packages will be INSTALLED:
+
+  _libgcc_mutex      pkgs/main/linux-64::_libgcc_mutex-0.1-main
+  _openmp_mutex      pkgs/main/linux-64::_openmp_mutex-5.1-1_gnu
+  ca-certificates    pkgs/main/linux-64::ca-certificates-2022.10.11-h06a4308_0
+  certifi            pkgs/main/linux-64::certifi-2022.9.24-py37h06a4308_0
+  ld_impl_linux-64   pkgs/main/linux-64::ld_impl_linux-64-2.38-h1181459_1
+  libffi             pkgs/main/linux-64::libffi-3.3-he6710b0_2
+  libgcc-ng          pkgs/main/linux-64::libgcc-ng-11.2.0-h1234567_1
+  libgomp            pkgs/main/linux-64::libgomp-11.2.0-h1234567_1
+  libstdcxx-ng       pkgs/main/linux-64::libstdcxx-ng-11.2.0-h1234567_1
+  ncurses            pkgs/main/linux-64::ncurses-6.3-h5eee18b_3
+  openssl            pkgs/main/linux-64::openssl-1.1.1q-h7f8727e_0
+  pip                pkgs/main/linux-64::pip-22.2.2-py37h06a4308_0
+  python             pkgs/main/linux-64::python-3.7.13-haa1d7c7_1
+  readline           pkgs/main/linux-64::readline-8.2-h5eee18b_0
+  setuptools         pkgs/main/linux-64::setuptools-65.5.0-py37h06a4308_0
+  sqlite             pkgs/main/linux-64::sqlite-3.39.3-h5082296_0
+  tk                 pkgs/main/linux-64::tk-8.6.12-h1ccaba5_0
+  wheel              pkgs/main/noarch::wheel-0.37.1-pyhd3eb1b0_0
+  xz                 pkgs/main/linux-64::xz-5.2.6-h5eee18b_0
+  zlib               pkgs/main/linux-64::zlib-1.2.13-h5eee18b_0
+
+
+Proceed ([y]/n)?
+</pre></div>
+</div>
+<p>After building the new virtual environment, users should activate the environment
+with the following code (if not already within the new environment):</p>
+<p>To verify that the command line is within the newly created environment, simply
+check the name of the environment within parenthesis to the far left of the command
+line where &quot;(base)&quot; was located. Now the environment is ready to install SVCCO.
+This can be installed through the regular pip process within this new environment.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(cco) username:~$ pip install svcco
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#install-via-pip">Install via pip</a></li>
+<li><a class="reference internal" href="#manual-installation">Manual Installation</a></li>
+<li><a class="reference internal" href="#checking-installation">Checking Installation</a></li>
+<li><a class="reference internal" href="#installing-into-an-anaconda-environment">Installing into an Anaconda Environment</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="contributing.html"
+                          title="previous chapter">Contributing</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="basics.html"
+                          title="next chapter">Basics</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/install.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="basics.html" title="Basics"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="contributing.html" title="Contributing"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Installation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

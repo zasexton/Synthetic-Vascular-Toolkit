@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.implicit.sampling &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.implicit.sampling</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.implicit.sampling</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">from</span> <span class="nn">.weingarten_map</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="sampling"><a class="viewcode-back" href="../../../svcco.implicit.html#svcco.implicit.sampling.sampling">[docs]</a><span class="k">def</span> <span class="nf">sampling</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">angle</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">max_local_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span><span class="n">min_local_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">normals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">l</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span><span class="n">quiet</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># want to sample points that have high absolute</span>
+    <span class="c1"># gaussian curvature because the local behavior</span>
+    <span class="c1"># deviates from a parabolic shape thus more</span>
+    <span class="c1"># patches will be needed to better approximate.</span>
+    <span class="n">curvature</span><span class="p">,</span><span class="n">idx</span><span class="p">,</span><span class="n">KDT</span> <span class="o">=</span> <span class="n">estimate_gaussian_curvature</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">)</span>
+    <span class="n">abs_curvature</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">curvature</span><span class="p">)</span>
+    <span class="n">sorted_abs_curvature_idx</span> <span class="o">=</span> <span class="n">abs_curvature</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">patches</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">patch_idx</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">centers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">total_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_abs_curvature_idx</span><span class="p">)</span>
+    <span class="n">dist</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="n">KDT</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">k</span><span class="o">=</span><span class="n">max_local_size</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">quiet</span><span class="p">:</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_abs_curvature_idx</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="n">sorted_abs_curvature_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">patch_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">[</span><span class="n">center</span><span class="p">,:]:</span>
+                <span class="c1">#if abs(abs_curvature[center] - abs_curvature[k]) &gt; 0.1:</span>
+                <span class="c1">#    pass</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">normals</span><span class="p">[</span><span class="n">center</span><span class="p">],</span><span class="n">normals</span><span class="p">[</span><span class="n">k</span><span class="p">]),</span><span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">center</span><span class="p">]</span><span class="o">==</span><span class="n">points</span><span class="p">[</span><span class="n">k</span><span class="p">]):</span>
+                    <span class="n">patch_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">normals</span><span class="p">[</span><span class="n">center</span><span class="p">],</span><span class="n">normals</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">angle</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">abs_curvature</span><span class="p">[</span><span class="n">center</span><span class="p">]</span> <span class="o">-</span> <span class="n">abs_curvature</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mf">0.2</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_idxs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">min_local_size</span><span class="p">:</span>
+                        <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">patch_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+                <span class="c1">#if np.dot(normals[center],normals[k]) &lt;= angle or abs(abs_curvature[center] - abs_curvature[k]) &gt; 0.2:#np.all(points[center]==points[k]):</span>
+                <span class="c1">#    if len(patch_idxs) &gt; min_local_size:</span>
+                <span class="c1">#        break</span>
+                <span class="c1">#else:</span>
+                <span class="c1">#    patch_idxs.append(count)</span>
+                <span class="c1">#    #pass</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="c1">#limit = count//3</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_idxs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">round</span><span class="p">(</span><span class="n">min_local_size</span><span class="o">*</span><span class="mf">0.5</span><span class="p">):</span>
+                <span class="n">limit</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_idxs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">limit</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patch_idxs</span><span class="p">)</span><span class="o">*</span><span class="n">l</span><span class="p">)</span>
+            <span class="c1">#if len(patch_idxs) &gt;= min_local_size:</span>
+            <span class="c1">#    #if limit == 0:</span>
+            <span class="c1">#    #       limit += 1</span>
+            <span class="c1">#    #if limit &gt;= 1:</span>
+            <span class="c1">#    patches.append(points[idx[center,patch_idxs],:])</span>
+            <span class="c1">#    patch_idx.append(idx[center,patch_idxs])</span>
+            <span class="c1">#    centers.append(center)</span>
+            <span class="c1">#    for i in idx[center,patch_idxs]:</span>
+            <span class="c1">#        if i in sorted_abs_curvature_idx:</span>
+            <span class="c1">#            sorted_abs_curvature_idx.remove(i)</span>
+            <span class="c1">#else:</span>
+            <span class="c1">#    #if idx[center,patch_idxs[0]] in sorted_abs_curvature_idx:</span>
+            <span class="c1">#    #    sorted_abs_curvature_idx.remove(idx[center,patch_idxs[0]])</span>
+            <span class="c1">#    sorted_abs_curvature_idx.remove(center)</span>
+            <span class="n">patches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="n">center</span><span class="p">,</span><span class="n">patch_idxs</span><span class="p">],:])</span>
+            <span class="n">patch_idx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">[</span><span class="n">center</span><span class="p">,</span><span class="n">patch_idxs</span><span class="p">])</span>
+            <span class="n">centers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">center</span><span class="p">)</span>
+            <span class="c1">#print(points[idx[center,patch_idxs],:])</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">[</span><span class="n">center</span><span class="p">,</span><span class="n">patch_idxs</span><span class="p">[:</span><span class="n">limit</span><span class="p">]]:</span>
+
+                <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_abs_curvature_idx</span><span class="p">:</span>
+                    <span class="n">sorted_abs_curvature_idx</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="c1">#if limit-1 &gt; 0:</span>
+            <span class="c1">#    pbar.update(limit-1)</span>
+        <span class="k">return</span> <span class="n">patches</span><span class="p">,</span><span class="n">patch_idx</span><span class="p">,</span><span class="n">KDT</span><span class="p">,</span><span class="n">centers</span>
+    <span class="k">with</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">total_length</span><span class="p">,</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Determining Curvature  &#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pbar</span><span class="p">:</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">sorted_abs_curvature_idx</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="n">sorted_abs_curvature_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">patch_idxs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">[</span><span class="n">center</span><span class="p">,:]:</span>
+                <span class="c1">#if abs(abs_curvature[center] - abs_curvature[k]) &gt; 0.1:</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">normals</span><span class="p">[</span><span class="n">center</span><span class="p">],</span><span class="n">normals</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">angle</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="n">min_local_size</span><span class="p">:</span>
+                        <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">patch_idxs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="p">)</span>
+                    <span class="c1">#pass</span>
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="c1">#limit = count//3</span>
+            <span class="n">limit</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">patch_idxs</span><span class="p">)</span><span class="o">*</span><span class="n">l</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_idxs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_local_size</span><span class="p">:</span>
+                <span class="c1">#if limit == 0:</span>
+                <span class="c1">#	limit += 1</span>
+                <span class="c1">#if limit &gt;= 1:</span>
+                <span class="n">patches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="n">center</span><span class="p">,</span><span class="n">patch_idxs</span><span class="p">],:])</span>
+                <span class="n">patch_idx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">[</span><span class="n">center</span><span class="p">,</span><span class="n">patch_idxs</span><span class="p">])</span>
+                <span class="n">centers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">center</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">[</span><span class="n">center</span><span class="p">,</span><span class="n">patch_idxs</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sorted_abs_curvature_idx</span><span class="p">:</span>
+                        <span class="n">sorted_abs_curvature_idx</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                        <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1">#if idx[center,patch_idxs[0]] in sorted_abs_curvature_idx:</span>
+                <span class="c1">#    sorted_abs_curvature_idx.remove(idx[center,patch_idxs[0]])</span>
+                <span class="n">sorted_abs_curvature_idx</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">center</span><span class="p">)</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1">#if limit-1 &gt; 0:</span>
+            <span class="c1">#    pbar.update(limit-1)</span>
+    <span class="k">return</span> <span class="n">patches</span><span class="p">,</span><span class="n">patch_idx</span><span class="p">,</span><span class="n">KDT</span><span class="p">,</span><span class="n">centers</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.implicit.sampling</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

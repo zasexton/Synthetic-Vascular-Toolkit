@@ -1,0 +1,886 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.sv_interface.ROM.mesh &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css" />
+    
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.mesh</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.sv_interface.ROM.mesh</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Stanford University, The Regents of the University of</span>
+<span class="c1">#               California, and others.</span>
+<span class="c1">#</span>
+<span class="c1"># All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># See Copyright-SimVascular.txt for additional details.</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining</span>
+<span class="c1"># a copy of this software and associated documentation files (the</span>
+<span class="c1"># &quot;Software&quot;), to deal in the Software without restriction, including</span>
+<span class="c1"># without limitation the rights to use, copy, modify, merge, publish,</span>
+<span class="c1"># distribute, sublicense, and/or sell copies of the Software, and to</span>
+<span class="c1"># permit persons to whom the Software is furnished to do so, subject</span>
+<span class="c1"># to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included</span>
+<span class="c1"># in all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS</span>
+<span class="c1"># IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED</span>
+<span class="c1"># TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A</span>
+<span class="c1"># PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER</span>
+<span class="c1"># OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,</span>
+<span class="c1"># EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,</span>
+<span class="c1"># PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR</span>
+<span class="c1"># PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF</span>
+<span class="c1"># LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING</span>
+<span class="c1"># NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c1"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module is used to create an input file for the SimVascular 1D solver (https://github.com/SimVascular/oneDSolver).</span>
+
+<span class="sd">A 1D mesh is generated from the centerline geometry caculated from a closed polygonal surface.</span>
+
+<span class="sd">A centerline consists of m cells, m=number of tract ids, the length of a cell/line is an approximation of a group.</span>
+<span class="sd">In Cell Data, lines are listed from 0 to m. For each line, the first number is the number of points for this line</span>
+<span class="sd">followed by 1st point to the last point.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
+<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">argrelextrema</span>
+<span class="kn">import</span> <span class="nn">vtk</span>
+<span class="kn">from</span> <span class="nn">vtk.util.numpy_support</span> <span class="kn">import</span> <span class="n">vtk_to_numpy</span> <span class="k">as</span> <span class="n">v2n</span>
+<span class="kn">from</span> <span class="nn">vtk</span> <span class="kn">import</span> <span class="n">vtkIdList</span>
+<span class="kn">from</span> <span class="nn">vtk</span> <span class="kn">import</span> <span class="n">vtkPoints</span><span class="p">,</span> <span class="n">vtkLine</span><span class="p">,</span> <span class="n">vtkCellArray</span><span class="p">,</span> <span class="n">vtkPolyData</span><span class="p">,</span> <span class="n">vtkXMLPolyDataWriter</span>
+
+<span class="kn">from</span> <span class="nn">.manage</span> <span class="kn">import</span> <span class="n">get_logger_name</span>
+<span class="kn">from</span> <span class="nn">.parameters</span> <span class="kn">import</span> <span class="n">OutflowBoundaryConditionType</span><span class="p">,</span> <span class="n">MaterialModel</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">SurfaceFileFormats</span><span class="p">,</span> <span class="n">read_polydata</span><span class="p">,</span> <span class="n">write_polydata</span>
+<span class="kn">from</span> <span class="nn">.io_1d</span> <span class="kn">import</span> <span class="n">read_inflow_file</span><span class="p">,</span> <span class="n">read_outlet_face_names</span><span class="p">,</span> <span class="n">write_mesh</span><span class="p">,</span> <span class="n">write_solver_file</span><span class="p">,</span> \
+    <span class="n">write_solver_nodes</span><span class="p">,</span> <span class="n">write_solver_joints</span><span class="p">,</span> <span class="n">write_solver_segments</span><span class="p">,</span> <span class="n">write_solver_options</span><span class="p">,</span> \
+    <span class="n">write_solver_material</span><span class="p">,</span> <span class="n">write_solver_output</span><span class="p">,</span> <span class="n">write_solver_section_header</span><span class="p">,</span> <span class="n">coronary_sv_to_oned</span><span class="p">,</span> \
+    <span class="n">read_variable_outflow_bcs</span>
+<span class="kn">from</span> <span class="nn">.models</span> <span class="kn">import</span> <span class="n">ZeroD</span>
+
+<span class="kn">from</span> <span class="nn">.io_0d</span> <span class="kn">import</span> <span class="n">write_0d_solver_file</span>
+
+<span class="kn">import</span> <span class="nn">pdb</span>
+
+
+<div class="viewcode-block" id="Mesh"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh">[docs]</a><span class="k">class</span> <span class="nc">Mesh</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The Mesh class is used to encapsulate 1D mesh calculations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Mesh.CellDataFields"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.CellDataFields">[docs]</a>    <span class="k">class</span> <span class="nc">CellDataFields</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This class defines the required field cell data field names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Mesh.PointDataFields"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.PointDataFields">[docs]</a>    <span class="k">class</span> <span class="nc">PointDataFields</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This class defines the required field point data field names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">AREA</span> <span class="o">=</span> <span class="s2">&quot;CenterlineSectionArea&quot;</span>
+        <span class="n">CENT</span> <span class="o">=</span> <span class="s2">&quot;CenterlineId&quot;</span>
+        <span class="n">PATH</span> <span class="o">=</span> <span class="s2">&quot;Path&quot;</span>
+        <span class="n">BRANCH</span> <span class="o">=</span> <span class="s2">&quot;BranchId&quot;</span>
+        <span class="n">BIFURCATION</span> <span class="o">=</span> <span class="s2">&quot;BifurcationId&quot;</span>
+        <span class="n">NODEID</span> <span class="o">=</span> <span class="s2">&quot;GlobalNodeId&quot;</span>
+        <span class="n">NORMAL</span> <span class="o">=</span> <span class="s2">&quot;CenterlineSectionNormal&quot;</span></div>
+
+<div class="viewcode-block" id="Mesh.Open"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.Open">[docs]</a>    <span class="k">class</span> <span class="nc">Open</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This class wraps the &#39;open&#39; class and adds a method to automatically</span>
+<span class="sd">            write newlines.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kwds</span> <span class="o">=</span> <span class="n">kwds</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_obj</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_obj</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span>
+
+        <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_obj</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Mesh.Open.close"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.Open.close">[docs]</a>        <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_obj</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Mesh.Open.writeln"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.Open.writeln">[docs]</a>        <span class="k">def</span> <span class="nf">writeln</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_obj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">string</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mesh.Open.write"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.Open.write">[docs]</a>        <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file_obj</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">string</span><span class="p">)</span></div></div>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centerlines</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">get_logger_name</span><span class="p">())</span>
+
+        <span class="c1"># centerline</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centerline</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centerlines_outlet_face_names</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># caps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inflow_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names_index</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># boundary conditions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bc_map</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bc_type</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># discretization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seg_connectivity</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">point_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seg_rear</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">terminal</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">junctions</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># discretization statistics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_seg</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_bf_geo</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_bf_branch</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_elements</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Some constansts for writing the solver file.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver_file_msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">### DO NOT CHANGE THIS SECTION - generated automatically&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">endl</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+<div class="viewcode-block" id="Mesh.generate"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.generate">[docs]</a>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">centerlines</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Generate a mesh.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generate the 1D mesh ...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centerline</span> <span class="o">=</span> <span class="n">centerlines</span><span class="o">.</span><span class="n">geometry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centerlines_outlet_face_names</span> <span class="o">=</span> <span class="n">centerlines</span><span class="o">.</span><span class="n">outlet_face_names</span>
+
+        <span class="c1"># Set outlet face names.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_outlet_face_names</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Outlet face names: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names</span><span class="p">))</span>
+
+        <span class="c1"># check that centerline consist of one region</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_centerline_region</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># Check that centerline geometry has the required data fields.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_centerlines_data</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># import module for adaptive meshing</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">seg_size_adaptive</span> <span class="ow">and</span> <span class="n">params</span><span class="o">.</span><span class="n">seg_min_num</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span> <span class="nn">pwlf</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="n">params</span><span class="o">.</span><span class="n">seg_size_adaptive</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Could not import pwlf for adaptive meshing. Using uniform mesh instead&#39;</span><span class="p">)</span>
+
+        <span class="c1"># mesh discretization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discretize</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of centerline branches: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;BranchId&#39;</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of centerline bifurcations: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_bf_geo</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of svOneDSolver branches: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_seg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Number of svOneDSolver joints: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_bf_branch</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">uniform_bc</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_variable_outflow_bcs</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">inflow_input_file</span><span class="p">:</span>
+            <span class="n">read_inflow_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="o">.</span><span class="n">uniform_material</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Non-uniform material not implemented&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">model_order</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">zerod</span> <span class="o">=</span> <span class="n">ZeroD</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">zerod</span><span class="o">.</span><span class="n">generate</span><span class="p">()</span>
+
+            <span class="c1"># statistics</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_elements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_seg</span>
+
+            <span class="c1"># write svZeroDSolver input file (.json)</span>
+            <span class="n">write_0d_solver_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">params</span><span class="o">.</span><span class="n">model_order</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># write discretization for visualization in ParaView</span>
+            <span class="n">write_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+            <span class="c1"># write svOneDSolver input file</span>
+            <span class="n">write_solver_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Mesh.set_outlet_face_names"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.set_outlet_face_names">[docs]</a>    <span class="k">def</span> <span class="nf">set_outlet_face_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set outlet face names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">centerlines_outlet_face_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">outlet_face_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">centerlines_outlet_face_names</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outlet_face_names</span> <span class="o">=</span> <span class="n">read_outlet_face_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+        <span class="c1"># Create a map between outlet face name and path ID.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names_index</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">face_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">outlet_face_names</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">face_name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names_index</span><span class="p">[</span><span class="n">face_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span></div>
+
+<div class="viewcode-block" id="Mesh.set_variable_outflow_bcs"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.set_variable_outflow_bcs">[docs]</a>    <span class="k">def</span> <span class="nf">set_variable_outflow_bcs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Read in data for variable flow boundary conditions.</span>
+
+<span class="sd">        Parameters for outflow BCs (resistance or RCR) are read from a file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Set variable outflow boundary conditions ...&quot;</span><span class="p">)</span>
+
+        <span class="c1"># convert legacy parameters</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_type</span> <span class="o">=</span> <span class="p">[</span><span class="n">OutflowBoundaryConditionType</span><span class="o">.</span><span class="n">ONED_TO_SV</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_type</span><span class="p">]]</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">outflow_bc_file</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bc_map</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bc_type</span> <span class="o">=</span> <span class="n">read_variable_outflow_bcs</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Error while reading variable outflow boundary conditions&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bc_map</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;The number of BC values </span><span class="si">%d</span><span class="s2"> do not match the number of outlets </span><span class="si">%d</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bc_map</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">bc_type</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Surface &#39;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">&#39; boundary condition type &#39;</span> <span class="o">+</span> <span class="n">t</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mesh.check_centerline_region"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.check_centerline_region">[docs]</a>    <span class="k">def</span> <span class="nf">check_centerline_region</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if centerline is one connected region</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">vtk</span><span class="o">.</span><span class="n">vtkConnectivityFilter</span><span class="p">()</span>
+        <span class="n">con</span><span class="o">.</span><span class="n">SetInputData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">centerline</span><span class="p">)</span>
+        <span class="n">con</span><span class="o">.</span><span class="n">SetExtractionModeToAllRegions</span><span class="p">()</span>
+        <span class="n">con</span><span class="o">.</span><span class="n">ColorRegionsOn</span><span class="p">()</span>
+        <span class="n">con</span><span class="o">.</span><span class="n">Update</span><span class="p">()</span>
+        <span class="n">n_region</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">GetNumberOfExtractedRegions</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">n_region</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Centerline is empty&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Centerline is empty&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_region</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Centerline consist of more than one region&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Centerline consist of more than one region&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Mesh.check_centerlines_data"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.check_centerlines_data">[docs]</a>    <span class="k">def</span> <span class="nf">check_centerlines_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Check that the centerline data contains all of the required fields.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">field_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">CellDataFields</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">field_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">centerline</span><span class="o">.</span><span class="n">GetCellData</span><span class="p">()</span><span class="o">.</span><span class="n">GetArray</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Centerlines do not contain the &#39;</span><span class="si">%s</span><span class="s2">&#39; data field.&quot;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">field_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">field_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">centerline</span><span class="o">.</span><span class="n">GetPointData</span><span class="p">()</span><span class="o">.</span><span class="n">GetArray</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Centerlines do not contain the &#39;</span><span class="si">%s</span><span class="s2">&#39; data field.&quot;</span> <span class="o">%</span> <span class="n">field</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Mesh.get_cell_data"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.get_cell_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_cell_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get the data for the given cell field names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cell_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">centerline</span><span class="o">.</span><span class="n">GetCellData</span><span class="p">()</span><span class="o">.</span><span class="n">GetArray</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">v2n</span><span class="p">(</span><span class="n">cell_data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mesh.get_point_data"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.get_point_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get the data for the given cell field names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">point_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">centerline</span><span class="o">.</span><span class="n">GetPointData</span><span class="p">()</span><span class="o">.</span><span class="n">GetArray</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">v2n</span><span class="p">(</span><span class="n">point_data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mesh.discretize"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.discretize">[docs]</a>    <span class="k">def</span> <span class="nf">discretize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Do the actual discretization</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># step 1: create nodes / areas / segment lengths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discretize_branches</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="c1"># step 2: create connectivity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discretize_bifurcations</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Mesh.discretize_branches"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.discretize_branches">[docs]</a>    <span class="k">def</span> <span class="nf">discretize_branches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create refined physical quantities: nodes / areas / segment lengths</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get names of point data fields</span>
+        <span class="n">br_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">BRANCH</span>
+        <span class="n">p_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">PATH</span>
+
+        <span class="c1"># get list of all branches</span>
+        <span class="n">branch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="n">br_name</span><span class="p">)</span>
+        <span class="n">branch_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">if</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">in</span> <span class="n">branch_list</span><span class="p">:</span>
+            <span class="n">branch_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># initialize properties of sub-segments in fine mesh to replace those of original mesh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_seg</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="n">br_name</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;area&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;length&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;stenosis&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;1d_seg&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;curv&#39;</span><span class="p">:</span> <span class="p">{}}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">point_data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="n">br_name</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;coord&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="n">p_name</span><span class="p">:</span> <span class="p">{}}</span>
+
+        <span class="c1"># global counters for unique point/element-ids</span>
+        <span class="n">cell_ids_offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">point_ids_offset</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># loop all branches</span>
+        <span class="k">for</span> <span class="n">br</span> <span class="ow">in</span> <span class="n">branch_list</span><span class="p">:</span>
+            <span class="c1"># determine sampling of branch in interval [0, 1]</span>
+            <span class="n">sample_1d</span><span class="p">,</span> <span class="n">f_sten</span><span class="p">,</span> <span class="n">area</span><span class="p">,</span> <span class="n">seg_num_1d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling</span><span class="p">(</span><span class="n">br</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+            <span class="c1"># number of samples</span>
+            <span class="n">num_seg</span> <span class="o">=</span> <span class="n">sample_1d</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+
+            <span class="c1"># interpolate branch attributes at defined sampling points</span>
+            <span class="n">length</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">r_curv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_branch</span><span class="p">(</span><span class="n">br</span><span class="p">,</span> <span class="n">sample_1d</span><span class="p">)</span>
+
+            <span class="c1"># get cell centers to convert point data to cell data</span>
+            <span class="n">cell_centers</span> <span class="o">=</span> <span class="p">(</span><span class="n">sample_1d</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">sample_1d</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+            <span class="c1"># store attributes</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="n">br</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_seg</span><span class="p">)</span> <span class="o">+</span> <span class="n">cell_ids_offset</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">][</span><span class="n">br</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">Acoef</span> <span class="o">*</span> <span class="n">area</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="n">br_name</span><span class="p">][</span><span class="n">br</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num_seg</span><span class="p">)</span> <span class="o">*</span> <span class="n">br</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;length&#39;</span><span class="p">][</span><span class="n">br</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">lcoef</span> <span class="o">*</span> <span class="n">length</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">sample_1d</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;curv&#39;</span><span class="p">][</span><span class="n">br</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">cell_centers</span><span class="p">,</span> <span class="n">sample_1d</span><span class="p">,</span> <span class="n">r_curv</span> <span class="o">/</span> <span class="n">params</span><span class="o">.</span><span class="n">lcoef</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;stenosis&#39;</span><span class="p">][</span><span class="n">br</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_sten</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;1d_seg&#39;</span><span class="p">][</span><span class="n">br</span><span class="p">]</span> <span class="o">=</span> <span class="n">seg_num_1d</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="n">br</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_seg</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">point_ids_offset</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="n">br_name</span><span class="p">][</span><span class="n">br</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">num_seg</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">br</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s1">&#39;coord&#39;</span><span class="p">][</span><span class="n">br</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">lcoef</span> <span class="o">*</span> <span class="n">points</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="n">p_name</span><span class="p">][</span><span class="n">br</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">lcoef</span> <span class="o">*</span> <span class="n">sample_1d</span> <span class="o">*</span> <span class="n">length</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_seg</span> <span class="o">+=</span> <span class="n">num_seg</span>
+
+            <span class="n">point_ids_offset</span> <span class="o">+=</span> <span class="n">num_seg</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">cell_ids_offset</span> <span class="o">+=</span> <span class="n">num_seg</span></div>
+
+<div class="viewcode-block" id="Mesh.get_sampling"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.get_sampling">[docs]</a>    <span class="k">def</span> <span class="nf">get_sampling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">br</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get sampling points along branch br in interval [0, 1]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># initially sample branch attributes at all centerline points</span>
+        <span class="n">length</span><span class="p">,</span> <span class="n">path_1d</span><span class="p">,</span> <span class="n">area</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_branch</span><span class="p">(</span><span class="n">br</span><span class="p">)</span>
+
+        <span class="c1"># determine number of segments in this branch</span>
+        <span class="n">num_seg</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">length</span><span class="p">)</span> <span class="o">/</span> <span class="n">params</span><span class="o">.</span><span class="n">seg_size</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">num_seg</span> <span class="o">&lt;</span> <span class="n">params</span><span class="o">.</span><span class="n">seg_min_num</span><span class="p">:</span>
+            <span class="n">num_seg</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">seg_min_num</span>
+
+        <span class="c1"># get branch ids</span>
+        <span class="n">branch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">BRANCH</span><span class="p">)</span>
+
+        <span class="c1"># get all branch points</span>
+        <span class="n">point_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">branch</span> <span class="o">==</span> <span class="n">br</span><span class="p">)</span>
+
+        <span class="c1"># get point arrays from centerline</span>
+        <span class="n">area_br</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">AREA</span><span class="p">)[</span><span class="n">point_ids</span><span class="p">]</span>
+        <span class="n">path_br</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">PATH</span><span class="p">)[</span><span class="n">point_ids</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">seg_min_num</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># take high-fidelity sampling from centerline</span>
+            <span class="k">return</span> <span class="n">path_1d</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">path_1d</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">area</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">area</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">min_num_elems</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">num_seg</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">seg_size_adaptive</span><span class="p">:</span>
+                    <span class="c1"># adaptive mesh based on area change</span>
+                    <span class="kn">import</span> <span class="nn">pwlf</span>
+                    <span class="n">sample_1d</span> <span class="o">=</span> <span class="n">pwlf</span><span class="o">.</span><span class="n">PiecewiseLinFit</span><span class="p">(</span><span class="n">path_1d</span><span class="p">,</span> <span class="n">area</span><span class="p">)</span><span class="o">.</span><span class="n">fitfast</span><span class="p">(</span><span class="n">num_seg</span><span class="p">,</span> <span class="n">pop</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># uniform sampling along centerline</span>
+                    <span class="n">sample_1d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_seg</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+                <span class="c1"># get segment lengths</span>
+                <span class="n">length_1d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">sample_1d</span><span class="p">)</span> <span class="o">*</span> <span class="n">path_br</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="c1"># extract segments</span>
+                <span class="n">intervals</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sample_1d</span><span class="p">):</span>
+                    <span class="n">intervals</span> <span class="o">+=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">path_br</span> <span class="o">-</span> <span class="n">sp</span> <span class="o">*</span> <span class="n">path_br</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))]</span>
+
+                <span class="c1"># assemble segment properties</span>
+                <span class="n">sample_br</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">f_sten_br</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">a_br</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">seg_num_1d</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="c1"># select segment</span>
+                    <span class="n">seg</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">intervals</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">a</span> <span class="o">=</span> <span class="n">area_br</span><span class="p">[</span><span class="n">seg</span><span class="p">]</span>
+                        <span class="n">a_br</span> <span class="o">+=</span> <span class="p">[[</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]]</span>
+
+                        <span class="c1"># stenosis factor</span>
+                        <span class="n">a_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                        <span class="n">a_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                        <span class="n">f_sten_br</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">1</span> <span class="o">/</span> <span class="n">a_0</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">a_0</span> <span class="o">/</span> <span class="n">a_s</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">]</span>
+                        <span class="n">snum</span> <span class="o">=</span> <span class="n">get_1d_seg_num</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">f_sten_br</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">a_br</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="p">[</span><span class="n">area</span><span class="p">[</span><span class="n">intervals</span><span class="p">[</span><span class="n">i</span><span class="p">]]]]</span>
+                        <span class="n">snum</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">seg_min_num</span>
+                    <span class="n">sample_br</span> <span class="o">+=</span> <span class="p">[</span><span class="n">sample_br</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">length_1d</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                    <span class="n">seg_num_1d</span> <span class="o">+=</span> <span class="p">[</span><span class="n">snum</span><span class="p">]</span>
+
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sample_br</span><span class="p">)</span> <span class="o">/</span> <span class="n">sample_br</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f_sten_br</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">a_br</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">seg_num_1d</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># find stenoses over entire branch (yields between 1 and 3 segments)</span>
+                <span class="k">return</span> <span class="n">find_stenoses</span><span class="p">(</span><span class="n">area_br</span><span class="p">,</span> <span class="n">path_br</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mesh.sample_branch"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.sample_branch">[docs]</a>    <span class="k">def</span> <span class="nf">sample_branch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">br</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sample points and areas of a centerline group along a path</span>
+<span class="sd">        Args:</span>
+<span class="sd">            br: BranchId</span>
+<span class="sd">            sample: optional, sample points in [0, 1] (default: sample at centerline points)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        path of centerline points in [0, 1],sampled points, sampled areas</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get point arrays from centerline</span>
+        <span class="n">area</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">AREA</span><span class="p">)</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">PATH</span><span class="p">)</span>
+        <span class="n">branch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">BRANCH</span><span class="p">)</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">v2n</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">centerline</span><span class="o">.</span><span class="n">GetPoints</span><span class="p">()</span><span class="o">.</span><span class="n">GetData</span><span class="p">())</span>
+
+        <span class="c1"># get all branch points</span>
+        <span class="n">point_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">branch</span> <span class="o">==</span> <span class="n">br</span><span class="p">)</span>
+
+        <span class="c1"># distance between points</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">distance</span><span class="p">[</span><span class="n">point_ids</span><span class="p">]</span>
+
+        <span class="c1"># branch length</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="n">dist</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># map path to [0, 1]</span>
+        <span class="n">path_1d</span> <span class="o">=</span> <span class="n">dist</span> <span class="o">/</span> <span class="n">dist</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># get curvature</span>
+        <span class="n">curvature</span> <span class="o">=</span> <span class="n">curvature_radius</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># if sampling is given, interpolate along 1d centerline</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="n">path_1d</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="n">point_ids</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># return quantities along original path</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="n">point_ids</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">length</span><span class="p">,</span> <span class="n">path_1d</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">area</span><span class="p">),</span> <span class="n">f</span><span class="p">(</span><span class="n">points</span><span class="p">),</span> <span class="n">f</span><span class="p">(</span><span class="n">curvature</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mesh.get_junction_length"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.get_junction_length">[docs]</a>    <span class="k">def</span> <span class="nf">get_junction_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">br</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the length of the part of a branch that is within the upstream junction</span>
+<span class="sd">        Args:</span>
+<span class="sd">            br: BranchId</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        path length within junction</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># does not apply to inlet branch</span>
+        <span class="k">if</span> <span class="n">br</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">0.0</span>
+
+        <span class="c1"># get arrays from centerline</span>
+        <span class="n">cent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">CENT</span><span class="p">)</span>
+        <span class="n">branch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">BRANCH</span><span class="p">)</span>
+        <span class="n">bifurcation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">BIFURCATION</span><span class="p">)</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">v2n</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">centerline</span><span class="o">.</span><span class="n">GetPoints</span><span class="p">()</span><span class="o">.</span><span class="n">GetData</span><span class="p">())</span>
+
+        <span class="c1"># first point id of branch</span>
+        <span class="n">ip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">branch</span> <span class="o">==</span> <span class="n">br</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># id of upstream junction</span>
+        <span class="n">jc</span> <span class="o">=</span> <span class="n">bifurcation</span><span class="p">[</span><span class="n">ip</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># pick a centerline that passes through branch (and upstream junction)</span>
+        <span class="n">cid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cent</span><span class="p">[</span><span class="n">ip</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># points of centerline within upstream junction</span>
+        <span class="n">point_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">bifurcation</span> <span class="o">==</span> <span class="n">jc</span><span class="p">,</span> <span class="n">cent</span><span class="p">[:,</span> <span class="n">cid</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># calculate path length</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">point_ids</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Mesh.discretize_bifurcations"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.discretize_bifurcations">[docs]</a>    <span class="k">def</span> <span class="nf">discretize_bifurcations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create refined sub-segment connectivity</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get mesh connectivity</span>
+        <span class="n">mesh</span> <span class="o">=</span> <span class="n">get_connectivity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">centerline</span><span class="p">)</span>
+
+        <span class="n">branch_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">BRANCH</span><span class="p">)</span>
+
+        <span class="c1"># tangent on centerline = section normals</span>
+        <span class="n">tangent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">)</span>
+
+        <span class="c1"># cell id list of 1d bifurcations (first is inlet)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seg_connectivity</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># point id on bifurcations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seg_rear</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># add joints for bifurcations</span>
+        <span class="k">for</span> <span class="n">bf</span><span class="p">,</span> <span class="n">bifurcation</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># bifurcation inflow cell is at the end of a branch</span>
+            <span class="k">assert</span> <span class="n">bifurcation</span><span class="o">.</span><span class="n">inflow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;bifurcation &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">bf</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; has no inlet branch&#39;</span>
+            <span class="n">joint</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="n">bifurcation</span><span class="o">.</span><span class="n">inflow</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+
+            <span class="c1"># bifurcation outflow cells are at the beginning of a branch</span>
+            <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="n">bifurcation</span><span class="o">.</span><span class="n">outflow</span><span class="p">:</span>
+                <span class="n">joint</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="n">branch</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">seg_connectivity</span> <span class="o">+=</span> <span class="p">[</span><span class="n">joint</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">seg_rear</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="n">bifurcation</span><span class="o">.</span><span class="n">inflow</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_bf_geo</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seg_connectivity</span><span class="p">)</span>
+
+        <span class="c1"># add joints for cells within branch</span>
+        <span class="k">for</span> <span class="n">branch</span><span class="p">,</span> <span class="n">cells</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seg_connectivity</span> <span class="o">+=</span> <span class="p">[[</span><span class="n">cells</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">cells</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">seg_rear</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="n">branch</span><span class="p">][</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_bf_branch</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seg_connectivity</span><span class="p">)</span>
+
+        <span class="c1"># add outlet cells</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">terminal</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_outlet_branches</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">terminal</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">][</span><span class="n">branch</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="c1"># add junction information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">junctions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">seg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seg_connectivity</span><span class="p">):</span>
+            <span class="c1"># only add &quot;real&quot; junctions (not junctions inside branches)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">seg</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="c1"># find branch of segment</span>
+                <span class="k">for</span> <span class="n">br</span><span class="p">,</span> <span class="n">segments</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">seg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">:</span>
+                        <span class="k">break</span>
+
+                <span class="n">junction</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tangents&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;lengths&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;areas&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">][</span><span class="n">br</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]]}</span>
+
+                <span class="c1"># inlet tangent vector</span>
+                <span class="n">tangent_in</span> <span class="o">=</span> <span class="n">tangent</span><span class="p">[</span><span class="n">branch_id</span> <span class="o">==</span> <span class="n">br</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">tangent_in</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tangent_in</span><span class="p">)</span>
+                <span class="n">junction</span><span class="p">[</span><span class="s1">&#39;tangents&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">tangent_in</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+
+                <span class="c1"># loop segments attached to junction</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">seg</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                    <span class="c1"># find branch of segment</span>
+                    <span class="k">for</span> <span class="n">br</span><span class="p">,</span> <span class="n">segments</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">:</span>
+                            <span class="k">break</span>
+
+                    <span class="c1"># angle</span>
+                    <span class="n">tangent_out</span> <span class="o">=</span> <span class="n">tangent</span><span class="p">[</span><span class="n">branch_id</span> <span class="o">==</span> <span class="n">br</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">tangent_out</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tangent_out</span><span class="p">)</span>
+                    <span class="n">junction</span><span class="p">[</span><span class="s1">&#39;tangents&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">tangent_out</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+                    <span class="n">junction</span><span class="p">[</span><span class="s1">&#39;areas&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">][</span><span class="n">br</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+                    <span class="n">junction</span><span class="p">[</span><span class="s1">&#39;lengths&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_junction_length</span><span class="p">(</span><span class="n">br</span><span class="p">)]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">junctions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">junction</span></div>
+
+<div class="viewcode-block" id="Mesh.get_outlet_branches"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Mesh.get_outlet_branches">[docs]</a>    <span class="k">def</span> <span class="nf">get_outlet_branches</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get list of branches connected to outlets</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># branch ids</span>
+        <span class="n">br_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">BRANCH</span><span class="p">)</span>
+        <span class="n">bf_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">BIFURCATION</span><span class="p">)</span>
+
+        <span class="c1"># global node id</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_point_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PointDataFields</span><span class="o">.</span><span class="n">NODEID</span><span class="p">)</span>
+
+        <span class="c1"># outlet points are only connected to one cell (skip inlet point)</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">vtkIdList</span><span class="p">()</span>
+        <span class="n">outlets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">centerline</span><span class="o">.</span><span class="n">GetNumberOfPoints</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">centerline</span><span class="o">.</span><span class="n">GetPointCells</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">ids</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ids</span><span class="o">.</span><span class="n">GetNumberOfIds</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">gid</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">br_id</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;bifurcation &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">bf_id</span><span class="p">[</span><span class="n">p</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39; is connected to an outlet&#39;</span>
+                <span class="n">outlets</span> <span class="o">+=</span> <span class="p">[</span><span class="n">br_id</span><span class="p">[</span><span class="n">p</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="n">outlets</span></div></div>
+
+
+<div class="viewcode-block" id="find_stenoses"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.find_stenoses">[docs]</a><span class="k">def</span> <span class="nf">find_stenoses</span><span class="p">(</span><span class="n">area</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns stenosis locations and coefficients along a branch</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># find extrema</span>
+    <span class="n">i_min</span> <span class="o">=</span> <span class="n">argrelextrema</span><span class="p">(</span><span class="n">area</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">less</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">i_max</span> <span class="o">=</span> <span class="n">argrelextrema</span><span class="p">(</span><span class="n">area</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">greater</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># truncate minima and maxima</span>
+    <span class="n">a_0</span> <span class="o">=</span> <span class="n">area</span><span class="p">[</span><span class="n">i_min</span><span class="p">]</span>
+    <span class="n">a_s</span> <span class="o">=</span> <span class="n">area</span><span class="p">[</span><span class="n">i_max</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a_0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">a_s</span><span class="p">):</span>
+        <span class="n">a_0</span> <span class="o">=</span> <span class="n">a_0</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">i_min</span> <span class="o">=</span> <span class="n">i_min</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">a_0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">a_s</span><span class="p">):</span>
+        <span class="n">a_s</span> <span class="o">=</span> <span class="n">a_s</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">i_max</span> <span class="o">=</span> <span class="n">i_max</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="c1"># stenosis factor</span>
+    <span class="n">f_sten</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">a_0</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">a_0</span> <span class="o">/</span> <span class="n">a_s</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+    <span class="c1"># no stenosis</span>
+    <span class="n">sample_seg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">a_seg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">area</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">area</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f_sten</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">sample_seg</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="n">a_seg</span><span class="p">,</span> <span class="p">[</span><span class="n">get_1d_seg_num</span><span class="p">(</span><span class="n">a_seg</span><span class="p">,</span> <span class="n">params</span><span class="p">)]</span>
+    <span class="c1"># one stenosis</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">f_sten</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">sample_seg</span><span class="p">,</span> <span class="n">f_sten</span><span class="p">,</span> <span class="n">a_seg</span><span class="p">,</span> <span class="p">[</span><span class="n">get_1d_seg_num</span><span class="p">(</span><span class="n">a_seg</span><span class="p">,</span> <span class="n">params</span><span class="p">)]</span>
+    <span class="c1"># two stenoses, lump together</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">f_sten</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">sample_seg</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">f_sten</span><span class="p">)]),</span> <span class="n">a_seg</span><span class="p">,</span> <span class="p">[</span><span class="n">get_1d_seg_num</span><span class="p">(</span><span class="n">a_seg</span><span class="p">,</span> <span class="n">params</span><span class="p">)]</span>
+
+    <span class="c1"># find largest stenosis</span>
+    <span class="n">i_sten</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">f_sten</span><span class="p">)</span>
+
+    <span class="c1"># pick neighbors of stenosis</span>
+    <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">i_sten</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">f_sten</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">seg</span> <span class="o">=</span> <span class="p">[</span><span class="n">i_sten</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i_sten</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># stenosis at the start/end, lump together</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">sample_seg</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">f_sten</span><span class="p">)]),</span> <span class="n">a_seg</span><span class="p">,</span> <span class="p">[</span><span class="n">get_1d_seg_num</span><span class="p">(</span><span class="n">a_seg</span><span class="p">,</span> <span class="n">params</span><span class="p">)]</span>
+
+    <span class="c1"># sample path points</span>
+    <span class="n">sample_1d</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">area_1d</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">seg</span><span class="p">:</span>
+        <span class="n">sample_1d</span> <span class="o">+=</span> <span class="p">[</span><span class="n">path</span><span class="p">[</span><span class="n">i_min</span><span class="p">[</span><span class="n">s</span><span class="p">]]</span> <span class="o">/</span> <span class="n">path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="n">area_1d</span> <span class="o">+=</span> <span class="p">[</span><span class="n">area</span><span class="p">[</span><span class="n">i_min</span><span class="p">[</span><span class="n">s</span><span class="p">]]]</span>
+    <span class="n">sample_1d</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># store stenosis coefficients</span>
+    <span class="n">f_sten_br</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">f_sten</span><span class="p">[:</span><span class="n">i_sten</span><span class="p">]),</span> <span class="n">f_sten</span><span class="p">[</span><span class="n">i_sten</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">f_sten</span><span class="p">[</span><span class="n">i_sten</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:])]</span>
+
+    <span class="c1"># area for svOneDSolver</span>
+    <span class="n">a_br</span> <span class="o">=</span> <span class="p">[[</span><span class="n">area</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">area_1d</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+            <span class="p">[</span><span class="n">area</span><span class="p">[</span><span class="n">i_min</span><span class="p">[</span><span class="n">i_sten</span><span class="p">]],</span> <span class="n">area</span><span class="p">[</span><span class="n">i_min</span><span class="p">[</span><span class="n">i_sten</span><span class="p">]]],</span>
+            <span class="p">[</span><span class="n">area_1d</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">area</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]]</span>
+
+    <span class="n">seg_1d</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">a_br</span><span class="p">:</span>
+        <span class="n">seg_1d</span> <span class="o">+=</span> <span class="p">[</span><span class="n">get_1d_seg_num</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">params</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sample_1d</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f_sten_br</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">a_br</span><span class="p">),</span> <span class="n">seg_1d</span></div>
+
+
+<div class="viewcode-block" id="get_1d_seg_num"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.get_1d_seg_num">[docs]</a><span class="k">def</span> <span class="nf">get_1d_seg_num</span><span class="p">(</span><span class="n">area</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get number of segments for 1d solver</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">area</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">area</span><span class="p">)</span>
+    <span class="n">num_seg</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">a_diff</span><span class="p">)</span> <span class="o">/</span> <span class="n">params</span><span class="o">.</span><span class="n">element_size</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">((</span><span class="n">params</span><span class="o">.</span><span class="n">min_num_elems</span><span class="p">,</span> <span class="n">num_seg</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Bifurcation"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Bifurcation">[docs]</a><span class="k">class</span> <span class="nc">Bifurcation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple class to track inlet and outlets of a bifurcation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outflow</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Bifurcation.add_inflow"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Bifurcation.add_inflow">[docs]</a>    <span class="k">def</span> <span class="nf">add_inflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add inflow branch i (can only be executed once)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inflow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inflow</span> <span class="o">!=</span> <span class="n">i</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;bifurcation already has inflow id &#39;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inflow</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Bifurcation.add_outflow"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.Bifurcation.add_outflow">[docs]</a>    <span class="k">def</span> <span class="nf">add_outflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add outflow branch i</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outflow</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outflow</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="get_connectivity"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.get_connectivity">[docs]</a><span class="k">def</span> <span class="nf">get_connectivity</span><span class="p">(</span><span class="n">cent</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the connectivity (which branches are connected to which bifurcation) from a centerline</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># read arrays from centerline</span>
+    <span class="n">branch</span> <span class="o">=</span> <span class="n">v2n</span><span class="p">(</span><span class="n">cent</span><span class="o">.</span><span class="n">GetPointData</span><span class="p">()</span><span class="o">.</span><span class="n">GetArray</span><span class="p">(</span><span class="s1">&#39;BranchId&#39;</span><span class="p">))</span>
+    <span class="n">bifurcation</span> <span class="o">=</span> <span class="n">v2n</span><span class="p">(</span><span class="n">cent</span><span class="o">.</span><span class="n">GetPointData</span><span class="p">()</span><span class="o">.</span><span class="n">GetArray</span><span class="p">(</span><span class="s1">&#39;BifurcationId&#39;</span><span class="p">))</span>
+    <span class="n">bifurcation_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">bifurcation</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">bifurcation_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># get centerline connectivity: which branches are attached to which bifurcation?</span>
+    <span class="n">connectivity</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">bf</span> <span class="ow">in</span> <span class="n">bifurcation_list</span><span class="p">:</span>
+        <span class="n">connectivity</span><span class="p">[</span><span class="n">bf</span><span class="p">]</span> <span class="o">=</span> <span class="n">Bifurcation</span><span class="p">()</span>
+
+    <span class="c1"># loop all cells</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cent</span><span class="o">.</span><span class="n">GetNumberOfCells</span><span class="p">()):</span>
+        <span class="n">ele</span> <span class="o">=</span> <span class="n">cent</span><span class="o">.</span><span class="n">GetCell</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="n">point_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ele</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">GetId</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ele</span><span class="o">.</span><span class="n">GetPointIds</span><span class="p">()</span><span class="o">.</span><span class="n">GetNumberOfIds</span><span class="p">())])</span>
+        <span class="n">br_ids</span> <span class="o">=</span> <span class="n">branch</span><span class="p">[</span><span class="n">point_ids</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="c1"># find cells that are at borders of bifurcations (two unique RegionIds)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">br_ids</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># should be one branch and one bifurcation</span>
+            <span class="k">assert</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">in</span> <span class="n">br_ids</span><span class="p">,</span> <span class="s1">&#39;No bifurcation in cell&#39;</span>
+
+            <span class="c1"># local node ids of branch and bifurcation (0 or 1)</span>
+            <span class="n">i_bf_ele</span> <span class="o">=</span> <span class="n">br_ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">i_br_ele</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="ow">not</span> <span class="n">i_bf_ele</span><span class="p">)</span>
+
+            <span class="c1"># branch and bifurcation id</span>
+            <span class="n">bf</span> <span class="o">=</span> <span class="n">bifurcation</span><span class="p">[</span><span class="n">point_ids</span><span class="p">[</span><span class="n">i_bf_ele</span><span class="p">]]</span>
+            <span class="n">br</span> <span class="o">=</span> <span class="n">branch</span><span class="p">[</span><span class="n">point_ids</span><span class="p">[</span><span class="n">i_br_ele</span><span class="p">]]</span>
+
+            <span class="k">assert</span> <span class="n">bf</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Multiple bifurcations in cell&#39;</span>
+            <span class="k">assert</span> <span class="n">br</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Multiple branches in cell&#39;</span>
+
+            <span class="c1"># branch node is upstream in cell?</span>
+            <span class="k">if</span> <span class="n">i_br_ele</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">connectivity</span><span class="p">[</span><span class="n">bf</span><span class="p">]</span><span class="o">.</span><span class="n">add_inflow</span><span class="p">(</span><span class="n">br</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">connectivity</span><span class="p">[</span><span class="n">bf</span><span class="p">]</span><span class="o">.</span><span class="n">add_outflow</span><span class="p">(</span><span class="n">br</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">bf</span><span class="p">,</span> <span class="n">bifurcation</span> <span class="ow">in</span> <span class="n">connectivity</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">bifurcation</span><span class="o">.</span><span class="n">outflow</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;bifurcation &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">bf</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; has less then two outlets&#39;</span>
+
+    <span class="k">return</span> <span class="n">connectivity</span></div>
+
+
+<div class="viewcode-block" id="curvature_radius"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.curvature_radius">[docs]</a><span class="k">def</span> <span class="nf">curvature_radius</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate curvature radius from list of points with three adjacent points each</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># form 3 point sets</span>
+    <span class="n">p1</span> <span class="o">=</span> <span class="n">points</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">p2</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">p3</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
+
+    <span class="n">p1p2</span> <span class="o">=</span> <span class="n">p1</span> <span class="o">-</span> <span class="n">p2</span>
+    <span class="n">p1p3</span> <span class="o">=</span> <span class="n">p1</span> <span class="o">-</span> <span class="n">p3</span>
+    <span class="n">p2p3</span> <span class="o">=</span> <span class="n">p2</span> <span class="o">-</span> <span class="n">p3</span>
+
+    <span class="c1"># area of triangle</span>
+    <span class="n">area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">p1p2</span><span class="p">,</span> <span class="n">p1p3</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+    <span class="c1"># curvature radius</span>
+    <span class="n">curvature</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p1p2</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p1p3</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p2p3</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">area</span><span class="p">)</span>
+
+    <span class="c1"># resample to all points</span>
+    <span class="n">path_1d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">path_1d</span><span class="p">,</span> <span class="n">path_1d</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">curvature</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="interp1d"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.mesh.interp1d">[docs]</a><span class="k">def</span> <span class="nf">interp1d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">xp</span><span class="p">,</span> <span class="n">fp</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mimic behavior of scipy.interpolate.interp1d (extend np.interp to multi-dimensional function values)</span>
+<span class="sd">    Args:</span>
+<span class="sd">        x: sample points</span>
+<span class="sd">        xp: data points</span>
+<span class="sd">        fp: data values (xD)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        y: interpolated values (xD)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">fp</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">fp</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">y</span><span class="p">[:,</span> <span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">xp</span><span class="p">,</span> <span class="n">fp</span><span class="p">[:,</span> <span class="n">d</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">xp</span><span class="p">,</span> <span class="n">fp</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">y</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.mesh</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

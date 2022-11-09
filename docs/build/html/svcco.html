@@ -1,0 +1,888 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>svcco package &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="svcco.branch_addition package" href="svcco.branch_addition.html" />
+    <link rel="prev" title="svcco" href="modules.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="svcco.branch_addition.html" title="svcco.branch_addition package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="svcco"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">svcco</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco package</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="svcco-package">
+<h1>svcco package<a class="headerlink" href="#svcco-package" title="Permalink to this heading">¶</a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="svcco.branch_addition.html">svcco.branch_addition package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.add_bifurcation">svcco.branch_addition.add_bifurcation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.add_bifurcation.add_bifurcation"><code class="docutils literal notranslate"><span class="pre">add_bifurcation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.add_bifurcation.update_index"><code class="docutils literal notranslate"><span class="pre">update_index()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.add_branches">svcco.branch_addition.add_branches module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.add_branches.add_branch"><code class="docutils literal notranslate"><span class="pre">add_branch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.add_branches_v2">svcco.branch_addition.add_branches_v2 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.add_branches_v2.add_branch"><code class="docutils literal notranslate"><span class="pre">add_branch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.add_branches_v3">svcco.branch_addition.add_branches_v3 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.add_branches_v3.add_branch"><code class="docutils literal notranslate"><span class="pre">add_branch()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.add_depths">svcco.branch_addition.add_depths module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.add_depths.add_depths"><code class="docutils literal notranslate"><span class="pre">add_depths()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.add_edge">svcco.branch_addition.add_edge module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.add_edge.add_edge"><code class="docutils literal notranslate"><span class="pre">add_edge()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.add_flow">svcco.branch_addition.add_flow module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.add_flow.add_flow"><code class="docutils literal notranslate"><span class="pre">add_flow()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.add_geodesic_path">svcco.branch_addition.add_geodesic_path module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.add_geodesic_path.add_geodesic_path"><code class="docutils literal notranslate"><span class="pre">add_geodesic_path()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.basis">svcco.branch_addition.basis module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.basis.basis"><code class="docutils literal notranslate"><span class="pre">basis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.basis.tangent_basis"><code class="docutils literal notranslate"><span class="pre">tangent_basis()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.calculate_length">svcco.branch_addition.calculate_length module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.calculate_length.length"><code class="docutils literal notranslate"><span class="pre">length()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.calculate_radii">svcco.branch_addition.calculate_radii module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.calculate_radii.radii"><code class="docutils literal notranslate"><span class="pre">radii()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.calculate_radii.update_radii"><code class="docutils literal notranslate"><span class="pre">update_radii()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.check">svcco.branch_addition.check module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.check.check"><code class="docutils literal notranslate"><span class="pre">check()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.check.check_point"><code class="docutils literal notranslate"><span class="pre">check_point()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.close">svcco.branch_addition.close module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.close.close"><code class="docutils literal notranslate"><span class="pre">close()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.close.close_binary_vectorize"><code class="docutils literal notranslate"><span class="pre">close_binary_vectorize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.close.close_binary_vectorize2"><code class="docutils literal notranslate"><span class="pre">close_binary_vectorize2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.close.close_exact"><code class="docutils literal notranslate"><span class="pre">close_exact()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.finite_difference">svcco.branch_addition.finite_difference module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.finite_difference.finite_difference"><code class="docutils literal notranslate"><span class="pre">finite_difference()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.finite_difference.finite_difference_naive"><code class="docutils literal notranslate"><span class="pre">finite_difference_naive()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.geodesic">svcco.branch_addition.geodesic module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.geodesic.extract_surface"><code class="docutils literal notranslate"><span class="pre">extract_surface()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.geodesic.geodesic"><code class="docutils literal notranslate"><span class="pre">geodesic()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.get_path">svcco.branch_addition.get_path module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.get_path.get_path"><code class="docutils literal notranslate"><span class="pre">get_path()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.get_point">svcco.branch_addition.get_point module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.get_point.sample_area"><code class="docutils literal notranslate"><span class="pre">sample_area()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.get_point.to_point"><code class="docutils literal notranslate"><span class="pre">to_point()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.local_func_v5">svcco.branch_addition.local_func_v5 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.local_func_v5.fast_local_function"><code class="docutils literal notranslate"><span class="pre">fast_local_function()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.local_func_v5.fast_point"><code class="docutils literal notranslate"><span class="pre">fast_point()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.local_func_v6">svcco.branch_addition.local_func_v6 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.local_func_v6.fast_local_function"><code class="docutils literal notranslate"><span class="pre">fast_local_function()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.local_func_v7">svcco.branch_addition.local_func_v7 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.local_func_v7.constructor"><code class="docutils literal notranslate"><span class="pre">constructor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.local_func_v7.fast_local_function"><code class="docutils literal notranslate"><span class="pre">fast_local_function()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.local_func_v7.fast_local_function_test"><code class="docutils literal notranslate"><span class="pre">fast_local_function_test()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.local_func_v7.path"><code class="docutils literal notranslate"><span class="pre">path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.local_func_v7.volume"><code class="docutils literal notranslate"><span class="pre">volume()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.sample_triad">svcco.branch_addition.sample_triad module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.sample_triad.sample_triad"><code class="docutils literal notranslate"><span class="pre">sample_triad()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.sample_triad.triangle_subdivide"><code class="docutils literal notranslate"><span class="pre">triangle_subdivide()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.sample_triad.unique_triangle_points"><code class="docutils literal notranslate"><span class="pre">unique_triangle_points()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.set_root">svcco.branch_addition.set_root module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.set_root.set_root"><code class="docutils literal notranslate"><span class="pre">set_root()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.set_root_homogeneous_nonconvex">svcco.branch_addition.set_root_homogeneous_nonconvex module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.set_root_homogeneous_nonconvex.set_root_homogeneous_nonconvex"><code class="docutils literal notranslate"><span class="pre">set_root_homogeneous_nonconvex()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.triangle">svcco.branch_addition.triangle module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.triangle.absolute_length_constraint"><code class="docutils literal notranslate"><span class="pre">absolute_length_constraint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.triangle.angle_constraint"><code class="docutils literal notranslate"><span class="pre">angle_constraint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.triangle.boundary_constraint"><code class="docutils literal notranslate"><span class="pre">boundary_constraint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.triangle.get_local_points"><code class="docutils literal notranslate"><span class="pre">get_local_points()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.triangle.relative_length_constraint"><code class="docutils literal notranslate"><span class="pre">relative_length_constraint()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.update">svcco.branch_addition.update module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.update.naive"><code class="docutils literal notranslate"><span class="pre">naive()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.update.update"><code class="docutils literal notranslate"><span class="pre">update()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition.update_geodesic">svcco.branch_addition.update_geodesic module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.branch_addition.html#svcco.branch_addition.update_geodesic.update_geodesic"><code class="docutils literal notranslate"><span class="pre">update_geodesic()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.branch_addition.html#module-svcco.branch_addition">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="svcco.collision.html">svcco.collision package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.collision.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.collision.html#module-svcco.collision.collision">svcco.collision.collision module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.collision.clamped_root"><code class="docutils literal notranslate"><span class="pre">clamped_root()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.collision.collision_free"><code class="docutils literal notranslate"><span class="pre">collision_free()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.collision.collision_free_fd"><code class="docutils literal notranslate"><span class="pre">collision_free_fd()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.collision.find_minimum"><code class="docutils literal notranslate"><span class="pre">find_minimum()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.collision.fix_suggestions"><code class="docutils literal notranslate"><span class="pre">fix_suggestions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.collision.line_distance"><code class="docutils literal notranslate"><span class="pre">line_distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.collision.line_intersection"><code class="docutils literal notranslate"><span class="pre">line_intersection()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.collision.no_outside_collision"><code class="docutils literal notranslate"><span class="pre">no_outside_collision()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.collision.pairwise_tree_collisions"><code class="docutils literal notranslate"><span class="pre">pairwise_tree_collisions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.collision.html#module-svcco.collision.obb">svcco.collision.obb module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.obb.grid"><code class="docutils literal notranslate"><span class="pre">grid</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.collision.html#svcco.collision.obb.grid.plot"><code class="docutils literal notranslate"><span class="pre">grid.plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.collision.html#svcco.collision.obb.grid.show"><code class="docutils literal notranslate"><span class="pre">grid.show()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.obb.obb"><code class="docutils literal notranslate"><span class="pre">obb()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.obb.obbc"><code class="docutils literal notranslate"><span class="pre">obbc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.obb.separating_axis"><code class="docutils literal notranslate"><span class="pre">separating_axis()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.collision.html#module-svcco.collision.obb_unit_tests">svcco.collision.obb_unit_tests module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.collision.html#module-svcco.collision.sphere_proximity">svcco.collision.sphere_proximity module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.sphere_proximity.sphere_point_query"><code class="docutils literal notranslate"><span class="pre">sphere_point_query()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.sphere_proximity.sphere_proximity"><code class="docutils literal notranslate"><span class="pre">sphere_proximity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.collision.html#svcco.collision.sphere_proximity.sphere_proximity_testing"><code class="docutils literal notranslate"><span class="pre">sphere_proximity_testing()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.collision.html#module-svcco.collision.sphere_proximity_unit_tests">svcco.collision.sphere_proximity_unit_tests module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.collision.html#module-svcco.collision">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="svcco.forest_utils.html">svcco.forest_utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.forest_utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.forest_utils.html#module-svcco.forest_utils.compete_add">svcco.forest_utils.compete_add module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.compete_add.compete_add"><code class="docutils literal notranslate"><span class="pre">compete_add()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.forest_utils.html#module-svcco.forest_utils.connect">svcco.forest_utils.connect module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.connect.angle"><code class="docutils literal notranslate"><span class="pre">angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.connect.connect"><code class="docutils literal notranslate"><span class="pre">connect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.connect.parallel"><code class="docutils literal notranslate"><span class="pre">parallel()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.connect.rotate"><code class="docutils literal notranslate"><span class="pre">rotate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.forest_utils.html#module-svcco.forest_utils.connect_collision">svcco.forest_utils.connect_collision module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.connect_collision.angle"><code class="docutils literal notranslate"><span class="pre">angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.connect_collision.rotate"><code class="docutils literal notranslate"><span class="pre">rotate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.connect_collision.rotate_terminals"><code class="docutils literal notranslate"><span class="pre">rotate_terminals()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.forest_utils.html#module-svcco.forest_utils.optimize_connection">svcco.forest_utils.optimize_connection module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.forest_utils.html#module-svcco.forest_utils.optimize_connection_v2">svcco.forest_utils.optimize_connection_v2 module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.optimize_connection_v2.are_collisions"><code class="docutils literal notranslate"><span class="pre">are_collisions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.optimize_connection_v2.bezier_cost"><code class="docutils literal notranslate"><span class="pre">bezier_cost()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.optimize_connection_v2.close_exact"><code class="docutils literal notranslate"><span class="pre">close_exact()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.optimize_connection_v2.connect_bezier"><code class="docutils literal notranslate"><span class="pre">connect_bezier()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.optimize_connection_v2.find_optimum_connection"><code class="docutils literal notranslate"><span class="pre">find_optimum_connection()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.optimize_connection_v2.get_angle"><code class="docutils literal notranslate"><span class="pre">get_angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.optimize_connection_v2.get_collisions"><code class="docutils literal notranslate"><span class="pre">get_collisions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.optimize_connection_v2.get_optimum_link_points"><code class="docutils literal notranslate"><span class="pre">get_optimum_link_points()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.optimize_connection_v2.get_radius"><code class="docutils literal notranslate"><span class="pre">get_radius()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.optimize_connection_v2.get_vecs"><code class="docutils literal notranslate"><span class="pre">get_vecs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.forest_utils.html#module-svcco.forest_utils.smooth">svcco.forest_utils.smooth module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.smooth.get_initial_vectors"><code class="docutils literal notranslate"><span class="pre">get_initial_vectors()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.smooth.link"><code class="docutils literal notranslate"><span class="pre">link()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.smooth.smooth"><code class="docutils literal notranslate"><span class="pre">smooth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.smooth.smooth_new"><code class="docutils literal notranslate"><span class="pre">smooth_new()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.forest_utils.html#svcco.forest_utils.smooth.smooth_original"><code class="docutils literal notranslate"><span class="pre">smooth_original()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.forest_utils.html#module-svcco.forest_utils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="svcco.implicit.html">svcco.implicit package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.core.html">svcco.implicit.core package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.core.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core.a_matrix">svcco.implicit.core.a_matrix module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core.h_matrix">svcco.implicit.core.h_matrix module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core.m_matrix">svcco.implicit.core.m_matrix module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core.n_matrix">svcco.implicit.core.n_matrix module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core.utils">svcco.implicit.core.utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.core.html#module-svcco.implicit.core">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.kernel.html">svcco.implicit.kernel package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.html#module-svcco.implicit.kernel.kernel">svcco.implicit.kernel.kernel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.kernel.html#module-svcco.implicit.kernel">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.solver.html">svcco.implicit.solver package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.html#module-svcco.implicit.solver.solver">svcco.implicit.solver.solver module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.solver.html#module-svcco.implicit.solver">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.tests.html">svcco.implicit.tests package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.tests.html#module-svcco.implicit.tests.bumpy_sphere">svcco.implicit.tests.bumpy_sphere module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.tests.html#module-svcco.implicit.tests.heart">svcco.implicit.tests.heart module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.tests.html#module-svcco.implicit.tests">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.visualize.html">svcco.implicit.visualize package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.visualize.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.visualize.html#module-svcco.implicit.visualize.visualize">svcco.implicit.visualize.visualize module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.visualize.html#module-svcco.implicit.visualize">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.html#module-svcco.implicit.derivative">svcco.implicit.derivative module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.construct"><code class="docutils literal notranslate"><span class="pre">construct()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.construct_global"><code class="docutils literal notranslate"><span class="pre">construct_global()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.core_hessian"><code class="docutils literal notranslate"><span class="pre">core_hessian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.d"><code class="docutils literal notranslate"><span class="pre">d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.function"><code class="docutils literal notranslate"><span class="pre">function()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.function_marching"><code class="docutils literal notranslate"><span class="pre">function_marching()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.global_d"><code class="docutils literal notranslate"><span class="pre">global_d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.gradient"><code class="docutils literal notranslate"><span class="pre">gradient()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.hessian"><code class="docutils literal notranslate"><span class="pre">hessian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.linesearch_d0"><code class="docutils literal notranslate"><span class="pre">linesearch_d0()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.linesearch_d1"><code class="docutils literal notranslate"><span class="pre">linesearch_d1()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.linesearch_d2"><code class="docutils literal notranslate"><span class="pre">linesearch_d2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.derivative.outter_parentheses"><code class="docutils literal notranslate"><span class="pre">outter_parentheses()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.html#module-svcco.implicit.implicit">svcco.implicit.implicit module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.generate"><code class="docutils literal notranslate"><span class="pre">generate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.marching_cubes"><code class="docutils literal notranslate"><span class="pre">marching_cubes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.marching_cubes_pv"><code class="docutils literal notranslate"><span class="pre">marching_cubes_pv()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.patch"><code class="docutils literal notranslate"><span class="pre">patch</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.patch.solve"><code class="docutils literal notranslate"><span class="pre">patch.solve()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.properties"><code class="docutils literal notranslate"><span class="pre">properties()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface"><code class="docutils literal notranslate"><span class="pre">surface</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.add"><code class="docutils literal notranslate"><span class="pre">surface.add()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.build"><code class="docutils literal notranslate"><span class="pre">surface.build()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.build_individual"><code class="docutils literal notranslate"><span class="pre">surface.build_individual()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.export_polydata"><code class="docutils literal notranslate"><span class="pre">surface.export_polydata()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.load"><code class="docutils literal notranslate"><span class="pre">surface.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.mesh"><code class="docutils literal notranslate"><span class="pre">surface.mesh()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.parallel_build"><code class="docutils literal notranslate"><span class="pre">surface.parallel_build()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.patch_constructor_no_progress"><code class="docutils literal notranslate"><span class="pre">surface.patch_constructor_no_progress()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.patch_constructor_progress"><code class="docutils literal notranslate"><span class="pre">surface.patch_constructor_progress()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.path"><code class="docutils literal notranslate"><span class="pre">surface.path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.pick"><code class="docutils literal notranslate"><span class="pre">surface.pick()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.pick_in_cell"><code class="docutils literal notranslate"><span class="pre">surface.pick_in_cell()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.set_data"><code class="docutils literal notranslate"><span class="pre">surface.set_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.solve"><code class="docutils literal notranslate"><span class="pre">surface.solve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.subtract"><code class="docutils literal notranslate"><span class="pre">surface.subtract()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.within"><code class="docutils literal notranslate"><span class="pre">surface.within()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.implicit.surface.within_mesh"><code class="docutils literal notranslate"><span class="pre">surface.within_mesh()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.html#module-svcco.implicit.load">svcco.implicit.load module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.load.load3d"><code class="docutils literal notranslate"><span class="pre">load3d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.load.load3d_pv"><code class="docutils literal notranslate"><span class="pre">load3d_pv()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.html#module-svcco.implicit.sampling">svcco.implicit.sampling module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.sampling.sampling"><code class="docutils literal notranslate"><span class="pre">sampling()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.html#module-svcco.implicit.weingarten_map">svcco.implicit.weingarten_map module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.weingarten_map.estimate_gaussian_curvature"><code class="docutils literal notranslate"><span class="pre">estimate_gaussian_curvature()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.weingarten_map.estimate_weingarten_map"><code class="docutils literal notranslate"><span class="pre">estimate_weingarten_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.weingarten_map.generate_bases"><code class="docutils literal notranslate"><span class="pre">generate_bases()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.implicit.html#svcco.implicit.weingarten_map.show_gaussian_curvature"><code class="docutils literal notranslate"><span class="pre">show_gaussian_curvature()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.implicit.html#module-svcco.implicit">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="svcco.sv_interface.html">svcco.sv_interface package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.ROM.html">svcco.sv_interface.ROM package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#module-svcco.sv_interface.ROM.centerlines">svcco.sv_interface.ROM.centerlines module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#module-svcco.sv_interface.ROM.generate_1d_mesh">svcco.sv_interface.ROM.generate_1d_mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#module-svcco.sv_interface.ROM.io_0d">svcco.sv_interface.ROM.io_0d module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#module-svcco.sv_interface.ROM.io_1d">svcco.sv_interface.ROM.io_1d module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#module-svcco.sv_interface.ROM.io_headers">svcco.sv_interface.ROM.io_headers module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#module-svcco.sv_interface.ROM.manage">svcco.sv_interface.ROM.manage module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#module-svcco.sv_interface.ROM.mesh">svcco.sv_interface.ROM.mesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#module-svcco.sv_interface.ROM.models">svcco.sv_interface.ROM.models module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#module-svcco.sv_interface.ROM.parameters">svcco.sv_interface.ROM.parameters module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#module-svcco.sv_interface.ROM.utils">svcco.sv_interface.ROM.utils module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.ROM.html#module-svcco.sv_interface.ROM">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.build_0d_run_script">svcco.sv_interface.build_0d_run_script module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.build_files">svcco.sv_interface.build_files module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.build_files.build"><code class="docutils literal notranslate"><span class="pre">build()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.build_results">svcco.sv_interface.build_results module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.centerline">svcco.sv_interface.centerline module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.contour">svcco.sv_interface.contour module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.export_3d_only">svcco.sv_interface.export_3d_only module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.flow">svcco.sv_interface.flow module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.geometry">svcco.sv_interface.geometry module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.get_sv_data">svcco.sv_interface.get_sv_data module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.contour_check"><code class="docutils literal notranslate"><span class="pre">contour_check()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.contour_check_all"><code class="docutils literal notranslate"><span class="pre">contour_check_all()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.contour_collision"><code class="docutils literal notranslate"><span class="pre">contour_collision()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_alternate_path"><code class="docutils literal notranslate"><span class="pre">get_alternate_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_branches"><code class="docutils literal notranslate"><span class="pre">get_branches()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_interpolated_sv_data"><code class="docutils literal notranslate"><span class="pre">get_interpolated_sv_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_longest_path"><code class="docutils literal notranslate"><span class="pre">get_longest_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_normals"><code class="docutils literal notranslate"><span class="pre">get_normals()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_normals_v1"><code class="docutils literal notranslate"><span class="pre">get_normals_v1()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_points"><code class="docutils literal notranslate"><span class="pre">get_points()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_points_v1"><code class="docutils literal notranslate"><span class="pre">get_points_v1()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_radii"><code class="docutils literal notranslate"><span class="pre">get_radii()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_radii_v1"><code class="docutils literal notranslate"><span class="pre">get_radii_v1()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_sv_data"><code class="docutils literal notranslate"><span class="pre">get_sv_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.get_truncated_interpolated_sv_data"><code class="docutils literal notranslate"><span class="pre">get_truncated_interpolated_sv_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.optimize_contour"><code class="docutils literal notranslate"><span class="pre">optimize_contour()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.pathpatch_2d_to_3d"><code class="docutils literal notranslate"><span class="pre">pathpatch_2d_to_3d()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.pathpatch_translate"><code class="docutils literal notranslate"><span class="pre">pathpatch_translate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.plot_branches"><code class="docutils literal notranslate"><span class="pre">plot_branches()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.plot_frames"><code class="docutils literal notranslate"><span class="pre">plot_frames()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.plot_interp_vessels"><code class="docutils literal notranslate"><span class="pre">plot_interp_vessels()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.plot_path_contours"><code class="docutils literal notranslate"><span class="pre">plot_path_contours()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.plot_sv_data"><code class="docutils literal notranslate"><span class="pre">plot_sv_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.rotation_matrix"><code class="docutils literal notranslate"><span class="pre">rotation_matrix()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.sv_data"><code class="docutils literal notranslate"><span class="pre">sv_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.swap_contour"><code class="docutils literal notranslate"><span class="pre">swap_contour()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.swap_worst_contour"><code class="docutils literal notranslate"><span class="pre">swap_worst_contour()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.get_sv_data.truncate"><code class="docutils literal notranslate"><span class="pre">truncate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.locate">svcco.sv_interface.locate module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.locate.locate_0d_solver"><code class="docutils literal notranslate"><span class="pre">locate_0d_solver()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.locate.locate_1d_solver"><code class="docutils literal notranslate"><span class="pre">locate_1d_solver()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.loft">svcco.sv_interface.loft module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.mesh">svcco.sv_interface.mesh module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.options">svcco.sv_interface.options module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.options.file_options"><code class="docutils literal notranslate"><span class="pre">file_options</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.options.file_options.flow_parameters"><code class="docutils literal notranslate"><span class="pre">file_options.flow_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.options.file_options.rom_parameters"><code class="docutils literal notranslate"><span class="pre">file_options.rom_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_directories"><code class="docutils literal notranslate"><span class="pre">file_options.set_directories()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_geometry_options"><code class="docutils literal notranslate"><span class="pre">file_options.set_geometry_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_loft_options"><code class="docutils literal notranslate"><span class="pre">file_options.set_loft_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_mesh_options"><code class="docutils literal notranslate"><span class="pre">file_options.set_mesh_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_pipeline_steps"><code class="docutils literal notranslate"><span class="pre">file_options.set_pipeline_steps()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.options.file_options.set_solid_options"><code class="docutils literal notranslate"><span class="pre">file_options.set_solid_options()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.options.file_options.simulation_parameters"><code class="docutils literal notranslate"><span class="pre">file_options.simulation_parameters()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.paths">svcco.sv_interface.paths module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.presolver">svcco.sv_interface.presolver module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.rom">svcco.sv_interface.rom module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.setup">svcco.sv_interface.setup module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.solid">svcco.sv_interface.solid module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.solver">svcco.sv_interface.solver module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.sv_install_function">svcco.sv_interface.sv_install_function module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.view_0d_result_plots">svcco.sv_interface.view_0d_result_plots module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface.waveform">svcco.sv_interface.waveform module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.waveform.LAD_16_1_func"><code class="docutils literal notranslate"><span class="pre">LAD_16_1_func</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.waveform.LAD_22_2_func"><code class="docutils literal notranslate"><span class="pre">LAD_22_2_func</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.waveform.LAD_4500_func"><code class="docutils literal notranslate"><span class="pre">LAD_4500_func</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.waveform.LAD_66_7_func"><code class="docutils literal notranslate"><span class="pre">LAD_66_7_func</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.waveform.generate_physiologic_wave"><code class="docutils literal notranslate"><span class="pre">generate_physiologic_wave()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.sv_interface.html#svcco.sv_interface.waveform.wave"><code class="docutils literal notranslate"><span class="pre">wave()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.sv_interface.html#module-svcco.sv_interface">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="svcco.utils.html">svcco.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="svcco.utils.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="svcco.utils.fluid_analysis.html">svcco.utils.fluid_analysis package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.fluid_analysis.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.fluid_analysis.html#module-svcco.utils.fluid_analysis.reynolds">svcco.utils.fluid_analysis.reynolds module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.fluid_analysis.html#module-svcco.utils.fluid_analysis.wss">svcco.utils.fluid_analysis.wss module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.fluid_analysis.html#module-svcco.utils.fluid_analysis">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.utils.gcode.html">svcco.utils.gcode package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.gcode.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.gcode.html#module-svcco.utils.gcode.gcode">svcco.utils.gcode.gcode module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.gcode.html#module-svcco.utils.gcode">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.utils.gui.html">svcco.utils.gui package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.gui.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.gui.html#module-svcco.utils.gui.gui_helper">svcco.utils.gui.gui_helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.gui.html#module-svcco.utils.gui.spline_helper">svcco.utils.gui.spline_helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.gui.html#module-svcco.utils.gui">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.utils.perfusion.html">svcco.utils.perfusion package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.perfusion.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.perfusion.html#module-svcco.utils.perfusion.fast_geodesic">svcco.utils.perfusion.fast_geodesic module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.perfusion.html#module-svcco.utils.perfusion">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="svcco.utils.remeshing.html">svcco.utils.remeshing package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.remeshing.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.remeshing.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.remeshing.html#module-svcco.utils.remeshing.remesh">svcco.utils.remeshing.remesh module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="svcco.utils.remeshing.html#module-svcco.utils.remeshing">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="svcco.utils.html#module-svcco.utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-svcco.test_rotation">
+<span id="svcco-test-rotation-module"></span><h2>svcco.test_rotation module<a class="headerlink" href="#module-svcco.test_rotation" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.test_rotation.disk">
+<span class="sig-prename descclassname"><span class="pre">svcco.test_rotation.</span></span><span class="sig-name descname"><span class="pre">disk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/test_rotation.html#disk"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.test_rotation.disk" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.test_rotation.line">
+<span class="sig-prename descclassname"><span class="pre">svcco.test_rotation.</span></span><span class="sig-name descname"><span class="pre">line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">P0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/test_rotation.html#line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.test_rotation.line" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.test_rotation.rotate">
+<span class="sig-prename descclassname"><span class="pre">svcco.test_rotation.</span></span><span class="sig-name descname"><span class="pre">rotate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">R1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">P1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/test_rotation.html#rotate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.test_rotation.rotate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.test_rotation.test">
+<span class="sig-prename descclassname"><span class="pre">svcco.test_rotation.</span></span><span class="sig-name descname"><span class="pre">test</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/test_rotation.html#test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.test_rotation.test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-svcco.tree">
+<span id="svcco-tree-module"></span><h2>svcco.tree module<a class="headerlink" href="#module-svcco.tree" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.tree.forest">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.tree.</span></span><span class="sig-name descname"><span class="pre">forest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_networks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trees_per_network</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[2]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_lengths_high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root_lengths_low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compete</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#forest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.forest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.forest.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number_of_branches</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#forest.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.forest.add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.forest.assign">
+<span class="sig-name descname"><span class="pre">assign</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#forest.assign"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.forest.assign" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.forest.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curve_sample_size_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curve_sample_size_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curve_degree</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#forest.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.forest.connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.forest.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#forest.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.forest.copy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.forest.export">
+<span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">make</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_splines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_sample_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steady</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_distal_resistance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gui</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#forest.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.forest.export" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.forest.export_solid">
+<span class="sig-name descname"><span class="pre">export_solid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'3d_tmp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell_thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#forest.export_solid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.forest.export_solid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.forest.rotate">
+<span class="sig-name descname"><span class="pre">rotate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#forest.rotate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.forest.rotate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.forest.set_roots">
+<span class="sig-name descname"><span class="pre">set_roots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#forest.set_roots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.forest.set_roots" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.forest.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merged_trees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">off_screen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#forest.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.forest.show" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.tree.get">
+<span class="sig-prename descclassname"><span class="pre">svcco.tree.</span></span><span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="svcco.tree.perfusion_territory">
+<span class="sig-prename descclassname"><span class="pre">svcco.tree.</span></span><span class="sig-name descname"><span class="pre">perfusion_territory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdivisions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tree_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#perfusion_territory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.perfusion_territory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="svcco.tree.tree">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">svcco.tree.</span></span><span class="sig-name descname"><span class="pre">tree</span></span><a class="reference internal" href="_modules/svcco/tree.html#tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Data structure:</p>
+<p>index: 0:2   -&gt; proximal node coordinates</p>
+<p>index: 3:5   -&gt; distal node coordinates</p>
+<p>index: 6:8   -&gt; unit basis U (all)</p>
+<p>index: 9:11  -&gt; unit basis V (all)</p>
+<p>index: 12:14 -&gt; unit basis W (axial direction) (all)</p>
+<p>index: 15,16 -&gt; children (-1 means no child)</p>
+<p>index: 17    -&gt; parent (NA)</p>
+<p>index: 18    -&gt; proximal node index (only real edges)</p>
+<p>index: 19    -&gt; distal node index (only real edges)</p>
+<p>index: 20    -&gt; length (path length)</p>
+<p>index: 21    -&gt; radius (what are the units?)</p>
+<p>index: 22    -&gt; flow (NA)</p>
+<p>index: 23    -&gt; left bifurcation (NA)</p>
+<p>index: 24    -&gt; right bifurcation (NA)</p>
+<p>index: 25    -&gt; reduced resistance (NA)</p>
+<p>index: 26    -&gt; depth (NA)</p>
+<p>index: 27    -&gt; reduced downstream length (NA)</p>
+<p>index: 28    -&gt; root radius scaling factor (same as edge for intermediate)</p>
+<p>index: 29    -&gt; edge that subedge belongs to (if actual edge; self pointer)</p>
+<p>index: 30    -&gt; self identifying index (-1 if intermediate)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">low</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isforest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L-BFGS-B'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.collision_free">
+<span class="sig-name descname"><span class="pre">collision_free</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outside_vessels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.collision_free"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.collision_free" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.export">
+<span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steady</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_distal_resistance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gui</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cylinders</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_edge_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splines</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splines_file_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spline_sample_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.export" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.export_0d_simulation">
+<span class="sig-name descname"><span class="pre">export_0d_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steady</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'0d_tmp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_cardiac_cycles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_time_pts_per_cycle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">viscosity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.04</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">material</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'olufsen'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">olufsen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'k1':</span> <span class="pre">0.0,</span> <span class="pre">'k2':</span> <span class="pre">-22.5267,</span> <span class="pre">'k3':</span> <span class="pre">10000000.0,</span> <span class="pre">'material</span> <span class="pre">exponent':</span> <span class="pre">1.0,</span> <span class="pre">'material</span> <span class="pre">pressure':</span> <span class="pre">0.0}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'material</span> <span class="pre">ehr':</span> <span class="pre">10000000.0,</span> <span class="pre">'material</span> <span class="pre">pressure':</span> <span class="pre">0.0}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path_to_0d_solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">viscosity_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vivo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.export_0d_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.export_0d_simulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>This script builds the 0D input file for running 0D simulation.
+Parameters:
+-----------
+steady: bool, optional, [default=True]
+outdir: str, optional, [default=None]
+folder: str, optional, [default=&quot;tmp&quot;]
+number_cardiac_cycles: int, optional, [default=1]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.export_1d_simulation">
+<span class="sig-name descname"><span class="pre">export_1d_simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steady</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'1d_tmp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_cariac_cycles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.export_1d_simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.export_1d_simulation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.export_3d_solid">
+<span class="sig-name descname"><span class="pre">export_3d_solid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'3d_tmp'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.export_3d_solid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.export_3d_solid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.export_centerlines">
+<span class="sig-name descname"><span class="pre">export_centerlines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'centerlines_tmp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.export_centerlines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.export_centerlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.export_gcode">
+<span class="sig-name descname"><span class="pre">export_gcode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.export_gcode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.export_gcode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.export_truncated">
+<span class="sig-name descname"><span class="pre">export_truncated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steady</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_distal_resistance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gui</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cylinders</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.export_truncated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.export_truncated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.load">
+<span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.n_add">
+<span class="sig-name descname"><span class="pre">n_add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L-BFGS-B'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.n_add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.n_add" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.set_assumptions">
+<span class="sig-name descname"><span class="pre">set_assumptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.set_assumptions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.set_assumptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.set_boundary">
+<span class="sig-name descname"><span class="pre">set_boundary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boundary</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.set_boundary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.set_boundary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.set_parameters">
+<span class="sig-name descname"><span class="pre">set_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.set_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.set_parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.set_root">
+<span class="sig-name descname"><span class="pre">set_root</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_low</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">niter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.set_root"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.set_root" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">surface</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vessel_colors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'red'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'white'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_segments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'red'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_surface_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'blue'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.show" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.show_assumptions">
+<span class="sig-name descname"><span class="pre">show_assumptions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.show_assumptions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.show_assumptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="svcco.tree.tree.show_truncated">
+<span class="sig-name descname"><span class="pre">show_truncated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicies</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/tree.html#tree.show_truncated"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.tree.tree.show_truncated" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-svcco">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-svcco" title="Permalink to this heading">¶</a></h2>
+<p># Automated Vascularization &amp; Fluid Simulation for Engineered Tissues</p>
+<p><cite>svcco</cite> falls under the open-source SimVascular project which seeks to
+understand and quantify hemodynamics in health and disease.
+This python module creates synthetic microvascular networks for given
+perfusion territories, a common problem when creating engineered tissues.</p>
+<p>## Installing SVCCO</p>
+<p>Conda install
+<code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">#</span> <span class="pre">Best</span> <span class="pre">practice</span> <span class="pre">to</span> <span class="pre">use</span> <span class="pre">an</span> <span class="pre">environment</span> <span class="pre">rather</span> <span class="pre">than</span> <span class="pre">installing</span> <span class="pre">at</span> <span class="pre">the</span> <span class="pre">base</span>
+<span class="pre">#</span> <span class="pre">By</span> <span class="pre">default</span> <span class="pre">we</span> <span class="pre">will</span> <span class="pre">specify</span> <span class="pre">the</span> <span class="pre">python</span> <span class="pre">environment</span> <span class="pre">to</span> <span class="pre">3.7</span>
+<span class="pre">#</span> <span class="pre">however</span> <span class="pre">3.8</span> <span class="pre">and</span> <span class="pre">3.9</span> <span class="pre">are</span> <span class="pre">valid</span>
+<span class="pre">conda</span> <span class="pre">create</span> <span class="pre">-n</span> <span class="pre">svcco-env</span> <span class="pre">python=3.7</span>
+<span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">svcco-env</span>
+<span class="pre">#</span> <span class="pre">becuase</span> <span class="pre">conda</span> <span class="pre">allows</span> <span class="pre">pip</span> <span class="pre">installing</span>
+<span class="pre">pip</span> <span class="pre">install</span> <span class="pre">svcco</span>
+<span class="pre">`</span></code></p>
+<p>pip install</p>
+<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">pip</span> <span class="pre">install</span> <span class="pre">svcco</span>
+<span class="pre">`</span></code></p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">svcco package</a><ul>
+<li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-svcco.test_rotation">svcco.test_rotation module</a><ul>
+<li><a class="reference internal" href="#svcco.test_rotation.disk"><code class="docutils literal notranslate"><span class="pre">disk()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.test_rotation.line"><code class="docutils literal notranslate"><span class="pre">line()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.test_rotation.rotate"><code class="docutils literal notranslate"><span class="pre">rotate()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.test_rotation.test"><code class="docutils literal notranslate"><span class="pre">test()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco.tree">svcco.tree module</a><ul>
+<li><a class="reference internal" href="#svcco.tree.forest"><code class="docutils literal notranslate"><span class="pre">forest</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.tree.forest.add"><code class="docutils literal notranslate"><span class="pre">forest.add()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.forest.assign"><code class="docutils literal notranslate"><span class="pre">forest.assign()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.forest.connect"><code class="docutils literal notranslate"><span class="pre">forest.connect()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.forest.copy"><code class="docutils literal notranslate"><span class="pre">forest.copy()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.forest.export"><code class="docutils literal notranslate"><span class="pre">forest.export()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.forest.export_solid"><code class="docutils literal notranslate"><span class="pre">forest.export_solid()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.forest.rotate"><code class="docutils literal notranslate"><span class="pre">forest.rotate()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.forest.set_roots"><code class="docutils literal notranslate"><span class="pre">forest.set_roots()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.forest.show"><code class="docutils literal notranslate"><span class="pre">forest.show()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#svcco.tree.get"><code class="docutils literal notranslate"><span class="pre">get()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.perfusion_territory"><code class="docutils literal notranslate"><span class="pre">perfusion_territory()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree"><code class="docutils literal notranslate"><span class="pre">tree</span></code></a><ul>
+<li><a class="reference internal" href="#svcco.tree.tree.add"><code class="docutils literal notranslate"><span class="pre">tree.add()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.collision_free"><code class="docutils literal notranslate"><span class="pre">tree.collision_free()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.export"><code class="docutils literal notranslate"><span class="pre">tree.export()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.export_0d_simulation"><code class="docutils literal notranslate"><span class="pre">tree.export_0d_simulation()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.export_1d_simulation"><code class="docutils literal notranslate"><span class="pre">tree.export_1d_simulation()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.export_3d_solid"><code class="docutils literal notranslate"><span class="pre">tree.export_3d_solid()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.export_centerlines"><code class="docutils literal notranslate"><span class="pre">tree.export_centerlines()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.export_gcode"><code class="docutils literal notranslate"><span class="pre">tree.export_gcode()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.export_truncated"><code class="docutils literal notranslate"><span class="pre">tree.export_truncated()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.load"><code class="docutils literal notranslate"><span class="pre">tree.load()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.n_add"><code class="docutils literal notranslate"><span class="pre">tree.n_add()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.save"><code class="docutils literal notranslate"><span class="pre">tree.save()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.set_assumptions"><code class="docutils literal notranslate"><span class="pre">tree.set_assumptions()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.set_boundary"><code class="docutils literal notranslate"><span class="pre">tree.set_boundary()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.set_parameters"><code class="docutils literal notranslate"><span class="pre">tree.set_parameters()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.set_root"><code class="docutils literal notranslate"><span class="pre">tree.set_root()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.show"><code class="docutils literal notranslate"><span class="pre">tree.show()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.show_assumptions"><code class="docutils literal notranslate"><span class="pre">tree.show_assumptions()</span></code></a></li>
+<li><a class="reference internal" href="#svcco.tree.tree.show_truncated"><code class="docutils literal notranslate"><span class="pre">tree.show_truncated()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-svcco">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="modules.html"
+                          title="previous chapter">svcco</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="svcco.branch_addition.html"
+                          title="next chapter">svcco.branch_addition package</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/svcco.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="svcco.branch_addition.html" title="svcco.branch_addition package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="modules.html" title="svcco"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >svcco</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco package</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

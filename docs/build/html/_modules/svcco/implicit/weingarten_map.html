@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.implicit.weingarten_map &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.implicit.weingarten_map</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.implicit.weingarten_map</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">spatial</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits</span> <span class="kn">import</span> <span class="n">mplot3d</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">cm</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<div class="viewcode-block" id="generate_bases"><a class="viewcode-back" href="../../../svcco.implicit.html#svcco.implicit.weingarten_map.generate_bases">[docs]</a><span class="k">def</span> <span class="nf">generate_bases</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">quiet</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">n_points</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">int_dim</span> <span class="o">=</span> <span class="n">dim</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">tangent_basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">int_dim</span><span class="p">,</span><span class="n">n_points</span><span class="p">))</span>
+    <span class="n">normal_basis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="o">-</span><span class="n">int_dim</span><span class="p">,</span><span class="n">n_points</span><span class="p">))</span>
+    <span class="n">K</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">dim</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">n_points</span><span class="p">)))</span>
+    <span class="n">KDT</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+    <span class="n">dist</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="n">KDT</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">k</span><span class="o">=</span><span class="n">K</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">quiet</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_points</span><span class="p">):</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">,:],:]</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">tmp</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">K</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="nd">@tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">:,:]</span>
+            <span class="n">U</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">diag_idx</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">sort_diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">S</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="n">H</span><span class="p">[:,</span><span class="n">diag_idx</span><span class="p">]</span>
+            <span class="n">tangent_basis</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">H</span><span class="p">[:,:</span><span class="n">int_dim</span><span class="p">]</span>
+            <span class="n">normal_basis</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">H</span><span class="p">[:,</span><span class="n">dim</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_points</span><span class="p">),</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Generating bases       &#39;</span><span class="p">):</span>
+    	    <span class="n">tmp</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">,:],:]</span>
+    	    <span class="n">tmp</span> <span class="o">=</span> <span class="n">tmp</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">K</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="nd">@tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    	    <span class="n">tmp</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">:,:]</span>
+    	    <span class="n">U</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+    	    <span class="n">H</span> <span class="o">=</span> <span class="n">H</span><span class="o">.</span><span class="n">T</span>
+    	    <span class="n">diag_idx</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    	    <span class="n">sort_diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">S</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    	    <span class="n">H</span> <span class="o">=</span> <span class="n">H</span><span class="p">[:,</span><span class="n">diag_idx</span><span class="p">]</span>
+    	    <span class="n">tangent_basis</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">H</span><span class="p">[:,:</span><span class="n">int_dim</span><span class="p">]</span>
+    	    <span class="n">normal_basis</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">H</span><span class="p">[:,</span><span class="n">dim</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tangent_basis</span><span class="p">,</span><span class="n">normal_basis</span><span class="p">,</span><span class="n">idx</span><span class="p">,</span><span class="n">KDT</span></div>
+
+<div class="viewcode-block" id="estimate_weingarten_map"><a class="viewcode-back" href="../../../svcco.implicit.html#svcco.implicit.weingarten_map.estimate_weingarten_map">[docs]</a><span class="k">def</span> <span class="nf">estimate_weingarten_map</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">quiet</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">n_points</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">tangent_basis</span><span class="p">,</span> <span class="n">normal_basis</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">KDT</span> <span class="o">=</span> <span class="n">generate_bases</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">)</span>
+    <span class="n">tangent_dim</span> <span class="o">=</span> <span class="n">tangent_basis</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">normal_dim</span> <span class="o">=</span> <span class="n">normal_basis</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">weingarten_map</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">tangent_dim</span><span class="p">,</span><span class="n">tangent_dim</span><span class="p">,</span>
+                               <span class="n">normal_dim</span><span class="p">,</span><span class="n">n_points</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">quiet</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_points</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">normal_dim</span><span class="p">):</span>
+                <span class="n">tmp_point</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span>
+                <span class="n">tmp_tangent_basis</span> <span class="o">=</span> <span class="n">tangent_basis</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">tmp_normal_basis</span> <span class="o">=</span> <span class="n">normal_basis</span><span class="p">[:,</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">tmp_neighborhood</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span>
+                <span class="n">tmp_neighborhood_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp_neighborhood</span><span class="p">)</span>
+                <span class="n">tmp_local_normals</span> <span class="o">=</span> <span class="n">normal_basis</span><span class="p">[:,:,</span><span class="n">tmp_neighborhood</span><span class="p">]</span>
+                <span class="n">tmp_normal_extension</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">tmp_neighborhood_size</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tmp_neighborhood_size</span><span class="p">):</span>
+                    <span class="n">projection</span> <span class="o">=</span> <span class="n">tmp_local_normals</span><span class="p">[:,:,</span><span class="n">k</span><span class="p">]</span><span class="o">@</span>\
+                                 <span class="n">tmp_local_normals</span><span class="p">[:,:,</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">@</span>\
+                                 <span class="n">tmp_normal_basis</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">tmp_normal_extension</span><span class="p">[</span><span class="n">k</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">projection</span><span class="o">.</span><span class="n">T</span>
+                <span class="n">tmp_diff_normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">tmp_neighborhood_size</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+                <span class="n">tmp_diff_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">tmp_neighborhood_size</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tmp_neighborhood_size</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="n">tmp_diff_normal</span><span class="p">[</span><span class="n">k</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">tmp_normal_extension</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">-</span>\
+                                           <span class="n">tmp_normal_basis</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">tmp_diff_position</span><span class="p">[</span><span class="n">k</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">tmp_neighborhood</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">],:]</span> <span class="o">-</span>\
+                                             <span class="n">tmp_point</span>
+                <span class="n">tmp_normal_projection</span> <span class="o">=</span> <span class="n">tmp_diff_normal</span><span class="nd">@tmp_tangent_basis</span>
+                <span class="n">tmp_position_projection</span> <span class="o">=</span> <span class="n">tmp_diff_position</span><span class="nd">@tmp_tangent_basis</span>
+                <span class="n">A</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">tmp_position_projection</span><span class="o">.</span><span class="n">T</span><span class="o">@</span>\
+                                    <span class="n">tmp_position_projection</span><span class="p">))</span><span class="o">@</span>\
+                                    <span class="n">tmp_position_projection</span><span class="o">.</span><span class="n">T</span><span class="o">@</span>\
+                                    <span class="n">tmp_normal_projection</span>
+                <span class="n">weingarten_map</span><span class="p">[:,:,</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">A</span><span class="o">+</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_points</span><span class="p">),</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Building Weingarten Map&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">normal_dim</span><span class="p">):</span>
+                <span class="n">tmp_point</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span>
+                <span class="n">tmp_tangent_basis</span> <span class="o">=</span> <span class="n">tangent_basis</span><span class="p">[:,:,</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">tmp_normal_basis</span> <span class="o">=</span> <span class="n">normal_basis</span><span class="p">[:,</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">tmp_neighborhood</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span>
+                <span class="n">tmp_neighborhood_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp_neighborhood</span><span class="p">)</span>
+                <span class="n">tmp_local_normals</span> <span class="o">=</span> <span class="n">normal_basis</span><span class="p">[:,:,</span><span class="n">tmp_neighborhood</span><span class="p">]</span>
+                <span class="n">tmp_normal_extension</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">tmp_neighborhood_size</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tmp_neighborhood_size</span><span class="p">):</span>
+                    <span class="n">projection</span> <span class="o">=</span> <span class="n">tmp_local_normals</span><span class="p">[:,:,</span><span class="n">k</span><span class="p">]</span><span class="o">@</span>\
+                                 <span class="n">tmp_local_normals</span><span class="p">[:,:,</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">@</span>\
+                                 <span class="n">tmp_normal_basis</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">tmp_normal_extension</span><span class="p">[</span><span class="n">k</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">projection</span><span class="o">.</span><span class="n">T</span>
+                <span class="n">tmp_diff_normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">tmp_neighborhood_size</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+                <span class="n">tmp_diff_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">tmp_neighborhood_size</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tmp_neighborhood_size</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="n">tmp_diff_normal</span><span class="p">[</span><span class="n">k</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">tmp_normal_extension</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">,:]</span> <span class="o">-</span>\
+                                           <span class="n">tmp_normal_basis</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">tmp_diff_position</span><span class="p">[</span><span class="n">k</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">tmp_neighborhood</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">],:]</span> <span class="o">-</span>\
+                                              <span class="n">tmp_point</span>
+                <span class="n">tmp_normal_projection</span> <span class="o">=</span> <span class="n">tmp_diff_normal</span><span class="nd">@tmp_tangent_basis</span>
+                <span class="n">tmp_position_projection</span> <span class="o">=</span> <span class="n">tmp_diff_position</span><span class="nd">@tmp_tangent_basis</span>
+                <span class="n">A</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">tmp_position_projection</span><span class="o">.</span><span class="n">T</span><span class="o">@</span>\
+                                    <span class="n">tmp_position_projection</span><span class="p">))</span><span class="o">@</span>\
+                                    <span class="n">tmp_position_projection</span><span class="o">.</span><span class="n">T</span><span class="o">@</span>\
+                                    <span class="n">tmp_normal_projection</span>
+                <span class="n">weingarten_map</span><span class="p">[:,:,</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">A</span><span class="o">+</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">weingarten_map</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">KDT</span></div>
+
+<div class="viewcode-block" id="estimate_gaussian_curvature"><a class="viewcode-back" href="../../../svcco.implicit.html#svcco.implicit.weingarten_map.estimate_gaussian_curvature">[docs]</a><span class="k">def</span> <span class="nf">estimate_gaussian_curvature</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">quiet</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">n_points</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">guassian_curvature</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_points</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">w_map</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">KDT</span> <span class="o">=</span> <span class="n">estimate_weingarten_map</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_points</span><span class="p">):</span>
+        <span class="n">guassian_curvature</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">w_map</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">guassian_curvature</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">KDT</span></div>
+
+<div class="viewcode-block" id="show_gaussian_curvature"><a class="viewcode-back" href="../../../svcco.implicit.html#svcco.implicit.weingarten_map.show_gaussian_curvature">[docs]</a><span class="k">def</span> <span class="nf">show_gaussian_curvature</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
+    <span class="n">guassian_curvature</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">KDT</span> <span class="o">=</span> <span class="n">estimate_gaussian_curvature</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+    <span class="n">coolwarm</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">,</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="n">gc_min</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">guassian_curvature</span><span class="p">)</span>
+    <span class="n">gc_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">guassian_curvature</span><span class="p">)</span>
+    <span class="n">colors</span> <span class="o">=</span> <span class="n">coolwarm</span><span class="p">(</span><span class="n">guassian_curvature</span><span class="p">)</span>
+    <span class="n">cax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter3D</span><span class="p">(</span><span class="n">points</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">points</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span><span class="n">points</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span><span class="n">cmap</span><span class="o">=</span><span class="n">coolwarm</span><span class="p">,</span><span class="n">c</span><span class="o">=</span><span class="n">guassian_curvature</span><span class="p">)</span>
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">cax</span><span class="p">,</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span><span class="n">ticks</span><span class="o">=</span><span class="p">[</span><span class="n">gc_min</span><span class="p">,</span><span class="n">gc_max</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span><span class="n">ax</span></div>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">def bumpy_sphere(samples=10,scale=5,a=3,b=1):</span>
+<span class="sd">    data = np.zeros((samples**2,3))</span>
+<span class="sd">    theta = np.linspace(0,2*np.pi,num=samples)</span>
+<span class="sd">    phi = np.linspace(0,np.pi,num=samples)</span>
+<span class="sd">    count = 0</span>
+<span class="sd">    for t in theta:</span>
+<span class="sd">        for p in phi:          </span>
+<span class="sd">            r = scale + np.cos(a*t)*np.sin(b*p)</span>
+<span class="sd">            data[count,0] = r*np.cos(t)*np.sin(p)</span>
+<span class="sd">            data[count,1] = r*np.sin(t)*np.sin(p)</span>
+<span class="sd">            data[count,2] = r*np.cos(p)</span>
+<span class="sd">            count += 1</span>
+<span class="sd">    final_data = []</span>
+<span class="sd">    for i in range(data.shape[0]):</span>
+<span class="sd">        if i == 0:</span>
+<span class="sd">            final_data.append(data[i,:])</span>
+<span class="sd">            continue</span>
+<span class="sd">        add = True</span>
+<span class="sd">        for j in range(i):</span>
+<span class="sd">            if np.all(np.isclose(data[i,:],data[j,:])):</span>
+<span class="sd">                add = False</span>
+<span class="sd">        if add:</span>
+<span class="sd">            final_data.append(data[i,:])</span>
+<span class="sd">    return np.array(final_data)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.implicit.weingarten_map</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

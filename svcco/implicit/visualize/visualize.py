@@ -124,18 +124,52 @@ def mpu_meshgrid(mpu_object,buf=1.25,res=10,workers=1,k=None,plane_axis=None,pla
                 results = time_data
     return DIMS,results
 
-def plot_volume(mpu_object,resolution=20,workers=1,cmin=-1,cmax=0,surface_count=14,k=None,global_f=False):
+def plot_volume(mpu_object,resolution=20,workers=1,cmin=-1,cmax=0,surface_count=14,k=None,global_f=False,show_points=False):
+    """
+    This function accepts a perfusion domain object instance and returns a figure
+    object for rendering the domain for visualization.
+
+    Parameters
+    ----------
+              mpu_object: svcco.surface object instance
+
+              resolution: int (default: 20)
+                          The number of points along each axis to sample when
+                          determining the contours of the implicit function
+                          representing the domain.
+
+                          The total number of sampled points scales cubically
+                          to the resolution size. (i.e. resolution=20;
+                          total_points=8000)
+
+              workers: int (default: 1)
+                          The number of processes to split the function evaluations
+                          among. Becuase volume rendering can easily require tens
+                          of thousands of function evaluations
+    """
     DIMS,results = mpu_meshgrid(mpu_object,res=resolution,workers=workers,k=k,global_f=global_f)
-    fig = go.Figure(data=(go.Isosurface(
-                    x=DIMS[0].flatten(),
-                    y=DIMS[1].flatten(),
-                    z=DIMS[2].flatten(),
-                    value=results.flatten(),
-                    opacity=0.1,
-                    isomin=cmin,
-                    isomax=cmax,
-                    surface_count=surface_count),go.Scatter3d(x = mpu_object.points[:,0],y=mpu_object.points[:,1],z=mpu_object.points[:,2])))
+    if show_points:
+        fig = go.Figure(data=(go.Isosurface(
+                        x=DIMS[0].flatten(),
+                        y=DIMS[1].flatten(),
+                        z=DIMS[2].flatten(),
+                        value=results.flatten(),
+                        opacity=0.1,
+                        isomin=cmin,
+                        isomax=cmax,
+                        surface_count=surface_count),go.Scatter3d(x = mpu_object.points[:,0],y=mpu_object.points[:,1],z=mpu_object.points[:,2])))
+    else:
+        fig = go.Figure(data=(go.Isosurface(
+                        x=DIMS[0].flatten(),
+                        y=DIMS[1].flatten(),
+                        z=DIMS[2].flatten(),
+                        value=results.flatten(),
+                        opacity=0.1,
+                        isomin=cmin,
+                        isomax=cmax,
+                        surface_count=surface_count)))
     fig.show()
+    return fig
 
 def plot_volume_individual(func,x_range,y_range,z_range,buf=1.25,res=20,surface_count=15,cmin=-1,cmax=0):
     res = res*1j

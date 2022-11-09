@@ -1,0 +1,307 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.branch_addition.add_bifurcation &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.branch_addition.add_bifurcation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.branch_addition.add_bifurcation</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numba</span> <span class="k">as</span> <span class="nn">nb</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">.add_edge</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.basis</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.calculate_length</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="c1">#@nb.jit(nopython=True,cache=True,nogil=True)</span>
+<div class="viewcode-block" id="add_bifurcation"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.add_bifurcation.add_bifurcation">[docs]</a><span class="k">def</span> <span class="nf">add_bifurcation</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span><span class="n">parent_edge</span><span class="p">,</span><span class="n">candidate_point</span><span class="p">,</span><span class="n">results</span><span class="p">,</span><span class="n">optimum</span><span class="p">,</span><span class="n">isforest</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="c1">########### UNPACK LOCAL OPTIMIZATION DATA ##############</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">R0</span>  <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">L0</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">f_terminal</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">f_sister</span>   <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">bif_points</span>   <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+    <span class="n">RR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span>
+    <span class="n">RL</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">7</span><span class="p">])</span>
+    <span class="n">bifs</span>               <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">8</span><span class="p">])</span>
+    <span class="n">flows</span>              <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">9</span><span class="p">])</span>
+    <span class="n">main_idx</span>           <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">10</span><span class="p">])</span>
+    <span class="n">alt_idx</span>            <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">11</span><span class="p">])</span>
+    <span class="n">main_scale</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">12</span><span class="p">])</span>
+    <span class="n">alt_scale</span>          <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">13</span><span class="p">])</span>
+    <span class="n">R_terminal</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span>
+    <span class="n">R_sister</span>   <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">isforest</span><span class="p">:</span>
+        <span class="n">sub_division_map</span>    <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">sub_division_map</span><span class="p">)</span>
+        <span class="n">sub_division_index</span>  <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">sub_division_index</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sub_division_map</span>    <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">sub_division_map</span>
+        <span class="n">sub_division_index</span>  <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">sub_division_index</span>
+    <span class="n">Qterm</span>               <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;Qterm&#39;</span><span class="p">]</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="s1">&#39;add_1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+    <span class="c1">###########################################################</span>
+    <span class="c1">############### Copy Data and Make New ####################</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">isforest</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">data</span>
+    <span class="c1">#if sum(tree.data[tree.data[:,-1]==-1]) == 0:</span>
+    <span class="c1">#    nosegments = True</span>
+    <span class="c1">#else:</span>
+    <span class="c1">#    nosegments = False</span>
+    <span class="c1">#    segment_data = deepcopy(tree.data[tree.data[:,-1]==-1])</span>
+    <span class="n">nosegments</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">data</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))))</span> <span class="c1">## would need to be changed for adding non-linear vessels</span>
+    <span class="n">bifurcation_point</span> <span class="o">=</span> <span class="n">bif_points</span><span class="p">[</span><span class="n">optimum</span><span class="p">]</span>
+    <span class="n">add_edge</span><span class="p">(</span><span class="n">data</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,:],</span><span class="n">bifurcation_point</span><span class="p">,</span><span class="n">candidate_point</span><span class="p">,</span><span class="n">parent_edge</span><span class="p">,</span><span class="n">Qterm</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">17</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">(</span><span class="n">parent_edge</span><span class="p">)</span>
+    <span class="n">terminal_sub_division</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">downstream_node</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+    <span class="n">downstream_flow</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">22</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">bifurcation_node</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">18</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">distal_node</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">19</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">left</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">15</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">16</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="n">lbif</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">23</span><span class="p">]</span>
+    <span class="n">rbif</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">24</span><span class="p">]</span>
+    <span class="n">downstream_rr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">27</span><span class="p">]</span>
+    <span class="n">add_edge</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">bifurcation_point</span><span class="p">,</span><span class="n">downstream_node</span><span class="p">,</span><span class="n">parent_edge</span><span class="p">,</span>
+             <span class="n">downstream_flow</span><span class="p">,</span><span class="n">proximal_idx</span><span class="o">=</span><span class="n">bifurcation_node</span><span class="p">,</span>
+             <span class="n">distal_idx</span><span class="o">=</span><span class="n">distal_node</span><span class="p">,</span><span class="n">left_child</span><span class="o">=</span><span class="n">left</span><span class="p">,</span>
+             <span class="n">right_child</span><span class="o">=</span><span class="n">right</span><span class="p">)</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">17</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">(</span><span class="n">parent_edge</span><span class="p">)</span>
+    <span class="n">sister_sub_division</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="s1">&#39;add_2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+    <span class="c1">#pidx_start = sub_division_index[parent_edge]</span>
+    <span class="c1">#pidx_end = sub_division_index[parent_edge+1]</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">left</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">right</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># if this vessel is not a terminal it will have a subdivision map</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">sub_division_index</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">]</span> <span class="c1">#start of the</span>
+        <span class="k">if</span> <span class="n">parent_edge</span><span class="o">+</span><span class="mi">1</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub_division_index</span><span class="p">):</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">sub_division_index</span><span class="p">[</span><span class="n">parent_edge</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">sub_division_map</span><span class="p">[</span><span class="n">start</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="mi">28</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="mi">28</span><span class="p">]</span><span class="o">/</span><span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">28</span><span class="p">])</span><span class="o">*</span><span class="n">f_sister</span><span class="p">[</span><span class="n">optimum</span><span class="p">]</span> <span class="c1"># replace the old bifurcation with the new scaling</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">,</span><span class="mi">26</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span> <span class="c1"># incrament the depth of all subdivision vessels</span>
+        <span class="n">sister_sub_division</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">23</span><span class="p">]</span> <span class="o">=</span> <span class="n">lbif</span>
+        <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">24</span><span class="p">]</span> <span class="o">=</span> <span class="n">rbif</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">28</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_sister</span><span class="p">[</span><span class="n">optimum</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">27</span><span class="p">]</span> <span class="o">=</span> <span class="n">downstream_rr</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">28</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_terminal</span><span class="p">[</span><span class="n">optimum</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">25</span><span class="p">]</span> <span class="o">=</span> <span class="n">R_sister</span><span class="p">[</span><span class="n">optimum</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">25</span><span class="p">]</span> <span class="o">=</span> <span class="n">R_terminal</span><span class="p">[</span><span class="n">optimum</span><span class="p">]</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="s1">&#39;add_3&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start_time</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">left</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">left</span><span class="p">),</span><span class="mi">17</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">right</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">right</span><span class="p">),</span><span class="mi">17</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">bifurcation_point</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">19</span><span class="p">]</span> <span class="o">=</span> <span class="n">bifurcation_node</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">15</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">parent_edge</span><span class="p">,</span><span class="mi">16</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">new_terminal_edge</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">new_sister_edge</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">basis</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">parent_edge</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+    <span class="n">length</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">parent_edge</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+    <span class="n">sub_division_map</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">terminal_sub_division</span><span class="p">)</span> <span class="c1">#should be [-1]</span>
+    <span class="n">sub_division_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sub_division_index</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">sub_division_map</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">sub_division_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sub_division_index</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">sub_division_map</span><span class="p">))</span>
+    <span class="n">sub_division_map</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">sister_sub_division</span><span class="p">)</span> <span class="c1">#should be a copy of the parent subdivision</span>
+    <span class="c1">#print()</span>
+    <span class="c1">#print(sub_division_index)</span>
+    <span class="c1">#sub_division_index = np.argwhere(np.array(sub_division_map)==-1).flatten()</span>
+    <span class="c1">#print(sub_division_index)</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">main_idx</span><span class="p">)):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">sub_division_index</span><span class="p">[</span><span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">sub_division_index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">sub_division_index</span><span class="p">[</span><span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sub_division_map</span><span class="p">[</span><span class="n">start</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">end</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">alt_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">alt_start</span> <span class="o">=</span> <span class="n">sub_division_index</span><span class="p">[</span><span class="n">alt_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                <span class="k">if</span> <span class="n">alt_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">sub_division_index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">alt_end</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">alt_end</span> <span class="o">=</span> <span class="n">sub_division_index</span><span class="p">[</span><span class="n">alt_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="n">sub_division_map</span><span class="p">[</span><span class="n">alt_start</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">alt_end</span><span class="p">]</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">tmp</span><span class="p">,</span><span class="mi">28</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">tmp</span><span class="p">,</span><span class="mi">28</span><span class="p">]</span><span class="o">/</span><span class="n">data</span><span class="p">[</span><span class="n">alt_idx</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">28</span><span class="p">])</span><span class="o">*</span><span class="n">alt_scale</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">optimum</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">25</span><span class="p">]</span> <span class="o">=</span> <span class="n">RR</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">optimum</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">27</span><span class="p">]</span> <span class="o">=</span> <span class="n">RL</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">optimum</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">22</span><span class="p">]</span> <span class="o">=</span> <span class="n">flows</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">23</span><span class="p">]</span> <span class="o">=</span> <span class="n">bifs</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="p">][</span><span class="n">optimum</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">24</span><span class="p">]</span> <span class="o">=</span> <span class="n">bifs</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">optimum</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">28</span><span class="p">]</span> <span class="o">=</span> <span class="n">main_scale</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">optimum</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">alt_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">alt_idx</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="mi">28</span><span class="p">]</span> <span class="o">=</span> <span class="n">alt_scale</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">optimum</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span> <span class="o">=</span> <span class="n">R0</span><span class="p">[</span><span class="n">optimum</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">23</span><span class="p">]</span> <span class="o">=</span> <span class="n">bifs</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">][</span><span class="n">optimum</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">24</span><span class="p">]</span> <span class="o">=</span> <span class="n">bifs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">optimum</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">25</span><span class="p">]</span> <span class="o">=</span> <span class="n">RR</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">optimum</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">27</span><span class="p">]</span> <span class="o">=</span> <span class="n">RL</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">optimum</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">22</span><span class="p">]</span> <span class="o">=</span> <span class="n">flows</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">data</span><span class="p">[:,</span><span class="mi">21</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span><span class="mi">28</span><span class="p">]</span><span class="o">*</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">nosegments</span><span class="p">:</span>
+        <span class="n">segment_data</span><span class="p">[:,</span><span class="mi">21</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">segment_data</span><span class="p">[:,</span><span class="mi">29</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span><span class="mi">28</span><span class="p">]</span><span class="o">*</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">21</span><span class="p">]</span>
+        <span class="n">total_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">data</span><span class="p">,</span><span class="n">segment_data</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">total_data</span> <span class="o">=</span> <span class="n">data</span>
+
+    <span class="c1">#total_data = update_map(data,main_idx,alt_idx,main_scale,alt_scale,RR,RL,flows,bifs,R0,sub_division_index,np.array(sub_division_map),optimum,new_sister_edge,new_terminal_edge)</span>
+    <span class="n">main_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">main_idx</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">main_idx</span><span class="p">)):</span>
+        <span class="n">sub_division_map</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">sub_division_index</span><span class="p">[</span><span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">new_sister_edge</span><span class="p">))</span>
+        <span class="n">sub_division_map</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">sub_division_index</span><span class="p">[</span><span class="n">main_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">new_terminal_edge</span><span class="p">))</span>
+        <span class="c1">#sub_division_index[main_idx[i]] += (len(main_idx)-1-i)*2</span>
+
+    <span class="c1">#total_data,main_idx,sub_division_index,sub_division_map = update_map(data,main_idx,alt_idx,main_scale,alt_scale,RR,RL,flows,bifs,R0,sub_division_index,np.array(sub_division_map),optimum,new_sister_edge,new_terminal_edge,sub_division_map)</span>
+    <span class="c1">#adder = 0</span>
+    <span class="c1">#for i in range(len(sub_division_index)):</span>
+    <span class="c1">#    sub_division_index[i] += adder</span>
+    <span class="c1">#    if i in main_idx:</span>
+    <span class="c1">#        adder += 2</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="s1">&#39;add_4&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start_time</span><span class="p">)</span>
+    <span class="n">sub_division_index</span> <span class="o">=</span> <span class="n">update_index</span><span class="p">(</span><span class="n">sub_division_index</span><span class="p">,</span><span class="n">main_idx</span><span class="p">)</span>
+    <span class="c1">#tree.time[&#39;add_4&#39;].append(time.time()-start_time)</span>
+    <span class="c1">#print()</span>
+    <span class="c1">#print(&#39;main_idx: {}&#39;.format(main_idx))</span>
+    <span class="c1">#print(&#39;manual: {}&#39;.format(sub_division_index))</span>
+    <span class="c1">#sub_division_index = np.argwhere(np.array(sub_division_map)==-1).flatten()</span>
+    <span class="c1">#print(&#39;np arg: {}&#39;.format(sub_division_index))</span>
+    <span class="c1">#if time.time()-start &gt; 100:</span>
+    <span class="c1">#    val = 0</span>
+    <span class="c1">#else:</span>
+    <span class="c1">#    val = time.time()-start</span>
+    <span class="c1">#tree.time[&#39;add_4&#39;].append(time.time()-start_time)</span>
+    <span class="k">return</span> <span class="n">total_data</span><span class="p">,</span><span class="n">sub_division_map</span><span class="p">,</span><span class="n">sub_division_index</span></div>
+
+<div class="viewcode-block" id="update_index"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.add_bifurcation.update_index">[docs]</a><span class="nd">@nb</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">nogil</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">update_index</span><span class="p">(</span><span class="n">sub_division_index</span><span class="p">,</span><span class="n">main_idx</span><span class="p">):</span>
+    <span class="n">adder</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sub_division_index</span><span class="p">)):</span>
+        <span class="n">sub_division_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">adder</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">main_idx</span><span class="p">:</span>
+            <span class="n">adder</span> <span class="o">+=</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">sub_division_index</span></div>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">@nb.jit(nopython=True,cache=True,nogil=True)</span>
+<span class="sd">def update_map(data,main_idx,alt_idx,main_scale,alt_scale,RR,RL,flows,bifs,R0,sub_division_index,sub_division_map,optimum,new_sister_edge,new_terminal_edge):</span>
+<span class="sd">    for i in range(len(main_idx)):</span>
+<span class="sd">        start = sub_division_index[main_idx[i]]</span>
+<span class="sd">        if main_idx[i] == sub_division_index[-1]:</span>
+<span class="sd">            end = None</span>
+<span class="sd">        else:</span>
+<span class="sd">            end = sub_division_index[main_idx[i]+1]</span>
+<span class="sd">        if len(sub_division_map[start+1:end]) &gt; 0 and main_idx[i] &gt; 0:</span>
+<span class="sd">            if alt_idx[i] &gt; -1:</span>
+<span class="sd">                alt_start = sub_division_index[alt_idx[i]]</span>
+<span class="sd">                if alt_idx[i] == sub_division_index[-1]:</span>
+<span class="sd">                    alt_end = None</span>
+<span class="sd">                else:</span>
+<span class="sd">                    alt_end = sub_division_index[alt_idx[i]+1]</span>
+<span class="sd">                tmp = sub_division_map[alt_start+1:alt_end]</span>
+<span class="sd">                data[tmp,28] = (data[tmp,28]/data[alt_idx[i],28])*alt_scale[i][optimum]</span>
+<span class="sd">        data[main_idx[i],25] = RR[i][optimum]</span>
+<span class="sd">        data[main_idx[i],27] = RL[i][optimum]</span>
+<span class="sd">        data[main_idx[i],22] = flows[i]</span>
+<span class="sd">        data[main_idx[i],23] = bifs[i*2][optimum]</span>
+<span class="sd">        data[main_idx[i],24] = bifs[i*2+1][optimum]</span>
+<span class="sd">        if main_idx[i] &gt; 0:</span>
+<span class="sd">            data[main_idx[i],28] = main_scale[i][optimum]</span>
+<span class="sd">            if alt_idx[i] &gt; -2:</span>
+<span class="sd">                data[alt_idx[i],28] = alt_scale[i][optimum]</span>
+<span class="sd">    data[0,21] = R0[optimum]</span>
+<span class="sd">    data[0,23] = bifs[-2][optimum]</span>
+<span class="sd">    data[0,24] = bifs[-1][optimum]</span>
+<span class="sd">    data[0,25] = RR[-1][optimum]</span>
+<span class="sd">    data[0,27] = RL[-1][optimum]</span>
+<span class="sd">    data[0,22] = flows[-1]</span>
+<span class="sd">    data[:,21] = data[:,28]*data[0,21]</span>
+
+<span class="sd">    return data</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.branch_addition.add_bifurcation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

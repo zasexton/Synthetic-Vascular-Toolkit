@@ -77,7 +77,6 @@ def obb(data,edge):
     #print(end)
     return collision
     """
-
     C1 = (edge[0:3] + edge[3:6]) / 2
     C2 = (data[:,0:3] + data[:,3:6]) / 2
     Position = C2 - C1

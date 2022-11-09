@@ -3,57 +3,68 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pyvista as pv
 
-cube = pv.Cube(x_length=3.72,y_length=3.72,z_length=3.72).triangulate().subdivide(3)
-sphere = pv.Sphere(radius=2.3).triangulate().subdivide(1)
+q = 4
+resolution = 120
 
-s = svcco.surface()
-s.set_data(cube.points,cube.point_normals)
-s.solve()
-s.build()
 
-t = svcco.tree()
-t.set_boundary(s)
-t.convex = True
-t.set_root()
-t.n_add(300)
-
+cu = pv.Cube(x_length=3.72,y_length=3.72,z_length=3.72).triangulate().subdivide(5)
+cube = svcco.surface()
+cube.set_data(cu.points,cu.point_normals)
+cube.solve()
+cube.build(q=q,resolution=resolution)
+print('cube constructed')
 
 heart = svcco.surface()
 heart_points = np.genfromtxt('D:\\svcco\\svcco\\implicit\\tests\\heart_points_unique.csv',delimiter=',')
 heart_normals = np.genfromtxt('D:\\svcco\\svcco\\implicit\\tests\\heart_normals_unique.csv',delimiter=',')
 heart.set_data(heart_points,heart_normals)
 heart.solve()
-heart.build(q=6,resolution=120,k=2,buffer=5)
+heart.build(q=q,resolution=resolution,buffer=5)
+print('heart constructed')
 
+
+disk = pv.Disc(inner=2.8,outer=4,r_res=20,c_res=100)
+cyl  = disk.extrude([0,0,2],capping=True).triangulate()
+cyl  = svcco.utils.remeshing.remesh.remesh_surface(cyl)
+cyl  = cyl.subdivide(2)
+cyl  = svcco.utils.remeshing.remesh.remesh_surface(cyl,hausd=0.005)
+cyl  = cyl.compute_normals(auto_orient_normals=True,feature_angle=90)
+cylinder = svcco.surface()
+cylinder.set_data(cyl.points,cyl.point_normals)
+cylinder.solve()
+cylinder.build(q=q,resolution=resolution)
+print('cylinder constructed')
 
 left_gyrus   = "D:\\Tree\\Tree_8-0\\brain_testing\\FJ3801_BP58201_FMA72658_Left inferior frontal gyrus.obj"
-
+gyrus_no_scale = pv.read(left_gyrus)
+sf = (heart.volume/gyrus_no_scale.volume)**(1/3)
+gyrus_scaled = gyrus_no_scale.scale([sf,sf,sf])
+left_gyrus_scaled = "left_gyrus_scaled.vtp"
+gyrus_scaled.save(left_gyrus_scaled)
 gyrus = svcco.surface()
-gyrus.load(left_gyrus)
-
+gyrus.load(left_gyrus_scaled)
 gyrus.solve()
-gyrus.build(q=4,resolution=40)
-
-sph = svcco.surface()
-sph.set_data(sphere.points,sphere.point_normals)
-sph.solve()
-sph.build(q=2,resolution=20)
+gyrus.build(q=q,resolution=resolution,buffer=5)
+print('gyrus constructed')
 
 
 ###########################################
 # Test function
 ###########################################
 
-def test_cube(size=1000):
+def test(surf_object,size=1000):
     t = svcco.tree()
-    t.set_boundary(s)
-    t.convex = True
+    t.set_boundary(surf_object)
+    delaunay = surf_object.pv_polydata.delaunay_3d()
+    convexity = surf_object.volume/delaunay.volume
+    if convexity > 0.95:
+        t.convex = True
     t.set_root()
     t.n_add(size)
 
     w = svcco.utils.fluid_analysis.wss.wss(t)
-    r = t.data[:,21]*10 #should be microns
-    l = t.data[:,20]*10
+    r = t.data[:,21]*10 # in millimeters
+    l = t.data[:,20]*10 # in millimeters
 
     a = []
     for i in range(t.data.shape[0]):
@@ -227,7 +238,7 @@ def test_gyrus(size=1000):
     return w,r,l,a,torts
 
 
-def results(test_list,size=1000,iter=10,bins=50,range_w=(0,1500),range_r=(0,1),range_l=(0,3.5),range_a = (0,90),range_t=(0,4*180)):
+def results(test_list,size=1000,iter=10,bins=50,range_w=(0,1500),range_r=(0,1),range_l=(0,4),range_a = (0,90),range_t=(0,4*180)):
     WSS_ALL = []
     RAD_ALL = []
     LEN_ALL = []
@@ -260,7 +271,7 @@ def results(test_list,size=1000,iter=10,bins=50,range_w=(0,1500),range_r=(0,1),r
         ANG = []
         TORT = []
         for j in range(iter):
-            w,r,l,a,torts = test_list[i](size=size)
+            w,r,l,a,torts = test(test_list[i],size=size)
             freq_w,edges_w = np.histogram(w,bins=bins,range=range_w)
             freq_r,edges_r = np.histogram(r,bins=bins,range=range_r)
             freq_l,edges_l = np.histogram(l,bins=bins,range=range_l)
@@ -367,16 +378,16 @@ def results(test_list,size=1000,iter=10,bins=50,range_w=(0,1500),range_r=(0,1),r
             for pos,y,err in zip(centers_t,TORT_mean,TORT_std):
                 ax[3][i].errorbar(pos,y,err,capsize=2,color='black')
             ax[0][i].set_xlim([0,None])
-            ax[0][i].set_ylim([0,None])
+            ax[0][i].set_ylim([0,500])
 
             ax[1][i].set_xlim([0,None])
-            ax[1][i].set_ylim([0,None])
+            ax[1][i].set_ylim([0,100])
 
-            ax[2][i].set_xlim([0,None])
-            ax[2][i].set_ylim([0,None])
+            ax[2][i].set_xlim([0,90])
+            ax[2][i].set_ylim([0,125])
 
             ax[3][i].set_xlim([0,None])
-            ax[3][i].set_ylim([0,None])
+            ax[3][i].set_ylim([0,350])
         else:
             ax[0].bar(centers_r,RAD_mean,width=width_r,yerr=RAD_std)
             ax[1].bar(centers_l,LEN_mean,width=width_l,yerr=LEN_std)
@@ -398,7 +409,7 @@ def results(test_list,size=1000,iter=10,bins=50,range_w=(0,1500),range_r=(0,1),r
             ax[1].set_xlim([0,None])
             ax[1].set_ylim([0,None])
 
-            ax[2].set_xlim([0,None])
+            ax[2].set_xlim([0,90])
             ax[2].set_ylim([0,None])
 
             ax[3].set_xlim([0,None])
@@ -422,4 +433,7 @@ def results(test_list,size=1000,iter=10,bins=50,range_w=(0,1500),range_r=(0,1),r
         ax[1].set_xlabel('Vessel Length (mm)')
         ax[2].set_xlabel('Parent-daughter Angles')
         ax[3].set_xlabel('Tortuosity')
-    plt.show()
+    fig.savefig('morphometry_surfaces-{}_num_vessels-{}_iter-{}_num_bins-{}.svg'.format(len(test_list),size,iter,bins),format='svg')
+    return fig,ax
+
+f,a = results([cube,cylinder,heart,gyrus])

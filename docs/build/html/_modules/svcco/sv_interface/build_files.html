@@ -1,0 +1,360 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.sv_interface.build_files &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.build_files</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.sv_interface.build_files</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">.setup</span> <span class="kn">import</span> <span class="n">setup</span> <span class="k">as</span> <span class="n">setup_file</span>
+<span class="kn">from</span> <span class="nn">.paths</span> <span class="kn">import</span> <span class="n">paths</span> <span class="k">as</span> <span class="n">path_file</span>
+<span class="kn">from</span> <span class="nn">.contour</span> <span class="kn">import</span> <span class="n">contour</span> <span class="k">as</span> <span class="n">contour_file</span>
+<span class="kn">from</span> <span class="nn">.geometry</span> <span class="kn">import</span> <span class="n">geometry</span> <span class="k">as</span> <span class="n">geometry_file</span>
+<span class="kn">from</span> <span class="nn">.loft</span> <span class="kn">import</span> <span class="n">loft</span> <span class="k">as</span> <span class="n">loft_file</span>
+<span class="kn">from</span> <span class="nn">.solid</span> <span class="kn">import</span> <span class="n">solid</span> <span class="k">as</span> <span class="n">solid_file</span>
+<span class="kn">from</span> <span class="nn">.mesh</span> <span class="kn">import</span> <span class="n">mesh</span> <span class="k">as</span> <span class="n">mesh_file</span>
+<span class="kn">from</span> <span class="nn">.presolver</span> <span class="kn">import</span> <span class="n">presolver</span> <span class="k">as</span> <span class="n">presolver_file</span>
+<span class="kn">from</span> <span class="nn">.solver</span> <span class="kn">import</span> <span class="n">solver</span> <span class="k">as</span> <span class="n">solver_file</span>
+<span class="kn">from</span> <span class="nn">.centerline</span> <span class="kn">import</span> <span class="n">centerline</span> <span class="k">as</span> <span class="n">centerline_file</span>
+<span class="kn">from</span> <span class="nn">.rom</span> <span class="kn">import</span> <span class="n">rom</span> <span class="k">as</span> <span class="n">rom_file</span>
+<span class="kn">from</span> <span class="nn">.flow</span> <span class="kn">import</span> <span class="n">flow</span> <span class="k">as</span> <span class="n">flow_file</span>
+
+<div class="viewcode-block" id="build"><a class="viewcode-back" href="../../../svcco.sv_interface.html#svcco.sv_interface.build_files.build">[docs]</a><span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span><span class="n">radii</span><span class="p">,</span><span class="n">normals</span><span class="p">,</span><span class="n">options</span><span class="p">,</span><span class="n">setup_file</span><span class="o">=</span><span class="n">setup_file</span><span class="p">,</span>
+          <span class="n">path_file</span><span class="o">=</span><span class="n">path_file</span><span class="p">,</span><span class="n">contour_file</span><span class="o">=</span><span class="n">contour_file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">),</span>
+          <span class="n">geometry_file</span><span class="o">=</span><span class="n">geometry_file</span><span class="p">,</span><span class="n">loft_file</span><span class="o">=</span><span class="n">loft_file</span><span class="p">,</span>
+          <span class="n">solid_file</span><span class="o">=</span><span class="n">solid_file</span><span class="p">,</span><span class="n">mesh_file</span><span class="o">=</span><span class="n">mesh_file</span><span class="p">,</span>
+          <span class="n">presolver_file</span><span class="o">=</span><span class="n">presolver_file</span><span class="p">,</span><span class="n">solver_file</span><span class="o">=</span><span class="n">solver_file</span><span class="p">,</span>
+          <span class="n">centerline_file</span><span class="o">=</span><span class="n">centerline_file</span><span class="p">,</span><span class="n">rom_file</span><span class="o">=</span><span class="n">rom_file</span><span class="p">,</span><span class="n">flow_file</span><span class="o">=</span><span class="n">flow_file</span><span class="p">):</span>
+    <span class="n">cco_filename</span> <span class="o">=</span> <span class="n">options</span><span class="o">.</span><span class="n">filename</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;create_main_folder&#39;</span><span class="p">]:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;main_folder&#39;</span><span class="p">])</span>
+    <span class="n">cco_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">cco_filename</span><span class="p">,</span><span class="s1">&#39;w+&#39;</span><span class="p">)</span>
+    <span class="c1">#setup_file = open(os.path.dirname(__file__)+&#39;/setup.txt&#39;,&#39;r&#39;).read()</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">file_constructor</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]:</span>
+        <span class="c1">#path_file = open(os.path.dirname(__file__)+&#39;/paths.txt&#39;,&#39;r&#39;).read()</span>
+        <span class="n">path_file</span> <span class="o">=</span> <span class="n">path_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">file_constructor</span><span class="p">[</span><span class="s1">&#39;gui&#39;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">path_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">file_constructor</span><span class="p">[</span><span class="s1">&#39;contour&#39;</span><span class="p">]:</span>
+        <span class="c1">#contour_file = open(os.path.dirname(__file__)+&#39;/contour.txt&#39;,&#39;r&#39;).readlines()</span>
+        <span class="n">tmp_contour_file</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">contour_file</span><span class="p">)</span>
+        <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">file_constructor</span><span class="p">[</span><span class="s1">&#39;gui&#39;</span><span class="p">])</span>
+        <span class="c1">#print(contour_file[8])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp_contour_file</span><span class="p">)):</span>
+            <span class="n">tmp_contour_file</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">contour_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">file_constructor</span><span class="p">[</span><span class="s1">&#39;solid&#39;</span><span class="p">]:</span>
+        <span class="c1">#geometry_file = open(os.path.dirname(__file__)+&#39;/geometry.txt&#39;,&#39;r&#39;).read()</span>
+        <span class="c1">#geometry_file = geometry_file.format(options.geometry_options[&#39;number_samples&#39;],</span>
+        <span class="c1">#                                     options.geometry_options[&#39;use_distance_alignment_method&#39;])</span>
+        <span class="c1">#loft_file = open(os.path.dirname(__file__)+&#39;/loft.txt&#39;,&#39;r&#39;).read()</span>
+        <span class="c1">#loft_file = loft_file.format(options.loft_options[&#39;changes&#39;],</span>
+        <span class="c1">#                             options.loft_options[&#39;angle&#39;])</span>
+        <span class="c1">#solid_file = open(os.path.dirname(__file__)+&#39;/solid.txt&#39;,&#39;r&#39;).read()</span>
+        <span class="c1">#solid_file = solid_file.format(options.solid_options[&#39;minimum_face_cells&#39;],</span>
+        <span class="c1">#                               options.solid_options[&#39;hmin&#39;],</span>
+        <span class="c1">#                               options.solid_options[&#39;hmax&#39;],</span>
+        <span class="c1">#                               options.solid_options[&#39;face_edge_size&#39;],</span>
+        <span class="c1">#                               options.solid_options[&#39;face_edge_size&#39;],</span>
+        <span class="c1">#                               options.solid_options[&#39;angle&#39;],</span>
+        <span class="c1">#                               options.file_constructor[&#39;gui&#39;],</span>
+        <span class="c1">#                               options.name)</span>
+        <span class="n">loft_file</span> <span class="o">=</span> <span class="n">loft_file</span>
+        <span class="n">solid_file</span> <span class="o">=</span> <span class="n">solid_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">solid_options</span><span class="p">[</span><span class="s1">&#39;num_caps&#39;</span><span class="p">],</span><span class="n">options</span><span class="o">.</span><span class="n">solid_options</span><span class="p">[</span><span class="s1">&#39;angle&#39;</span><span class="p">],</span>
+                                       <span class="n">options</span><span class="o">.</span><span class="n">file_constructor</span><span class="p">[</span><span class="s1">&#39;gui&#39;</span><span class="p">],</span>
+                                       <span class="n">options</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">geometry_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">loft_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">solid_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">file_constructor</span><span class="p">[</span><span class="s1">&#39;mesh&#39;</span><span class="p">]:</span>
+        <span class="c1">#mesh_file = open(os.path.dirname(__file__)+&#39;/mesh.txt&#39;,&#39;r&#39;).read()</span>
+        <span class="n">mesh_file</span> <span class="o">=</span> <span class="n">mesh_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">mesh_options</span><span class="p">[</span><span class="s1">&#39;global_edge_size&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">mesh_options</span><span class="p">[</span><span class="s1">&#39;surface_mesh_flag&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">mesh_options</span><span class="p">[</span><span class="s1">&#39;volume_mesh_flag&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">mesh_options</span><span class="p">[</span><span class="s1">&#39;no_merge&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">mesh_options</span><span class="p">[</span><span class="s1">&#39;optimization_level&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">mesh_options</span><span class="p">[</span><span class="s1">&#39;minimum_dihedral_angle&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">file_constructor</span><span class="p">[</span><span class="s1">&#39;gui&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;create_main_folder&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;main_folder&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_complete_folder&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_surfaces_folder&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;centerline_folder&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_complete_folder&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_complete_folder&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_complete_folder&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_complete_folder&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;mesh_surfaces_folder&#39;</span><span class="p">])</span>
+        <span class="c1">#centerline_file = open(os.path.dirname(__file__)+&#39;/centerline.txt&#39;,&#39;r&#39;).read()</span>
+        <span class="n">centerline_file</span> <span class="o">=</span> <span class="n">centerline_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;centerline_folder&#39;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mesh_files</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">centerline_file</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="c1">#presolver_file = open(os.path.dirname(__file__)+&#39;/presolver.txt&#39;,&#39;r&#39;).read()</span>
+    <span class="n">presolver_file</span> <span class="o">=</span> <span class="n">presolver_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;fluid_density&#39;</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;fluid_viscosity&#39;</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;initial_pressure&#39;</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;initial_velocity&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;initial_velocity&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;initial_velocity&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;bct_analytical_shape&#39;</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;period&#39;</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;bct_point_number&#39;</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;fourier_mode&#39;</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;inflow_file&#39;</span><span class="p">],</span>
+                                           <span class="n">options</span><span class="o">.</span><span class="n">presolver_constructor</span><span class="p">[</span><span class="s1">&#39;pressures&#39;</span><span class="p">])</span>
+    <span class="c1">#solver_file = open(os.path.dirname(__file__)+&#39;/solver.txt&#39;,&#39;r&#39;).read()</span>
+    <span class="n">solver_file</span> <span class="o">=</span> <span class="n">solver_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;fluid_density&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;fluid_viscosity&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;number_timesteps&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;timestep_size&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;number_restarts&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;number_force_surfaces&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;surface_id_force_calc&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;force_calc_method&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;print_avg_solution&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;print_error_indicators&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;varying_time_from_file&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;step_construction&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;distal_resistance&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;pressure_coupling&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;backflow_stabilization&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;residual_control&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;residual_criteria&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;minimum_req_iter&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;svLS_type&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;num_krylov&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;num_solves_per_left&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;tolerance_momentum&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;tolerance_continuity&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;tolerance_svLS_NS&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;max_iter_NS&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;max_iter_momentum&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;max_iter_continuity&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;time_integration_rule&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;time_integration_rho&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;flow_advection_form&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;quadrature_interior&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">solver_constructor</span><span class="p">[</span><span class="s1">&#39;quadrature_boundary&#39;</span><span class="p">],</span>
+                                     <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">])</span>
+    <span class="n">flow_file</span> <span class="o">=</span> <span class="n">flow_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">],</span>
+                                 <span class="n">options</span><span class="o">.</span><span class="n">flow_constructor</span><span class="p">[</span><span class="s1">&#39;inflow_file&#39;</span><span class="p">],</span>
+                                 <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">],</span>
+                                 <span class="n">options</span><span class="o">.</span><span class="n">flow_constructor</span><span class="p">[</span><span class="s1">&#39;inflow_file&#39;</span><span class="p">],</span>
+                                 <span class="n">options</span><span class="o">.</span><span class="n">flow_constructor</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+                                 <span class="n">options</span><span class="o">.</span><span class="n">flow_constructor</span><span class="p">[</span><span class="s1">&#39;flow&#39;</span><span class="p">])</span>
+    <span class="n">rom_files</span> <span class="o">=</span> <span class="s1">&#39;import sv</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;0D&#39;</span><span class="p">][</span><span class="s1">&#39;create&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;1D&#39;</span><span class="p">][</span><span class="s1">&#39;create&#39;</span><span class="p">]:</span>
+        <span class="n">rom_files</span> <span class="o">+=</span> <span class="s2">&quot;os.mkdir(&#39;</span><span class="si">{}</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_folder&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;0D&#39;</span><span class="p">][</span><span class="s1">&#39;create&#39;</span><span class="p">]:</span>
+        <span class="n">rom_files</span> <span class="o">+=</span> <span class="s2">&quot;os.mkdir(&#39;</span><span class="si">{}</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_0D_folder&#39;</span><span class="p">])</span>
+        <span class="n">rom0D</span> <span class="o">=</span> <span class="n">rom_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                <span class="s1">&#39;0D&#39;</span><span class="p">,</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;centerline_folder&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;0D&#39;</span><span class="p">][</span><span class="s1">&#39;inflow_file&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;0D&#39;</span><span class="p">][</span><span class="s1">&#39;time_step&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;0D&#39;</span><span class="p">][</span><span class="s1">&#39;number_time_steps&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_0D_folder&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;0D&#39;</span><span class="p">][</span><span class="s1">&#39;model_order&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;0D&#39;</span><span class="p">][</span><span class="s1">&#39;model_order&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_0D_folder&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_0D_folder&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;0D&#39;</span><span class="p">][</span><span class="s1">&#39;model_order&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_0D_folder&#39;</span><span class="p">])</span>
+        <span class="n">rom_files</span> <span class="o">+=</span> <span class="n">rom0D</span>
+    <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;1D&#39;</span><span class="p">][</span><span class="s1">&#39;create&#39;</span><span class="p">]:</span>
+        <span class="n">rom_files</span> <span class="o">+=</span> <span class="s2">&quot;os.mkdir(&#39;</span><span class="si">{}</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_1D_folder&#39;</span><span class="p">])</span>
+        <span class="n">rom1D</span> <span class="o">=</span> <span class="n">rom_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                                <span class="s1">&#39;1D&#39;</span><span class="p">,</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;centerline_folder&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;data_folder&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;1D&#39;</span><span class="p">][</span><span class="s1">&#39;inflow_file&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;1D&#39;</span><span class="p">][</span><span class="s1">&#39;time_step&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;1D&#39;</span><span class="p">][</span><span class="s1">&#39;number_time_steps&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_1D_folder&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;1D&#39;</span><span class="p">][</span><span class="s1">&#39;model_order&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;1D&#39;</span><span class="p">][</span><span class="s1">&#39;model_order&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_1D_folder&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_1D_folder&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">rom_constructor</span><span class="p">[</span><span class="s1">&#39;1D&#39;</span><span class="p">][</span><span class="s1">&#39;model_order&#39;</span><span class="p">],</span>
+                                <span class="n">options</span><span class="o">.</span><span class="n">directory_constructor</span><span class="p">[</span><span class="s1">&#39;rom_1D_folder&#39;</span><span class="p">])</span>
+        <span class="n">rom_files</span> <span class="o">+=</span> <span class="n">rom1D</span>
+    <span class="c1">#postsolver_file = open(&#39;postsolver.txt&#39;,&#39;r&#39;).read()</span>
+    <span class="c1">############################################################</span>
+    <span class="c1"># BUILDING SV PATHLINES</span>
+    <span class="c1">############################################################</span>
+    <span class="n">cco_file_text</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">setup_file</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">points</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
+        <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">path_file</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span><span class="n">idx</span><span class="p">,</span><span class="n">points</span><span class="p">,</span><span class="n">idx</span><span class="p">,</span><span class="n">idx</span><span class="p">)</span>
+    <span class="c1">############################################################</span>
+    <span class="c1">############################################################</span>
+
+    <span class="c1">############################################################</span>
+    <span class="c1"># BUILDING SV CONTOURS</span>
+    <span class="c1">############################################################</span>
+    <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
+        <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="n">contours</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">paths</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span><span class="n">radii</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span><span class="n">normals</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">jdx</span><span class="p">,</span><span class="n">contour</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">contours</span><span class="p">):</span>
+            <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span><span class="n">contour</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">contour</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">contour</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span><span class="n">idx</span><span class="p">)</span>
+        <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+        <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">tmp_contour_file</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span><span class="n">idx</span><span class="p">,</span><span class="n">idx</span><span class="p">)</span>
+    <span class="c1">############################################################</span>
+    <span class="c1">############################################################</span>
+
+    <span class="c1">############################################################</span>
+    <span class="c1"># COMPUTING GEOMETRY</span>
+    <span class="c1">############################################################</span>
+    <span class="c1">#cco_file_text += geometry_file</span>
+    <span class="c1">############################################################</span>
+    <span class="c1">############################################################</span>
+
+    <span class="c1">############################################################</span>
+    <span class="c1"># LOFTING CONTOURS</span>
+    <span class="c1">############################################################</span>
+    <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">loft_file</span>
+    <span class="c1">############################################################</span>
+    <span class="c1">############################################################</span>
+
+    <span class="c1">############################################################</span>
+    <span class="c1"># BUILDING SV SOLID</span>
+    <span class="c1">############################################################</span>
+    <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">solid_file</span>
+    <span class="c1">############################################################</span>
+    <span class="c1">############################################################</span>
+
+    <span class="c1">############################################################</span>
+    <span class="c1"># BUILDING SV MESH</span>
+    <span class="c1">############################################################</span>
+    <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">mesh_file</span>
+    <span class="c1">############################################################</span>
+    <span class="c1">############################################################</span>
+
+    <span class="c1">############################################################</span>
+    <span class="c1"># BUILDING SVPRE FILE</span>
+    <span class="c1">############################################################</span>
+    <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">presolver_file</span>
+    <span class="c1">############################################################</span>
+    <span class="c1">############################################################</span>
+
+    <span class="c1">############################################################</span>
+    <span class="c1"># BUILDING SOLVER FILE</span>
+    <span class="c1">############################################################</span>
+    <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">solver_file</span>
+    <span class="c1">############################################################</span>
+
+    <span class="c1">############################################################</span>
+    <span class="c1"># BUILD INFLOW FILES</span>
+    <span class="c1">############################################################</span>
+    <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">flow_file</span>
+    <span class="c1">############################################################</span>
+
+    <span class="c1">############################################################</span>
+    <span class="c1"># EXTRACT CENTERLINE</span>
+    <span class="c1">############################################################</span>
+    <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">centerline_file</span>
+    <span class="c1">############################################################</span>
+
+
+    <span class="c1">############################################################</span>
+    <span class="c1"># BUILDING ROM INPUT FILES</span>
+    <span class="c1">############################################################</span>
+    <span class="n">cco_file_text</span> <span class="o">+=</span> <span class="n">rom_files</span>
+    <span class="c1">############################################################</span>
+    <span class="n">cco_file</span><span class="o">.</span><span class="n">writelines</span><span class="p">([</span><span class="n">cco_file_text</span><span class="p">])</span>
+    <span class="n">cco_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.build_files</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

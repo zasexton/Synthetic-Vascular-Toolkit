@@ -621,6 +621,8 @@ class surface:
         level      = kwargs.get('level',0)
         visualize  = kwargs.get('visualize',False)
         buffer     = kwargs.get('buffer',1)
+        if len(self.patches) == 1:
+            k = 1
         self.polydata,self.tet_pts,self.tet_verts,self.ele_vol,self.tet = marching_cubes_pv(self,resolution=resolution,k=k,level=level,visualize=visualize,buffer=buffer)
         self.cell_lookup = cKDTree(self.tet.grid.cell_centers().points)
         self.pv_polydata = pv.PolyData(var_inp=self.polydata)
@@ -929,8 +931,12 @@ def marching_cubes(surface_object,resolution=20,k=2,level=0,visualize=False,buff
     #Sample Implicit Function
     #print('Sampling Implicit Volume...')
     Vf = []
-    for i in zip(Zf,Yf,Xf,Kf):
-        Vf.append(surface_object.DD[0](i))
+    if k > 1:
+        for i in zip(Zf,Yf,Xf,Kf):
+            Vf.append(surface_object.DD[0](i))
+    else:
+        for i in zip(Zf,Yf,Xf):
+            Vf.append(surface_object.DD[0](i))
     Vf = np.array(Vf)
     surface_object.depth_interior_min = min(Vf)
     Vf = Vf.reshape(X.shape)
@@ -1041,7 +1047,10 @@ def marching_cubes_pv(surface_object,resolution=20,k=2,level=0,visualize=False,
     else:
         bar = range
     for i in bar(len(x)):
-        values.append(surface_object.DD[0]([x[i],y[i],z[i],k]))
+        if k > 1:
+            values.append(surface_object.DD[0]([x[i],y[i],z[i],k]))
+        else:
+            values.append(surface_object.DD[0]([x[i],y[i],z[i]]))
     values = np.array(values)
     surface_object.depth_interior_min = min(values)
     mesh = grid.contour([level],values,method=method,

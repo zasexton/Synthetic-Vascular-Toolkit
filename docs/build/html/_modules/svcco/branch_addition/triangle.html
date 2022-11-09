@@ -1,0 +1,349 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.branch_addition.triangle &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css" />
+    
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.branch_addition.triangle</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.branch_addition.triangle</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numba</span> <span class="k">as</span> <span class="nn">nb</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
+
+<div class="viewcode-block" id="get_local_points"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.triangle.get_local_points">[docs]</a><span class="k">def</span> <span class="nf">get_local_points</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">vessel</span><span class="p">,</span><span class="n">terminal</span><span class="p">,</span><span class="n">num</span><span class="p">,</span><span class="n">isclamped</span><span class="p">):</span>
+    <span class="n">proximal</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">distal</span>   <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+    <span class="n">direction</span> <span class="o">=</span> <span class="n">distal</span> <span class="o">-</span> <span class="n">proximal</span>
+    <span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+    <span class="c1">#length = np.linalg.norm(direction)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">vessel</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="n">isclamped</span><span class="p">:</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">vessel</span><span class="p">,</span><span class="mi">20</span><span class="p">]</span>
+        <span class="c1">#print(length*np.linspace(0,1,num))</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="n">direction</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">length</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">num</span><span class="p">)</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">proximal</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">shift</span><span class="o">.</span><span class="n">T</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">line</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">num</span><span class="p">)</span>
+        <span class="n">s</span><span class="p">,</span><span class="n">t</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">line</span><span class="p">,</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">s</span>      <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">t</span>      <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">proximal</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="n">s</span> <span class="o">+</span> \
+                   <span class="n">distal</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">t</span><span class="o">*</span><span class="n">s</span><span class="p">)</span><span class="o">+</span>\
+                   <span class="n">terminal</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">s</span><span class="p">)</span>
+        <span class="c1">#print(&#39;SHAPE: {}&#39;.format(points.shape))</span>
+    <span class="k">return</span> <span class="n">points</span></div>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">@nb.jit(nopython=True,cache=True)</span>
+<span class="sd">def angle_constraint(p0,p1,p2,constraint,greater):</span>
+<span class="sd">    tmp = []</span>
+<span class="sd">    for i in range(p0.shape[0]):</span>
+<span class="sd">        vector_1 = p1 - p0[i]</span>
+<span class="sd">        vector_2 = p2 - p0[i]</span>
+<span class="sd">        vector_1 = vector_1 / np.linalg.norm(vector_1)</span>
+<span class="sd">        vector_2 = vector_2 / np.linalg.norm(vector_2)</span>
+<span class="sd">        if greater:</span>
+<span class="sd">            if np.dot(vector_1,vector_2) &gt; constraint:</span>
+<span class="sd">                tmp.append(p0[i])</span>
+<span class="sd">        else:</span>
+<span class="sd">            if np.dot(vector_1,vector_2) &lt; constraint:</span>
+<span class="sd">                tmp.append(p0[i])</span>
+<span class="sd">    return tmp</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="angle_constraint"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.triangle.angle_constraint">[docs]</a><span class="k">def</span> <span class="nf">angle_constraint</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span><span class="n">p1</span><span class="p">,</span><span class="n">p2</span><span class="p">,</span><span class="n">constraint</span><span class="p">,</span><span class="n">greater</span><span class="p">):</span>
+    <span class="n">vector_1</span> <span class="o">=</span> <span class="n">p1</span> <span class="o">-</span> <span class="n">p0</span>
+    <span class="n">vector_2</span> <span class="o">=</span> <span class="n">p2</span> <span class="o">-</span> <span class="n">p0</span>
+    <span class="n">vector_1</span> <span class="o">=</span> <span class="n">vector_1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector_1</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">vector_2</span> <span class="o">=</span> <span class="n">vector_2</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">vector_2</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">angle</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vector_1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">vector_2</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vector_1</span><span class="p">))])</span>
+    <span class="k">if</span> <span class="n">greater</span><span class="p">:</span>
+        <span class="n">p0</span>   <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">angle</span><span class="o">&gt;</span><span class="n">constraint</span><span class="p">,:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">p0</span>   <span class="o">=</span> <span class="n">p0</span><span class="p">[</span><span class="n">angle</span><span class="o">&lt;</span><span class="n">constraint</span><span class="p">,:]</span>
+    <span class="k">return</span> <span class="n">p0</span></div>
+
+
+<div class="viewcode-block" id="relative_length_constraint"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.triangle.relative_length_constraint">[docs]</a><span class="nd">@nb</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">relative_length_constraint</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span><span class="n">p1</span><span class="p">,</span><span class="n">p2</span><span class="p">,</span><span class="n">p3</span><span class="p">,</span><span class="n">ratio</span><span class="p">):</span>
+    <span class="n">d_max</span>    <span class="o">=</span> <span class="nb">min</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p1</span><span class="o">-</span><span class="n">p2</span><span class="p">),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p1</span><span class="o">-</span><span class="n">p3</span><span class="p">),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p2</span><span class="o">-</span><span class="n">p3</span><span class="p">)])</span><span class="o">*</span><span class="n">ratio</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">p0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p1</span><span class="o">-</span><span class="n">p0</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">&gt;</span><span class="n">d_max</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p2</span><span class="o">-</span><span class="n">p0</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">&gt;</span><span class="n">d_max</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">p3</span><span class="o">-</span><span class="n">p0</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">&gt;</span><span class="n">d_max</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="c1">#p0 = np.array(tmp)</span>
+    <span class="c1">#p0 = p0[np.linalg.norm(p1-p0,axis=1)&gt;d_max]</span>
+    <span class="c1">#p0 = p0[np.linalg.norm(p2-p0,axis=1)&gt;d_max]</span>
+    <span class="c1">#p0 = p0[np.linalg.norm(p3-p0,axis=1)&gt;d_max]</span>
+    <span class="k">return</span> <span class="n">tmp</span></div>
+
+<div class="viewcode-block" id="boundary_constraint"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.triangle.boundary_constraint">[docs]</a><span class="k">def</span> <span class="nf">boundary_constraint</span><span class="p">(</span><span class="n">p0</span><span class="p">,</span><span class="n">boundary</span><span class="p">,</span><span class="n">patches</span><span class="p">):</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">p0</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">boundary</span><span class="o">.</span><span class="n">within</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">p0</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="n">p0</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span><span class="n">patches</span><span class="p">):</span>
+            <span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p0</span><span class="p">[</span><span class="n">idx</span><span class="p">,:])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="absolute_length_constraint"><a class="viewcode-back" href="../../../svcco.branch_addition.html#svcco.branch_addition.triangle.absolute_length_constraint">[docs]</a><span class="k">def</span> <span class="nf">absolute_length_constraint</span><span class="p">():</span>
+    <span class="k">pass</span></div>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">class triangle:</span>
+<span class="sd">    def __init__(self,level,ct,p0,p1,p2,p0_val,p1_val,degree=2,nodes=None,target=None):</span>
+<span class="sd">        self.degree = degree</span>
+<span class="sd">        if np.all(nodes) is not None:</span>
+<span class="sd">            self.nodes = nodes</span>
+<span class="sd">            self.targets = np.ones(self.nodes.shape[0])*target</span>
+<span class="sd">        else:</span>
+<span class="sd">            self.nodes,self.targets = self.sample(level,ct,degree,p0,p1,p2,p0_val,p1_val)</span>
+
+<span class="sd">    def sample(self,level,ct,degree,p0,p1,p2,p0_val,p1_val):</span>
+<span class="sd">        if degree == 1:</span>
+<span class="sd">            nodes = []</span>
+<span class="sd">            pts = np.array([p0,p1,p2])</span>
+<span class="sd">            #for pt in pts:</span>
+<span class="sd">            #    nodes.append(level(*pt,ct).x)</span>
+<span class="sd">            nodes = pts</span>
+<span class="sd">        elif degree == 2:</span>
+<span class="sd">            nodes = []</span>
+<span class="sd">            pts = np.array([p0,(p0+p1)/2,(p0+p2)/2,p1,(p1+p2)/2,p2])</span>
+<span class="sd">            tar = np.array([p0_val,(p0_val+p1_val)/2,(p0_val+ct)/2,p1_val,(p1_val+ct)/2,ct])</span>
+<span class="sd">            for idx,pt in enumerate(pts):</span>
+<span class="sd">                if idx == 0 or idx==3 or idx == 5:</span>
+<span class="sd">                    nodes.append(pt)</span>
+<span class="sd">                else:</span>
+<span class="sd">                    nodes.append(level(pt[0],pt[1],pt[2],tar[idx]).x)</span>
+<span class="sd">        elif degree == 3:</span>
+<span class="sd">            nodes = []</span>
+<span class="sd">            pts = np.array([p0,(2*p0+p1)/3,(2*p0+p2)/3,(p0+2*p1)/3,(p0+p1+p2)/3,(p0+2*p2)/3,p1,(2*p1+p2)/3,(p1+2*p2)/3,p2])</span>
+<span class="sd">            tar = np.array([p0_val,(2*p0_val+p1_val)/3,(2*p0_val+ct)/3,(p0_val+2*p1_val)/3,(p0_val+p1_val+ct)/3,(p0_val+2*ct)/3,p1_val,(2*p1_val+ct)/3,(p1_val+2*ct)/3,ct])</span>
+<span class="sd">            for idx,pt in enumerate(pts):</span>
+<span class="sd">                if idx == 0 or idx == 6 or idx == 9:</span>
+<span class="sd">                    nodes.append(pt)</span>
+<span class="sd">                else:</span>
+<span class="sd">                    nodes.append(level(*pt,tar[idx]).x)</span>
+<span class="sd">        nodes = np.array(nodes)</span>
+<span class="sd">        return nodes,tar</span>
+
+<span class="sd">    def cubic(self,s,t,u):</span>
+<span class="sd">        coef = np.array([t**3,3*s*t**2,3*u*t**2,3*s**2*t,6*s*t*u,</span>
+<span class="sd">                         3*t*u**2,s**3,3*s**2*u,3*s*u**2,u**3])</span>
+<span class="sd">        #point = np.sum(coef*self.nodes,axis=0)</span>
+<span class="sd">        point = coef[0,:].reshape(-1,1)*self.nodes[0,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[1,:].reshape(-1,1)*self.nodes[1,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[2,:].reshape(-1,1)*self.nodes[2,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[3,:].reshape(-1,1)*self.nodes[3,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[4,:].reshape(-1,1)*self.nodes[4,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[5,:].reshape(-1,1)*self.nodes[5,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[6,:].reshape(-1,1)*self.nodes[6,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[7,:].reshape(-1,1)*self.nodes[7,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[8,:].reshape(-1,1)*self.nodes[8,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[9,:].reshape(-1,1)*self.nodes[9,:].reshape(1,-1)</span>
+<span class="sd">        target = coef[0,:].reshape(-1,1)*self.targets[0].reshape(1,-1) +\</span>
+<span class="sd">                 coef[1,:].reshape(-1,1)*self.targets[1].reshape(1,-1) +\</span>
+<span class="sd">                 coef[2,:].reshape(-1,1)*self.targets[2].reshape(1,-1) +\</span>
+<span class="sd">                 coef[3,:].reshape(-1,1)*self.targets[3].reshape(1,-1) +\</span>
+<span class="sd">                 coef[4,:].reshape(-1,1)*self.targets[4].reshape(1,-1) +\</span>
+<span class="sd">                 coef[5,:].reshape(-1,1)*self.targets[5].reshape(1,-1) +\</span>
+<span class="sd">                 coef[6,:].reshape(-1,1)*self.targets[6].reshape(1,-1) +\</span>
+<span class="sd">                 coef[7,:].reshape(-1,1)*self.targets[7].reshape(1,-1) +\</span>
+<span class="sd">                 coef[8,:].reshape(-1,1)*self.targets[8].reshape(1,-1) +\</span>
+<span class="sd">                 coef[9,:].reshape(-1,1)*self.targets[9].reshape(1,-1)</span>
+<span class="sd">        return point,target</span>
+
+<span class="sd">    def quart(self,s,t,u):</span>
+<span class="sd">        coef = np.array([t**2,2*s*t,2*t*u,s**2,2*s*u,u**2])</span>
+<span class="sd">        #point = np.sum(coef*self.nodes,axis=0)</span>
+<span class="sd">        point = coef[0,:].reshape(-1,1)*self.nodes[0,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[1,:].reshape(-1,1)*self.nodes[1,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[2,:].reshape(-1,1)*self.nodes[2,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[3,:].reshape(-1,1)*self.nodes[3,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[4,:].reshape(-1,1)*self.nodes[4,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[5,:].reshape(-1,1)*self.nodes[5,:].reshape(1,-1)</span>
+<span class="sd">        target = coef[0,:].reshape(-1,1)*self.targets[0].reshape(1,-1) +\</span>
+<span class="sd">                 coef[1,:].reshape(-1,1)*self.targets[1].reshape(1,-1) +\</span>
+<span class="sd">                 coef[2,:].reshape(-1,1)*self.targets[2].reshape(1,-1) +\</span>
+<span class="sd">                 coef[3,:].reshape(-1,1)*self.targets[3].reshape(1,-1) +\</span>
+<span class="sd">                 coef[4,:].reshape(-1,1)*self.targets[4].reshape(1,-1) +\</span>
+<span class="sd">                 coef[5,:].reshape(-1,1)*self.targets[5].reshape(1,-1)</span>
+<span class="sd">        return point,target</span>
+
+<span class="sd">    def linear(self,s,t,u):</span>
+<span class="sd">        coef = np.array([t,s,u])</span>
+<span class="sd">        #point = np.sum(coef*self.nodes,axis=0)</span>
+<span class="sd">        point = coef[0,:].reshape(-1,1)*self.nodes[0,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[1,:].reshape(-1,1)*self.nodes[1,:].reshape(1,-1) +\</span>
+<span class="sd">                coef[2,:].reshape(-1,1)*self.nodes[2,:].reshape(1,-1)</span>
+<span class="sd">        target = coef[0,:].reshape(-1,1)*self.targets[0].reshape(1,-1) +\</span>
+<span class="sd">                 coef[1,:].reshape(-1,1)*self.targets[1].reshape(1,-1) +\</span>
+<span class="sd">                 coef[2,:].reshape(-1,1)*self.targets[2].reshape(1,-1)</span>
+<span class="sd">        return point,target</span>
+
+<span class="sd">    def generate(self,n=10):</span>
+<span class="sd">        s = np.ones((n,n))*np.array([np.flip(np.linspace(0,1,num=n))]).T</span>
+<span class="sd">        t = np.linspace(0,1-np.linspace(0,1,num=n),num=n)</span>
+<span class="sd">        u = np.ones((n,n)) - s - t</span>
+<span class="sd">        s = s[1:].flatten()</span>
+<span class="sd">        t = t[1:].flatten()</span>
+<span class="sd">        u = u[1:].flatten()</span>
+<span class="sd">        if self.degree == 1:</span>
+<span class="sd">            points,targets = self.linear(s,t,u)</span>
+<span class="sd">        elif self.degree == 2:</span>
+<span class="sd">            points,targets = self.quart(s,t,u)</span>
+<span class="sd">        elif self.degree == 3:</span>
+<span class="sd">            points,targets = self.cubic(s,t,u)</span>
+<span class="sd">        else:</span>
+<span class="sd">            points = None</span>
+<span class="sd">            targets = None</span>
+<span class="sd">        return points,targets,(s,t,u)</span>
+
+<span class="sd">    def get_jit(self):</span>
+<span class="sd">        if self.degree == 3:</span>
+<span class="sd">            @nb.jit(nopython=True,cache=True)</span>
+<span class="sd">            def cubic(s,t,u,nodes=self.nodes):</span>
+<span class="sd">                coef = np.array([t**3,3*s*t**2,3*u*t**2,3*s**2*t,6*s*t*u,</span>
+<span class="sd">                                 3*t*u**2,s**3,3*s**2*u,3*s*u**2,u**3])</span>
+<span class="sd">                point = coef[0,:].reshape(-1,1)*nodes[0,:].reshape(1,-1) +\</span>
+<span class="sd">                        coef[1,:].reshape(-1,1)*nodes[1,:].reshape(1,-1) +\</span>
+<span class="sd">                        coef[2,:].reshape(-1,1)*nodes[2,:].reshape(1,-1) +\</span>
+<span class="sd">                        coef[3,:].reshape(-1,1)*nodes[3,:].reshape(1,-1) +\</span>
+<span class="sd">                        coef[4,:].reshape(-1,1)*nodes[4,:].reshape(1,-1) +\</span>
+<span class="sd">                        coef[5,:].reshape(-1,1)*nodes[5,:].reshape(1,-1) +\</span>
+<span class="sd">                        coef[6,:].reshape(-1,1)*nodes[6,:].reshape(1,-1) +\</span>
+<span class="sd">                        coef[7,:].reshape(-1,1)*nodes[7,:].reshape(1,-1) +\</span>
+<span class="sd">                        coef[8,:].reshape(-1,1)*nodes[8,:].reshape(1,-1) +\</span>
+<span class="sd">                        coef[9,:].reshape(-1,1)*nodes[9,:].reshape(1,-1)</span>
+<span class="sd">                return point</span>
+<span class="sd">            return cubic</span>
+
+<span class="sd">class b_tri:</span>
+<span class="sd">    def __init__(self,points):</span>
+<span class="sd">        #Check for the correct number of control points</span>
+<span class="sd">        degree = (-3+(9-4*(2-2*points.shape[0]))**(1/2))/2</span>
+<span class="sd">        degree_int = round(degree)</span>
+<span class="sd">        self.points = points</span>
+<span class="sd">        if np.isclose(degree,degree_int,0.0001):</span>
+<span class="sd">            self.degree = degree_int</span>
+<span class="sd">        else:</span>
+<span class="sd">            print(&#39;Incorrect number of control points&#39;)</span>
+<span class="sd">        if degree &gt; 6:</span>
+<span class="sd">            print(&#39;Number of control points greater than degrees.&#39;)</span>
+<span class="sd">    def sample(self,n=10):</span>
+<span class="sd">        s = np.ones((n,n))*np.array([np.flip(np.linspace(0,1,num=n))]).T</span>
+<span class="sd">        t = np.linspace(0,1-np.linspace(0,1,num=n),num=n)</span>
+<span class="sd">        u = np.ones((n,n)) - s - t</span>
+<span class="sd">        s = s[1:].flatten()</span>
+<span class="sd">        t = t[1:].flatten()</span>
+<span class="sd">        u = u[1:].flatten()</span>
+<span class="sd">        if self.degree == 1:</span>
+<span class="sd">            coef = np.array([t,s,u]).T</span>
+<span class="sd">            samples = []</span>
+<span class="sd">            for i in range(coef.shape[0]):</span>
+<span class="sd">                tmp = np.sum(self.points*coef[i,:],axis=0)</span>
+<span class="sd">                samples.append(tmp)</span>
+<span class="sd">        elif self.degree == 2:</span>
+<span class="sd">            coef = np.array([t**2,2*s*t,2*t*u,s**2,2*s*u,u**2]).T</span>
+<span class="sd">            samples = []</span>
+<span class="sd">            for i in range(coef.shape[0]):</span>
+<span class="sd">                tmp = np.sum(self.points*coef[i,:],axis=0)</span>
+<span class="sd">                samples.append(tmp)</span>
+<span class="sd">        elif self.degree == 3:</span>
+<span class="sd">            coef = np.array([t**3,3*s*t**2,3*u*t**2,3*s**2*t,6*s*t*u,</span>
+<span class="sd">                             3*t*u**2,s**3,3*s**2*u,3*s*u**2,u**3]).T</span>
+<span class="sd">            samples = []</span>
+<span class="sd">            for i in range(coef.shape[0]):</span>
+<span class="sd">                tmp = np.sum(self.points*coef[i,:],axis=0)</span>
+<span class="sd">                samples.append(tmp)</span>
+<span class="sd">        elif self.degree == 4:</span>
+<span class="sd">            coef = np.array([t**4,4*s*t**3,4*u*t**3,6*t**2*s**2,12*t**2*u,6*t**2*u**2,</span>
+<span class="sd">                             4*t*s**3,12*t*s**2*u,12*t*s*u**2,s**4,4*s**3*u,6*s**2*u**2,</span>
+<span class="sd">                             4*s*u**3,u**4]).T</span>
+<span class="sd">            samples = []</span>
+<span class="sd">            for i in range(coef.shape[0]):</span>
+<span class="sd">                tmp = np.sum(self.points*coef[i,:],axis=0)</span>
+<span class="sd">                samples.append(tmp)</span>
+<span class="sd">        samples = np.array(samples)</span>
+<span class="sd">        return samples</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.branch_addition.triangle</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

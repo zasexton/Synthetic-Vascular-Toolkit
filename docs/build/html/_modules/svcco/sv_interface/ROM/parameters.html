@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.sv_interface.ROM.parameters &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css" />
+    
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.parameters</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.sv_interface.ROM.parameters</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) Stanford University, The Regents of the University of</span>
+<span class="c1">#               California, and others.</span>
+<span class="c1">#</span>
+<span class="c1"># All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># See Copyright-SimVascular.txt for additional details.</span>
+<span class="c1">#</span>
+<span class="c1"># Permission is hereby granted, free of charge, to any person obtaining</span>
+<span class="c1"># a copy of this software and associated documentation files (the</span>
+<span class="c1"># &quot;Software&quot;), to deal in the Software without restriction, including</span>
+<span class="c1"># without limitation the rights to use, copy, modify, merge, publish,</span>
+<span class="c1"># distribute, sublicense, and/or sell copies of the Software, and to</span>
+<span class="c1"># permit persons to whom the Software is furnished to do so, subject</span>
+<span class="c1"># to the following conditions:</span>
+<span class="c1">#</span>
+<span class="c1"># The above copyright notice and this permission notice shall be included</span>
+<span class="c1"># in all copies or substantial portions of the Software.</span>
+<span class="c1">#</span>
+<span class="c1"># THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS</span>
+<span class="c1"># IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED</span>
+<span class="c1"># TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A</span>
+<span class="c1"># PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER</span>
+<span class="c1"># OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,</span>
+<span class="c1"># EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,</span>
+<span class="c1"># PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR</span>
+<span class="c1"># PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF</span>
+<span class="c1"># LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING</span>
+<span class="c1"># NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="c1"># SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+
+<div class="viewcode-block" id="OutflowBoundaryConditionType"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.parameters.OutflowBoundaryConditionType">[docs]</a><span class="k">class</span> <span class="nc">OutflowBoundaryConditionType</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">RCR</span> <span class="o">=</span> <span class="s2">&quot;rcr&quot;</span>
+    <span class="n">RESISTANCE</span> <span class="o">=</span> <span class="s2">&quot;resistance&quot;</span>
+    <span class="n">CORONARY</span> <span class="o">=</span> <span class="s2">&quot;coronary&quot;</span>
+    <span class="n">SV_TO_ONED</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;rcrt.dat&#39;</span><span class="p">:</span> <span class="n">RCR</span><span class="p">,</span> <span class="s1">&#39;resistance.dat&#39;</span><span class="p">:</span> <span class="n">RESISTANCE</span><span class="p">,</span> <span class="s1">&#39;cort.dat&#39;</span><span class="p">:</span> <span class="n">CORONARY</span><span class="p">}</span>
+    <span class="n">ONED_TO_SV</span> <span class="o">=</span> <span class="p">{</span><span class="n">RCR</span><span class="p">:</span> <span class="s1">&#39;rcrt.dat&#39;</span><span class="p">,</span> <span class="n">RESISTANCE</span><span class="p">:</span> <span class="s1">&#39;resistance.dat&#39;</span><span class="p">,</span> <span class="n">CORONARY</span><span class="p">:</span> <span class="s1">&#39;cort.dat&#39;</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="MaterialModel"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.parameters.MaterialModel">[docs]</a><span class="k">class</span> <span class="nc">MaterialModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">LINEAR</span> <span class="o">=</span> <span class="s2">&quot;LINEAR&quot;</span>
+    <span class="n">OLUFSEN</span> <span class="o">=</span> <span class="s2">&quot;OLUFSEN&quot;</span></div>
+
+
+<div class="viewcode-block" id="Parameters"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.parameters.Parameters">[docs]</a><span class="k">class</span> <span class="nc">Parameters</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; The Parameter class stores the input parameters for a 1D mesh generation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Parameters.Units"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.parameters.Parameters.Units">[docs]</a>    <span class="k">class</span> <span class="nc">Units</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="n">MM</span> <span class="o">=</span> <span class="s2">&quot;mm&quot;</span>
+        <span class="n">CM</span> <span class="o">=</span> <span class="s2">&quot;cm&quot;</span></div>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundary_surfaces_dir</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_directory</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centerlines_input_file</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">centerlines_output_file</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compute_centerlines</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compute_mesh</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mesh_output_file</span> <span class="o">=</span> <span class="s1">&#39;1d_model.vtp&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_order</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver_output_file</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surface_model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uniform_material</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wall_properties_input_file</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wall_properties_output_file</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputformat</span> <span class="o">=</span> <span class="s2">&quot;TEXT&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">inflow_input_file</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inlet_face_input_file</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inlet_face_seg_num</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">uniform_bc</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outflow_bc_type</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outflow_bc_file</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">outlet_face_names_file</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CENTERLINES_OUTLET_FILE_NAME</span> <span class="o">=</span> <span class="s2">&quot;centerlines_outlets.dat&quot;</span>
+
+        <span class="c1"># Mesh size in a sub-segment.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">element_size</span> <span class="o">=</span> <span class="mf">0.01</span>
+
+        <span class="c1"># Min number of elements for a sub-segment.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_num_elems</span> <span class="o">=</span> <span class="mi">5</span>
+
+        <span class="c1"># Min number of sub-segments in a vessel master-segment.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seg_min_num</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># Sub-segment size in a vessel-master segment.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seg_size</span> <span class="o">=</span> <span class="mi">9999</span>
+
+        <span class="c1"># Adaptive sub-segment size according to centerline area change?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seg_size_adaptive</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_step</span> <span class="o">=</span> <span class="mf">0.001</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_time_steps</span> <span class="o">=</span> <span class="mi">1000</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_data_freq</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="c1"># Units conversion from mm to cgs.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Units</span><span class="o">.</span><span class="n">CM</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lcoef</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Acoef</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+        <span class="c1"># Physical parameters.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">density</span> <span class="o">=</span> <span class="mf">1.055</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">material_model</span> <span class="o">=</span> <span class="n">MaterialModel</span><span class="o">.</span><span class="n">OLUFSEN</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">viscosity</span> <span class="o">=</span> <span class="mf">0.04</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">olufsen_material_k1</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">olufsen_material_k2</span> <span class="o">=</span> <span class="o">-</span><span class="mf">22.5267</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">olufsen_material_k3</span> <span class="o">=</span> <span class="mf">1.0e7</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">olufsen_material_exponent</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">olufsen_material_pressure</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear_material_ehr</span> <span class="o">=</span> <span class="mf">1e7</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear_material_pressure</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="c1"># Properties for the 0D model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uniform_0d_element_type</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># True if all 0D elements have the same 0d element type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zerod_element_type</span> <span class="o">=</span> <span class="s1">&#39;R&#39;</span>
+
+<div class="viewcode-block" id="Parameters.set_units"><a class="viewcode-back" href="../../../../svcco.sv_interface.ROM.html#svcco.sv_interface.ROM.parameters.Parameters.set_units">[docs]</a>    <span class="k">def</span> <span class="nf">set_units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">units_ok</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Units</span><span class="o">.</span><span class="n">MM</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lcoef</span> <span class="o">=</span> <span class="mf">0.1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Acoef</span> <span class="o">=</span> <span class="mf">0.01</span>
+        <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Units</span><span class="o">.</span><span class="n">CM</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lcoef</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Acoef</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">units_ok</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="n">units_ok</span></div></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.sv_interface.ROM.parameters</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>

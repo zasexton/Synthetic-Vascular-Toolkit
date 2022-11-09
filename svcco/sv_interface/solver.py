@@ -26,7 +26,7 @@ solver="""if not terminating:
     for j in range(2,len(mesher.get_model_face_ids())+1):
         if j == skip:
             continue
-        solver_construction += ' {{}}'.format(round(((1/resistance[faces[j-1]])/total_res)*0 + outlet_res_total,2))
+        solver_construction += ' {{}}'.format(round(((1/resistance[faces[j-1]])*total_res)*outlet_res_total,2))
     solver_construction += '\\n\\n'
     solver_construction += 'Pressure Coupling: {}\\n'
     solver_construction += 'Number of Coupled Surfaces: {{}}\\n\\n'.format(num_res)

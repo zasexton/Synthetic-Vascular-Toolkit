@@ -4,6 +4,169 @@ from geomdl import utilities
 from geomdl.visualization import VisMPL
 import numpy as np
 from copy import deepcopy
+from .optimize_connection_v2 import *
+from tqdm import trange
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+def get_initial_vectors(forest,network,assignment,tree,edge):
+    # Terminal Vessel Vector
+    P1 = forest.networks[network][tree].data[assignment[edge],0:3]
+    P2 = forest.networks[network][tree].data[assignment[edge],3:6]
+    V1 = P2 - P1
+    V1 = V1/np.linalg.norm(V1)
+
+    # Connection Vessel Vector
+    P3 = forest.networks[network][tree].data[assignment[edge],3:6]
+    P4 = forest.connections[network][0][edge]
+    V2 = P4 - P3
+    V2 = V2/np.linalg.norm(V2)
+    return V1,V2,P4
+
+
+def link(forest):
+    all_connections = []
+    all_network_vessels = np.zeros((1,7))
+    for network in range(forest.number_of_networks):
+        all_network_vessels = np.zeros((1,7))
+        for tree in range(forest.trees_per_network[network]):
+            tree_tmp_vessels = np.zeros((forest.networks[network][tree].data.shape[0],7))
+            tree_tmp_vessels[:,0:6] = forest.networks[network][tree].data[:,0:6]
+            tree_tmp_vessels[:,6]   = forest.networks[network][tree].data[:,21]
+            all_network_vessels = np.vstack((all_network_vessels,tree_tmp_vessels))
+    all_network_vessels = all_network_vessels[1:,:]
+    all_network_mid_points = (all_network_vessels[:,0:3]+all_network_vessels[:,3:6])/2
+    for network in range(forest.number_of_networks):
+        network_connections = []
+        for tree in range(forest.trees_per_network[network]):
+            if tree == 1:
+                continue
+            if tree == 0:
+                tree_connections_1 = []
+                tree_connections_2 = []
+                tree_edge_count_1 = max(forest.networks[network][tree].data[:,-1]) + 1
+                tree_edge_count_2 = max(forest.networks[network][1].data[:,-1]) + 1
+                assignment_1 = forest.assignments[network][tree]
+                assignment_2 = forest.assignments[network][1]
+            else:
+                tree_connections = []
+                tree_edge_count = max(forest.networks[network][tree].data[:,-1]) + 1
+                assignment = forest.assignments[network][tree]
+            print('Linking Network {}, Tree {}'.format(network,tree))
+            for edge in trange(len(forest.assignments[network][0])):
+                if tree == 0:
+                    R        = forest.networks[network][tree].data[assignment_1[edge],21]
+                    P1       = forest.networks[network][tree].data[assignment_1[edge],0:3]
+                    P2       = forest.networks[network][tree].data[assignment_1[edge],3:6]
+                    ignore   = set(np.argwhere(np.all(all_network_mid_points[3:6]==P2)).flatten().tolist())
+                    R_tree_1 = forest.networks[network][1].data[assignment_2[edge],21]
+                    P3       = forest.networks[network][1].data[assignment_2[edge],0:3]
+                    P4       = forest.networks[network][1].data[assignment_2[edge],3:6]
+                    ignore_other = set(np.argwhere(np.all(all_network_mid_points[3:6]==P4)).flatten().tolist())
+                    ignore = ignore.union(ignore_other)
+                else:
+                    R        = forest.networks[network][tree].data[assignment[edge],21]
+                    P1       = forest.networks[network][tree].data[assignment[edge],0:3]
+                    P2       = forest.networks[network][tree].data[assignment[edge],3:6]
+                    ignore   = set(np.argwhere(np.all(all_network_mid_points[3:6]==P2)).flatten().tolist())
+                    P4       = forest.connections[network][0][edge]
+                    V        = (P4 - P2)/np.linalg.norm(P4-P2)
+                    P3       = P4 + V*0.25
+                dist_to_mid = np.linalg.norm(P4-P2)
+                dists       = np.linalg.norm(all_network_mid_points - P4)
+                collision_vessels_idx = set(np.argwhere(dists<dist_to_mid).flatten().tolist())
+                if len(collision_vessels_idx) == 0:
+                    collision_vessels = None
+                else:
+                    collision_vessels_idx = np.array(list(collision_vessels_idx - ignore))
+                    collision_vessels = all_network_vessels[collision_vessels_idx,:]
+                if tree == 0:
+                    link_pts = get_optimum_link_points(P1,P2,P3,P4,R,collision_vessels)
+                    num_pts  = link_pts.shape[0]
+                    mid_num  = int(num_pts // 2)
+                    link_pts_1 = link_pts[1:mid_num+1]
+                    link_pts_2 = link_pts[mid_num:-1]
+                    link_pts_1 = np.vstack((P2,link_pts_1))
+                    link_pts_2 = np.vstack((link_pts_2,P4))
+                    link_pts_2 = np.flip(link_pts_2,axis=0)
+                    forest.connections[network][0][edge] = link_pts[mid_num,:]
+                    for i in range(link_pts_1.shape[0]-1):
+                        tmp = np.zeros(forest.networks[network][tree].data.shape[1])
+                        tmp[0:3] = link_pts_1[i,:]
+                        tmp[3:6] = link_pts_1[i+1,:]
+                        tmp[21]  = R #forest.networks[network][tree].data[assignment[edge],21]
+                        tmp[20]  = np.linalg.norm(link_pts_1[i+1]-link_pts_1[i])
+                        tmp[12:15] = (link_pts_1[i+1]-link_pts_1[i])/tmp[20]
+                        tmp[26] = forest.networks[network][tree].data[assignment_1[edge],26]+i+1
+                        tmp[22] = forest.networks[network][tree].data[assignment_1[edge],22]
+                        tmp[-1] = tree_edge_count_1
+                        tmp[15] = -1
+                        tmp[16] = -1
+                        tree_edge_count_1 += 1
+                        if i == 0:
+                            tmp[17] = forest.networks[network][tree].data[assignment_1[edge],-1]
+                        elif i > 0:
+                            tree_connections_1[-1][15] = tmp[-1]
+                            tree_connections_1[-1][16] = -1
+                            tmp[17] = tree_connections_1[-1][-1]
+                        tmp_mid = (tmp[0:3]+tmp[3:6])/2
+                        all_network_mid_points = np.vstack((all_network_mid_points,tmp_mid.reshape(1,3)))
+                        tree_connections_1.append(tmp.tolist())
+                    for i in range(link_pts_2.shape[0]-1):
+                        tmp = np.zeros(forest.networks[network][tree].data.shape[1])
+                        tmp[0:3] = link_pts_2[i,:]
+                        tmp[3:6] = link_pts_2[i+1,:]
+                        tmp[21]  = R_tree_1 #forest.networks[network][tree].data[assignment[edge],21]
+                        tmp[20]  = np.linalg.norm(link_pts_2[i+1]-link_pts_2[i])
+                        tmp[12:15] = (link_pts_2[i+1]-link_pts_2[i])/tmp[20]
+                        tmp[26] = forest.networks[network][1].data[assignment_2[edge],26]+i+1
+                        tmp[22] = forest.networks[network][1].data[assignment_2[edge],22]
+                        tmp[-1] = tree_edge_count_2
+                        tmp[15] = -1
+                        tmp[16] = -1
+                        tree_edge_count_2 += 1
+                        if i == 0:
+                            tmp[17] = forest.networks[network][1].data[assignment_2[edge],-1]
+                        elif i > 0:
+                            tree_connections_2[-1][15] = tmp[-1]
+                            tree_connections_2[-1][16] = -1
+                            tmp[17] = tree_connections_2[-1][-1]
+                        tmp_mid = (tmp[0:3]+tmp[3:6])/2
+                        all_network_mid_points = np.vstack((all_network_mid_points,tmp_mid.reshape(1,3)))
+                        tree_connections_2.append(tmp.tolist())
+                else:
+                    link_pts = get_optimum_link_points(P1,P2,P3,P4,R,collision_vessels)
+                    link_pts = link_pts[1:-1,:]
+                    link_pts = np.vstack((P2,link_pts,P4))
+                    for i in range(link_pts.shape[0]-1):
+                        tmp = np.zeros(forest.networks[network][tree].data.shape[1])
+                        tmp[0:3] = link_pts[i,:]
+                        tmp[3:6] = link_pts[i+1,:]
+                        tmp[21]  = forest.networks[network][tree].data[assignment[edge],21]
+                        tmp[20]  = np.linalg.norm(link_pts[i+1]-link_pts[i])
+                        tmp[12:15] = (link_pts[i+1]-link_pts[i])/tmp[20]
+                        tmp[26] = forest.networks[network][tree].data[assignment[edge],26]+i+1
+                        tmp[22] = forest.networks[network][tree].data[assignment[edge],22]
+                        tmp[-1] = tree_edge_count
+                        tmp[15] = -1
+                        tmp[16] = -1
+                        tree_edge_count += 1
+                        if i == 0:
+                            tmp[17] = forest.networks[network][tree].data[assignment[edge],-1]
+                        elif i > 0:
+                            tree_connections[-1][15] = tmp[-1]
+                            tree_connections[-1][16] = -1
+                            tmp[17] = tree_connections[-1][-1]
+                        tmp_mid = (tmp[0:3]+tmp[3:6])/2
+                        all_network_mid_points = np.vstack((all_network_mid_points,tmp_mid.reshape(1,3)))
+                        tree_connections.append(tmp.tolist())
+            if tree == 0:
+                network_connections.append(np.array(tree_connections_1))
+                network_connections.append(np.array(tree_connections_2))
+            else:
+                network_connections.append(np.array(tree_connections))
+        all_connections.append(network_connections)
+    return all_connections, None, None
 
 def smooth_original(forest,curve_sample_size_min=5,curve_sample_size_max=21,curve_degree=3):
     #FOREST_CONNECT_COPY = deepcopy(forest)
@@ -115,9 +278,11 @@ def smooth_original(forest,curve_sample_size_min=5,curve_sample_size_max=21,curv
 def smooth(forest,curve_sample_size_min=5,curve_sample_size_max=21,curve_degree=3):
     #FOREST_CONNECT_COPY = deepcopy(forest)
     connections = []
+    splines     = []
     for network in range(forest.number_of_networks):
         if not np.any(forest.connections[network][0] is None):
             network_connections = []
+            network_splines     = []
             for tree in range(forest.trees_per_network[network]):
                 tree_assignment = forest.assignments[network][tree]
                 idx = max(forest.networks[network][tree].data[:,-1]) + 1
@@ -173,6 +338,7 @@ def smooth(forest,curve_sample_size_min=5,curve_sample_size_max=21,curve_degree=
                     #else:
                     #curve.ctrlpts = [ctr_0,ctr_1,ctr_2,ctr_3]
                     curve.knotvector = utilities.generate_knot_vector(curve.degree,len(curve.ctrlpts))
+                    network_splines.append(deepcopy(curve))
                     while samples <= curve_sample_size_max and not success:
                         curve.sample_size = samples
                         curve.evaluate()
@@ -217,8 +383,32 @@ def smooth(forest,curve_sample_size_min=5,curve_sample_size_max=21,curve_degree=
                         #    tree_connection_edges[-1][16] = -1
                         #    tmp[17] = tree_connection_edges[-1][-1]
                         tree_connection_edges.append(tmp.tolist())
+
                 network_connections.append(np.array(tree_connection_edges))
             connections.append(network_connections)
+            splines.append(network_splines)
         else:
             connections.append([None])
+    return connections, None, splines
+
+
+#def get_angle(V1,V2):
+#    return np.arccos(np.dot(V1,V2))*(180/np.pi)
+
+def smooth_new(forest,max_angle=45):
+    connections = []
+    for network in range(forest.number_of_networks):
+        if not np.any(forest.connections[network][0] is None):
+            network_connections = []
+            for tree in range(forest.trees_per_network[network]):
+                idx = max(forest.networks[network][tree].data[:,-1]) + 1
+                tree_connection_edges = []
+                for edge in range(len(forest.connections[network][0])):
+                    edge_1   = forest.assignments[network][0][edge]
+                    edge_2   = forest.assignemnts[network][1][edge]
+                    match_vector = forest.networks[network][0].data[edge_1,3:6] - forest.networks[network][1].data[edge_2,3:6]
+                    match_vector = match_vector/np.linalg.norm(match_vector)
+                    vector_1 = forest.networks[network][0].data[edge_1,12:15]
+                    vector_2 = forest.networks[network][1].data[edge_2,12:15]
+
     return connections, None

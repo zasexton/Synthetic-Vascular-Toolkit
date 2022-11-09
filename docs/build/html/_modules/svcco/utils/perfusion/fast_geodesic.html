@@ -1,0 +1,388 @@
+
+<!DOCTYPE html>
+
+<html lang="python">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>svcco.utils.perfusion.fast_geodesic &#8212; SVCCO 0.5.52 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css" />
+    
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/sphinx_highlight.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.utils.perfusion.fast_geodesic</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for svcco.utils.perfusion.fast_geodesic</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numba</span> <span class="k">as</span> <span class="nn">nb</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">csr_matrix</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse.csgraph</span> <span class="kn">import</span> <span class="n">shortest_path</span>
+<span class="kn">import</span> <span class="nn">svcco</span>
+<span class="kn">import</span> <span class="nn">pyvista</span> <span class="k">as</span> <span class="nn">pv</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">trange</span><span class="p">,</span> <span class="n">tqdm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tetgen</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">stats</span>
+<span class="kn">import</span> <span class="nn">pymeshfix</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<div class="viewcode-block" id="get_all_paths"><a class="viewcode-back" href="../../../../svcco.utils.perfusion.html#svcco.utils.perfusion.fast_geodesic.get_all_paths">[docs]</a><span class="k">def</span> <span class="nf">get_all_paths</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">graph</span><span class="p">):</span>
+    <span class="n">ds</span><span class="p">,</span> <span class="n">Pr</span> <span class="o">=</span> <span class="n">shortest_path</span><span class="p">(</span><span class="n">csgraph</span><span class="o">=</span><span class="n">graph</span><span class="p">,</span><span class="n">directed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">indices</span><span class="o">=</span><span class="n">i</span><span class="p">,</span><span class="n">return_predecessors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ds</span><span class="p">,</span> <span class="n">Pr</span></div>
+
+<div class="viewcode-block" id="parallel_write"><a class="viewcode-back" href="../../../../svcco.utils.perfusion.html#svcco.utils.perfusion.fast_geodesic.parallel_write">[docs]</a><span class="k">def</span> <span class="nf">parallel_write</span><span class="p">(</span><span class="n">pkg</span><span class="p">):</span>
+    <span class="n">start</span>   <span class="o">=</span> <span class="n">pkg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">stop</span>    <span class="o">=</span> <span class="n">pkg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">tempdir</span> <span class="o">=</span> <span class="n">pkg</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">graph</span>   <span class="o">=</span> <span class="n">pkg</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">pkg</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">graph_range</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="n">stop</span><span class="p">))</span>
+    <span class="n">file_ds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="n">tempdir</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;ds_</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">.dat&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="n">stop</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w+&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">graph_range</span><span class="p">),</span><span class="n">graph</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">file_Pr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="n">tempdir</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;Pr_</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">.dat&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="n">stop</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w+&#39;</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">graph_range</span><span class="p">),</span><span class="n">graph</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="c1">#tqdm(range(len(data[&#39;flow&#39;])),desc=&quot;Building Vessel Data&quot;,position=1,leave=False)</span>
+    <span class="c1">#graph_range = list(range(start,stop))</span>
+    <span class="n">checks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">graph_range</span><span class="p">),</span><span class="mi">10</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">graph_range</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">checks</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dijkstra Solve | </span><span class="si">{}</span><span class="s2"> - </span><span class="si">{}</span><span class="s2">:  </span><span class="si">{}</span><span class="s2">%&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="n">stop</span><span class="p">,</span><span class="n">i</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">graph_range</span><span class="p">)</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span>
+        <span class="n">ds</span><span class="p">,</span><span class="n">Pr</span> <span class="o">=</span> <span class="n">get_all_paths</span><span class="p">(</span><span class="n">graph_range</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">graph</span><span class="p">)</span>
+        <span class="n">file_ds</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">ds</span>
+        <span class="n">file_Pr</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">Pr</span>
+        <span class="n">file_ds</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">file_Pr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">ds</span>
+        <span class="k">del</span> <span class="n">Pr</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dijkstra Solve | </span><span class="si">{}</span><span class="s2"> - </span><span class="si">{}</span><span class="s2">:  </span><span class="si">{}</span><span class="s2">%&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="n">stop</span><span class="p">,</span><span class="mi">100</span><span class="p">))</span>
+    <span class="k">del</span> <span class="n">file_ds</span>
+    <span class="k">del</span> <span class="n">file_Pr</span>
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="determine_blocks"><a class="viewcode-back" href="../../../../svcco.utils.perfusion.html#svcco.utils.perfusion.fast_geodesic.determine_blocks">[docs]</a><span class="k">def</span> <span class="nf">determine_blocks</span><span class="p">(</span><span class="n">row_number</span><span class="p">,</span><span class="n">block_number</span><span class="p">):</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">row_number</span><span class="o">//</span><span class="n">block_number</span>
+    <span class="n">remain</span> <span class="o">=</span> <span class="n">row_number</span><span class="o">%</span><span class="n">block_number</span>
+    <span class="n">blocks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">count</span>  <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">block_number</span><span class="p">):</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="n">count</span><span class="p">]</span>
+        <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">count</span><span class="o">+</span><span class="n">base</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">block_number</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">tmp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">remain</span>
+        <span class="n">blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="n">base</span>
+    <span class="k">return</span> <span class="n">blocks</span></div>
+
+<div class="viewcode-block" id="build_work"><a class="viewcode-back" href="../../../../svcco.utils.perfusion.html#svcco.utils.perfusion.fast_geodesic.build_work">[docs]</a><span class="k">def</span> <span class="nf">build_work</span><span class="p">(</span><span class="n">blocks</span><span class="p">,</span><span class="n">tmpdir</span><span class="p">,</span><span class="n">graph</span><span class="p">):</span>
+    <span class="n">work</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">b</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">blocks</span><span class="p">):</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmpdir</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+        <span class="n">b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">work</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+    <span class="n">work</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">work</span></div>
+
+<div class="viewcode-block" id="precompute_graph_predecessors"><a class="viewcode-back" href="../../../../svcco.utils.perfusion.html#svcco.utils.perfusion.fast_geodesic.precompute_graph_predecessors">[docs]</a><span class="k">def</span> <span class="nf">precompute_graph_predecessors</span><span class="p">(</span><span class="n">surface_object</span><span class="p">,</span><span class="n">block_num</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">parallel_num</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="n">file_dir</span>  <span class="o">=</span> <span class="s1">&#39;D:&#39;</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span>
+    <span class="n">tmp_dir</span>   <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="n">file_dir</span><span class="p">)</span>
+    <span class="c1">#print(tmp_dir.name)</span>
+    <span class="n">surface_object</span><span class="o">.</span><span class="n">tmp_dir_dijkstra</span> <span class="o">=</span> <span class="n">tmp_dir</span>
+    <span class="c1">#surface_object.graph_predecessor_distance = np.memmap(tmp_dir.name + os.sep + &#39;ds.dat&#39;,dtype=&#39;int32&#39;,mode=&#39;w+&#39;,shape=surface_object.graph.shape)</span>
+    <span class="c1">#surface_object.graph_predecessor_id       = np.memmap(tmp_dir.name + os.sep + &#39;Pr.dat&#39;,dtype=&#39;int32&#39;,mode=&#39;w+&#39;,shape=surface_object.graph.shape)</span>
+    <span class="n">surface_object</span><span class="o">.</span><span class="n">cell_centers</span> <span class="o">=</span> <span class="n">surface_object</span><span class="o">.</span><span class="n">tet</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">cell_centers</span><span class="p">()</span><span class="o">.</span><span class="n">points</span>
+    <span class="n">surface_object</span><span class="o">.</span><span class="n">cell_center_closest_point</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1">#for i in trange(surface_object.tet.grid.n_points):</span>
+    <span class="c1">#    ds,Pr = get_all_paths(i,surface_object.graph)</span>
+    <span class="c1">#    surface_object.graph_predecessor_distance[i,:] = ds</span>
+    <span class="c1">#    surface_object.graph_predecessor_id[i,:]       = Pr</span>
+    <span class="c1">#    del ds</span>
+    <span class="c1">#    del Pr</span>
+    <span class="n">blocks</span> <span class="o">=</span> <span class="n">determine_blocks</span><span class="p">(</span><span class="n">surface_object</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">block_num</span><span class="p">)</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">work</span> <span class="o">=</span> <span class="n">build_work</span><span class="p">(</span><span class="n">blocks</span><span class="p">,</span><span class="n">tmp_dir</span><span class="p">,</span><span class="n">surface_object</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">parallel_num</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">parallel_write</span><span class="p">,</span><span class="n">work</span><span class="p">)</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ranges&#39;</span><span class="p">:[],</span><span class="s1">&#39;files&#39;</span><span class="p">:[],</span><span class="s1">&#39;mats&#39;</span><span class="p">:[]}</span>
+    <span class="n">Pr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ranges&#39;</span><span class="p">:[],</span><span class="s1">&#39;files&#39;</span><span class="p">:[],</span><span class="s1">&#39;mats&#39;</span><span class="p">:[]}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">work</span><span class="p">)):</span>
+         <span class="n">ds</span><span class="p">[</span><span class="s1">&#39;ranges&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+         <span class="n">ds</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;ds_</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">.dat&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+         <span class="n">ds</span><span class="p">[</span><span class="s1">&#39;mats&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;ds_</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">.dat&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">surface_object</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+         <span class="n">Pr</span><span class="p">[</span><span class="s1">&#39;ranges&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+         <span class="n">Pr</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;Pr_</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">.dat&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span>
+         <span class="n">Pr</span><span class="p">[</span><span class="s1">&#39;mats&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">memmap</span><span class="p">(</span><span class="n">tmp_dir</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">+</span><span class="s1">&#39;Pr_</span><span class="si">{}</span><span class="s1">-</span><span class="si">{}</span><span class="s1">.dat&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">work</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">surface_object</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+    <span class="n">surface_object</span><span class="o">.</span><span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span>
+    <span class="n">surface_object</span><span class="o">.</span><span class="n">Pr</span> <span class="o">=</span> <span class="n">Pr</span>
+    <span class="n">tet_vert_map</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">trange</span><span class="p">(</span><span class="n">surface_object</span><span class="o">.</span><span class="n">tet</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">n_cells</span><span class="p">):</span>
+        <span class="n">surface_object</span><span class="o">.</span><span class="n">cell_center_closest_point</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">surface_object</span><span class="o">.</span><span class="n">tet</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">find_closest_point</span><span class="p">(</span><span class="n">surface_object</span><span class="o">.</span><span class="n">cell_centers</span><span class="p">[</span><span class="n">i</span><span class="p">,:]))</span>
+        <span class="k">if</span> <span class="n">surface_object</span><span class="o">.</span><span class="n">cell_center_closest_point</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">blocks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="n">surface_object</span><span class="o">.</span><span class="n">cell_center_closest_point</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">//</span><span class="n">base</span><span class="p">,</span><span class="n">surface_object</span><span class="o">.</span><span class="n">cell_center_closest_point</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">%</span><span class="n">base</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">surface_object</span><span class="o">.</span><span class="n">cell_center_closest_point</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">blocks</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">tet_vert_map</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+    <span class="n">surface_object</span><span class="o">.</span><span class="n">tet_vert_map</span> <span class="o">=</span> <span class="n">tet_vert_map</span>
+    <span class="k">return</span></div>
+
+<div class="viewcode-block" id="get_path"><a class="viewcode-back" href="../../../../svcco.utils.perfusion.html#svcco.utils.perfusion.fast_geodesic.get_path">[docs]</a><span class="nd">@nb</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_path</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">ds</span><span class="p">,</span><span class="n">Pr</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="p">[</span><span class="n">j</span><span class="p">]</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">j</span>
+    <span class="k">while</span> <span class="n">Pr</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">9999</span><span class="p">:</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Pr</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="n">lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">Pr</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">lengths</span> <span class="o">=</span> <span class="n">lengths</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">jdx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">path</span><span class="p">[</span><span class="n">jdx</span><span class="p">],</span><span class="n">path</span><span class="p">[</span><span class="n">jdx</span><span class="o">+</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="k">return</span> <span class="n">path</span><span class="p">,</span><span class="n">lengths</span><span class="p">,</span><span class="n">lines</span></div>
+
+<div class="viewcode-block" id="perfusion_geodesic"><a class="viewcode-back" href="../../../../svcco.utils.perfusion.html#svcco.utils.perfusion.fast_geodesic.perfusion_geodesic">[docs]</a><span class="k">def</span> <span class="nf">perfusion_geodesic</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span><span class="n">perfusion_volume</span><span class="p">):</span>
+    <span class="n">terminals</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">tree</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span><span class="mi">15</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,:]</span>
+    <span class="n">terminals</span> <span class="o">=</span> <span class="n">terminals</span><span class="p">[</span><span class="n">terminals</span><span class="p">[:,</span><span class="mi">16</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,:]</span>
+    <span class="n">terminal_ids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">vol</span> <span class="o">=</span> <span class="n">perfusion_volume</span><span class="o">.</span><span class="n">tet</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">compute_cell_sizes</span><span class="p">()</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s1">&#39;Volume&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">terminals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">terminal_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">perfusion_volume</span><span class="o">.</span><span class="n">tet</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">find_closest_point</span><span class="p">(</span><span class="n">terminals</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]))</span>
+    <span class="n">territory_id</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">territory_volumes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">terminals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">perfusion_volume</span><span class="o">.</span><span class="n">tet</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">n_cells</span><span class="p">),</span><span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Calculating Perfusion Territories&#39;</span><span class="p">):</span>
+        <span class="n">tmp_geodesic_lengths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">linear_distances</span>     <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">perfusion_volume</span><span class="o">.</span><span class="n">cell_centers</span><span class="p">[</span><span class="n">idx</span><span class="p">,:]</span> <span class="c1">#perfusion_volume.tet.grid.cell_centers().points[idx,:]</span>
+        <span class="n">cell_id</span> <span class="o">=</span> <span class="n">perfusion_volume</span><span class="o">.</span><span class="n">cell_center_closest_point</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="c1">#perfusion_volume.tet.grid.find_closest_point(center)</span>
+        <span class="k">for</span> <span class="n">jdx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">terminal_ids</span><span class="p">)):</span>
+            <span class="c1">#tmp_ds = perfusion_volume.graph_predecessor_distan[cell_id]</span>
+            <span class="c1">#tmp_Pr = perfusion_volume.graph_predecessor_id[cell_id]</span>
+            <span class="n">tmp_ds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">perfusion_volume</span><span class="o">.</span><span class="n">ds</span><span class="p">[</span><span class="s1">&#39;mats&#39;</span><span class="p">][</span><span class="n">perfusion_volume</span><span class="o">.</span><span class="n">tet_vert_map</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]][</span><span class="n">perfusion_volume</span><span class="o">.</span><span class="n">tet_vert_map</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">1</span><span class="p">],:])</span>
+            <span class="n">tmp_Pr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">perfusion_volume</span><span class="o">.</span><span class="n">Pr</span><span class="p">[</span><span class="s1">&#39;mats&#39;</span><span class="p">][</span><span class="n">perfusion_volume</span><span class="o">.</span><span class="n">tet_vert_map</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">]][</span><span class="n">perfusion_volume</span><span class="o">.</span><span class="n">tet_vert_map</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">1</span><span class="p">],:])</span>
+            <span class="n">_</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">get_path</span><span class="p">(</span><span class="n">terminal_ids</span><span class="p">[</span><span class="n">jdx</span><span class="p">],</span><span class="n">tmp_ds</span><span class="p">,</span><span class="n">tmp_Pr</span><span class="p">)</span>
+            <span class="n">L</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+            <span class="n">tmp_geodesic_lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+            <span class="n">linear_distances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">terminals</span><span class="p">[</span><span class="n">jdx</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">-</span> <span class="n">center</span><span class="p">))</span>
+        <span class="n">tmp_geodesic_lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tmp_geodesic_lengths</span><span class="p">)</span>
+        <span class="n">min_geodesic_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">tmp_geodesic_lengths</span><span class="p">)</span>
+        <span class="n">min_geodesic_instances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tmp_geodesic_lengths</span><span class="o">==</span><span class="n">min_geodesic_value</span><span class="p">)</span>
+        <span class="n">linear_distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">linear_distances</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">min_geodesic_instances</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">territory_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">min_geodesic_instances</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">territory_volumes</span><span class="p">[</span><span class="n">min_geodesic_instances</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">vol</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">absolute_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">linear_distances</span><span class="p">[</span><span class="n">min_geodesic_instances</span><span class="p">])</span>
+            <span class="n">absolute_min</span> <span class="o">=</span> <span class="n">min_geodesic_instances</span><span class="p">[</span><span class="n">absolute_min</span><span class="p">]</span>
+            <span class="n">territory_id</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">absolute_min</span><span class="p">)</span>
+            <span class="n">territory_volumes</span><span class="p">[</span><span class="n">absolute_min</span><span class="p">]</span> <span class="o">+=</span> <span class="n">vol</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">territory_id</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">territory_id</span><span class="p">)</span>
+    <span class="n">perfusion_volume</span><span class="o">.</span><span class="n">tet</span><span class="o">.</span><span class="n">grid</span><span class="p">[</span><span class="s1">&#39;perfusion_territory_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">territory_id</span>
+    <span class="k">return</span> <span class="n">territory_id</span><span class="p">,</span><span class="n">territory_volumes</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vol</span><span class="p">),</span><span class="n">perfusion_volume</span><span class="o">.</span><span class="n">tet</span></div>
+
+<div class="viewcode-block" id="test"><a class="viewcode-back" href="../../../../svcco.utils.perfusion.html#svcco.utils.perfusion.fast_geodesic.test">[docs]</a><span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">surf_object</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">restarts</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">svcco</span><span class="o">.</span><span class="n">tree</span><span class="p">()</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">set_boundary</span><span class="p">(</span><span class="n">surf_object</span><span class="p">)</span>
+    <span class="n">delaunay</span> <span class="o">=</span> <span class="n">surf_object</span><span class="o">.</span><span class="n">pv_polydata</span><span class="o">.</span><span class="n">delaunay_3d</span><span class="p">()</span>
+    <span class="n">convexity</span> <span class="o">=</span> <span class="n">surf_object</span><span class="o">.</span><span class="n">volume</span><span class="o">/</span><span class="n">delaunay</span><span class="o">.</span><span class="n">volume</span>
+    <span class="k">if</span> <span class="n">convexity</span> <span class="o">&gt;</span> <span class="mf">0.95</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">convex</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">set_root</span><span class="p">()</span>
+    <span class="n">add_amount</span> <span class="o">=</span> <span class="n">size</span><span class="o">//</span><span class="n">restarts</span>
+    <span class="n">VOLS</span>  <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">COUNT</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">_</span><span class="p">,</span><span class="n">vols</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">perfusion_geodesic</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">surf_object</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">restarts</span><span class="p">):</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">n_add</span><span class="p">(</span><span class="n">add_amount</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span><span class="n">vols</span><span class="p">,</span><span class="n">tet</span> <span class="o">=</span> <span class="n">perfusion_geodesic</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">surf_object</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span><span class="n">vols</span><span class="p">,</span><span class="n">tet</span> <span class="o">=</span> <span class="n">perfusion_geodesic</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">surf_object</span><span class="p">)</span>
+        <span class="n">VOLS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vols</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">COUNT</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">add_amount</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">COUNT</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">COUNT</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">add_amount</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">VOLS</span><span class="p">,</span><span class="n">COUNT</span></div>
+
+<div class="viewcode-block" id="results"><a class="viewcode-back" href="../../../../svcco.utils.perfusion.html#svcco.utils.perfusion.fast_geodesic.results">[docs]</a><span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="n">test_list</span><span class="p">,</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">restarts</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span><span class="n">bins</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span><span class="n">repeat</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">fig</span><span class="p">,</span><span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="c1">#ax = ax.flatten()</span>
+    <span class="c1">#cw = plt.get_cmap(&#39;coolwarm&#39;)</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">size</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">mpl</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">coolwarm</span><span class="p">)</span>
+    <span class="n">cmap</span><span class="o">.</span><span class="n">set_array</span><span class="p">([])</span>
+    <span class="n">DATA</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;volumes&#39;</span><span class="p">:[],</span><span class="s1">&#39;tree_size&#39;</span><span class="p">:[]}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_list</span><span class="p">)):</span>
+        <span class="n">vols</span><span class="p">,</span><span class="n">sizes</span> <span class="o">=</span> <span class="n">test</span><span class="p">(</span><span class="n">test_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span><span class="n">restarts</span><span class="o">=</span><span class="n">restarts</span><span class="p">)</span>
+        <span class="n">DATA</span><span class="p">[</span><span class="s1">&#39;volumes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vols</span><span class="p">)</span>
+        <span class="n">DATA</span><span class="p">[</span><span class="s1">&#39;tree_size&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span>
+        <span class="n">DATA</span><span class="p">[</span><span class="s1">&#39;repeat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">repeat</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">i</span><span class="o">//</span><span class="mi">2</span>
+        <span class="n">jdx</span> <span class="o">=</span> <span class="n">i</span><span class="o">%</span><span class="mi">2</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vols</span><span class="p">)):</span>
+            <span class="c1">#color_scale = (sizes[j]/size)*255</span>
+            <span class="n">x_min</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">vols</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">x_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">vols</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">x_range</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span><span class="n">x_max</span><span class="p">)</span>
+            <span class="n">clean_vols</span> <span class="o">=</span> <span class="n">vols</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">vols</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">freq</span><span class="p">,</span><span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">clean_vols</span><span class="p">,</span><span class="nb">range</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">)</span>
+            <span class="n">centers</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="n">edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">width</span>   <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1">#if j == 0:</span>
+            <span class="c1">#    ax[idx][jdx].bar(centers,freq/len(vols[j]),width=width,color=&#39;blue&#39;)</span>
+            <span class="c1">#else:</span>
+            <span class="n">ax</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">jdx</span><span class="p">]</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span><span class="n">freq</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">clean_vols</span><span class="p">),</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="o">.</span><span class="n">to_rgba</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vols</span><span class="p">[</span><span class="n">j</span><span class="p">])))</span>
+            <span class="c1">#ax[idx][jdx].hist(vols[j],bins=50,density=True,alpha=0.25,color=cw(color_scale),range = (x_min,x_max))</span>
+            <span class="c1">#kde = stats.gaussian_kde(vols[j])</span>
+            <span class="c1">#ax[idx][jdx].plot(x_range,kde(x_range)/10,color=cw(color_scale),alpha=0.75)</span>
+    <span class="c1">#sm = plt.cm.ScalarMappable(cmap=&#39;coolwarm&#39;)</span>
+    <span class="c1">#sm.set_array(range(0,size))</span>
+    <span class="k">if</span> <span class="n">repeat</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_list</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">DATA</span><span class="p">[</span><span class="s1">&#39;volumes&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">])):</span>
+                <span class="n">DATA</span><span class="p">[</span><span class="s1">&#39;volumes&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">DATA</span><span class="p">[</span><span class="s1">&#39;volumes&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">repeat</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_list</span><span class="p">)):</span>
+                <span class="n">vols</span><span class="p">,</span><span class="n">sizes</span> <span class="o">=</span> <span class="n">test</span><span class="p">(</span><span class="n">test_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span><span class="n">restarts</span><span class="o">=</span><span class="n">restarts</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vols</span><span class="p">)):</span>
+                    <span class="n">DATA</span><span class="p">[</span><span class="s1">&#39;volumes&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">vols</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Number of Terminals&quot;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;perfusion-</span><span class="si">{}</span><span class="s1">_num_vessels-</span><span class="si">{}</span><span class="s1">_restarts-</span><span class="si">{}</span><span class="s1">_num_bins-</span><span class="si">{}</span><span class="s1">.svg&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_list</span><span class="p">),</span><span class="n">size</span><span class="p">,</span><span class="n">restarts</span><span class="p">,</span><span class="n">bins</span><span class="p">),</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span><span class="n">ax</span><span class="p">,</span><span class="n">DATA</span></div>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">q = 4</span>
+<span class="sd">resolution = 20 #120</span>
+
+<span class="sd">cu = pv.Cube(x_length=3.72,y_length=3.72,z_length=3.72).triangulate().subdivide(5)</span>
+<span class="sd">cube = svcco.surface()</span>
+<span class="sd">cube.set_data(cu.points,cu.point_normals)</span>
+<span class="sd">cube.solve(quiet=False)</span>
+<span class="sd">cube.build(q=q,resolution=resolution,verbose=True)</span>
+<span class="sd">print(&#39;preprocessing cells&#39;)</span>
+
+<span class="sd">blocks = determine_blocks(cube.graph.shape[0],10)</span>
+<span class="sd">tmpdir = TemporaryDirectory(dir=&#39;D:&#39;+os.sep)</span>
+<span class="sd">work = build_work(blocks,tmpdir,cube.graph)</span>
+
+
+
+<span class="sd">precompute_graph_predecessors(cube)</span>
+<span class="sd">print(&#39;cube constructed&#39;)</span>
+
+<span class="sd">heart = svcco.surface()</span>
+<span class="sd">heart_points = np.genfromtxt(&#39;D:\\svcco\\svcco\\implicit\\tests\\heart_points_unique.csv&#39;,delimiter=&#39;,&#39;)</span>
+<span class="sd">heart_normals = np.genfromtxt(&#39;D:\\svcco\\svcco\\implicit\\tests\\heart_normals_unique.csv&#39;,delimiter=&#39;,&#39;)</span>
+<span class="sd">heart.set_data(heart_points,heart_normals)</span>
+<span class="sd">heart.solve(quiet=False)</span>
+<span class="sd">heart.build(q=4,resolution=120,k=2,buffer=5,verbose=True)</span>
+<span class="sd">print(&#39;preprocessing cells&#39;)</span>
+<span class="sd">precompute_graph_predecessors(heart)</span>
+<span class="sd">print(&#39;heart constructed&#39;)</span>
+
+
+<span class="sd">disk = pv.Disc(inner=2.8,outer=4,r_res=20,c_res=100)</span>
+<span class="sd">cyl  = disk.extrude([0,0,2],capping=True).triangulate()</span>
+<span class="sd">cyl  = svcco.utils.remeshing.remesh.remesh_surface(cyl)</span>
+<span class="sd">cyl  = cyl.subdivide(2)</span>
+<span class="sd">cyl  = svcco.utils.remeshing.remesh.remesh_surface(cyl,hausd=0.005)</span>
+<span class="sd">cyl  = cyl.compute_normals(auto_orient_normals=True,feature_angle=90)</span>
+<span class="sd">cylinder = svcco.surface()</span>
+<span class="sd">cylinder.set_data(cyl.points,cyl.point_normals)</span>
+<span class="sd">cylinder.solve(quiet=False)</span>
+<span class="sd">cylinder.build(q=q,resolution=resolution,verbose=True)</span>
+<span class="sd">print(&#39;preprocessing cells&#39;)</span>
+<span class="sd">precompute_graph_predecessors(cylinder)</span>
+<span class="sd">print(&#39;cylinder constructed&#39;)</span>
+
+<span class="sd">left_gyrus   = &quot;D:\\Tree\\Tree_8-0\\brain_testing\\FJ3801_BP58201_FMA72658_Left inferior frontal gyrus.obj&quot;</span>
+<span class="sd">gyrus_no_scale = pv.read(left_gyrus)</span>
+<span class="sd">sf = (heart.volume/gyrus_no_scale.volume)**(1/3)</span>
+<span class="sd">gyrus_scaled = gyrus_no_scale.scale([sf,sf,sf])</span>
+<span class="sd">left_gyrus_scaled = &quot;left_gyrus_scaled.vtp&quot;</span>
+<span class="sd">gyrus_scaled.save(left_gyrus_scaled)</span>
+<span class="sd">gyrus = svcco.surface()</span>
+<span class="sd">gyrus.load(left_gyrus_scaled)</span>
+<span class="sd">gyrus.solve(quiet=False)</span>
+<span class="sd">gyrus.build(q=q,resolution=resolution,buffer=5,verbose=True)</span>
+<span class="sd">print(&#39;preprocessing cells&#39;)</span>
+<span class="sd">precompute_graph_predecessors(gyrus)</span>
+<span class="sd">print(&#39;gyrus constructed&#39;)</span>
+
+<span class="sd">f,a,data = results([cube,cylinder,heart,gyrus],size=50,restarts=50,repeat=10)</span>
+<span class="sd">file = open(&#39;perfusion_fast_data.pkl&#39;,&#39;wb+&#39;)</span>
+<span class="sd">pickle.dump(data,file)</span>
+<span class="sd">file.close()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">SVCCO 0.5.52 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">svcco.utils.perfusion.fast_geodesic</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2022, Zachary Sexton.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    </div>
+  </body>
+</html>
