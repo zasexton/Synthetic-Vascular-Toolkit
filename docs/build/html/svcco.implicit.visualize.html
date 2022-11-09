@@ -104,8 +104,27 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="svcco.implicit.visualize.visualize.plot_volume">
-<span class="sig-prename descclassname"><span class="pre">svcco.implicit.visualize.visualize.</span></span><span class="sig-name descname"><span class="pre">plot_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mpu_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/visualize/visualize.html#plot_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.visualize.visualize.plot_volume" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">svcco.implicit.visualize.visualize.</span></span><span class="sig-name descname"><span class="pre">plot_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mpu_object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/svcco/implicit/visualize/visualize.html#plot_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#svcco.implicit.visualize.visualize.plot_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function accepts a perfusion domain object instance and returns a figure
+object for rendering the domain for visualization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mpu_object</strong> (<em>svcco.surface object instance</em>) -- </p></li>
+<li><p><strong>resolution</strong> (<em>int</em><em> (</em><em>default: 20</em><em>)</em>) -- <p>The number of points along each axis to sample when
+determining the contours of the implicit function
+representing the domain.</p>
+<p>The total number of sampled points scales cubically
+to the resolution size. (i.e. resolution=20;
+total_points=8000)</p>
+</p></li>
+<li><p><strong>workers</strong> (<em>int</em><em> (</em><em>default: 1</em><em>)</em>) -- The number of processes to split the function evaluations
+among. Becuase volume rendering can easily require tens
+of thousands of function evaluations</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="svcco.implicit.visualize.visualize.plot_volume_individual">
