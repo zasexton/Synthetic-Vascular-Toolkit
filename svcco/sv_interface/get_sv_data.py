@@ -366,14 +366,14 @@ def get_interpolated_sv_data(data):
         elif len(points[idx]) == 3:
             interp_xyz.append(splprep(p,k=2,s=0))
             rr = np.vstack((interp_xyz[-1][1],r))
-            interp_r.append(splprep(rr,k=2,s=0))
+            interp_r.append(splprep(rr,k=1,s=0))
             xyzr = np.vstack((p,r))
             interp_xyzr.append(splprep(xyzr,k=2,s=0))
             #interp_n.append(splprep(n,k=2,s=0))
         else:
             interp_xyz.append(splprep(p,s=0))
             rr = np.vstack((interp_xyz[-1][1],r))
-            interp_r.append(splprep(rr,s=0))
+            interp_r.append(splprep(rr,k=1,s=0))
             xyzr = np.vstack((p,r))
             interp_xyzr.append(splprep(xyzr,s=0))
             #interp_n.append(splprep(n,s=0))

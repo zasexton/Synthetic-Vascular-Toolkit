@@ -24,7 +24,7 @@ long_description = (here / "README.md").read_text("utf8")
 #VERSION = re.search(
 #    r'__version__ = "(.+?)"', (here / "svcco" / "__init__.py").read_text("utf8")
 #).group(1)
-VERSION = '0.5.51'
+VERSION = '0.6.1'
 
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'License :: OSI Approved :: MIT License',
@@ -68,12 +68,12 @@ for mod in MODULES:
 print(INSTALL_REQUIREMENTS)
 """
 # temporarily change pyvista version to 0.34.2 for colab integration, original version = 0.33.3
-INSTALL_REQUIREMENTS = ['pyvista==0.34.2', 'numpy>=1.21.6', 'setuptools>=62.3.3', 'tqdm>=4.63.0',
+INSTALL_REQUIREMENTS = ['pyvista==0.34.2', 'numpy==1.21.0', 'setuptools>=62.3.3', 'tqdm>=4.63.0',
                         'matplotlib>=3.3.4', 'vtk>=9.0.0', 'binarytree>=6.5.1', 'memory_profiler>=0.60.0',
                         'networkx>=2.5.1', 'pydotplus>=2.0.2', 'numba>=0.55.1', 'seaborn>=0.11.2',
                         'tetgen>=0.6.0', 'scipy>=1.6.0', 'pymeshfix>=0.15.0', 'geomdl>=5.3.1',
                         'sympy>=1.9', 'plotly>=5.1.0','scikit-image>=0.16.1','meshio==5.3.4','importlib_metadata',
-                        'nlopt==2.7.1']
+                        'nlopt==2.7.0']
 
 PACKAGES = find_packages(include=["svcco","svcco.*"]) #['svcco']+['svcco.'+ pkg for pkg in find_packages('svcco')]
 print(PACKAGES)

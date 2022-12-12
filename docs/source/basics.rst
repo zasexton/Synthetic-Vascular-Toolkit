@@ -100,7 +100,7 @@ of varying quality. To handle these types of files for perfusion domain creation
 we can use the ``load()`` method to import and clean a mesh geometry file prior to
 implicit domain creation.
 
-.. code-block::
+.. code-block:: python
    :linenos:
 
    import svcco
@@ -124,3 +124,37 @@ implicit domain creation.
 
 For more information and advanced features of the perfusion domain ``svcco.surface()``
 class, please refer to the documentation in :doc:`implicit <svcco.implicit>` module.
+
+Building a Vascular Tree within a Domain
+========================================
+
+After defining an appropriate perfusion domain object, users can build a synthetic
+vascular network. We will demonstrate a build of a simple vascular tree within the
+cube domain presented above. By default, the standard unit system for building synthetic
+vasculature is in centimeter-gram-second units (cgs). This will be important to remember
+when assigning physical parameters to vascular networks and for downstream applications.
+
+.. code-block:: python
+   :linenos:
+
+   import svcco
+
+   # Define a tree instance
+   t = svcco.tree()
+
+   # Assign a perfusion domain object
+   t.set_boundary(surf)
+
+   # Set the root vessel for the tree, if no parameters are given this
+   # root will be randomly placed on the boundary
+   t.set_root()
+
+   # Add some number of vessels to the tree
+   t.n_add(1000)
+
+Tree construction progress is displayed by default in the command terminal. This
+gives users an estimate for how long vascular construction will take.
+
+.. code-block::
+
+   Adding vessels: 100%|█████████████████████████████████████████████| 1000/1000
