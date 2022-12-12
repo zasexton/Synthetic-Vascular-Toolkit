@@ -3,7 +3,7 @@ SVT Documentation
 
 Welcome to the **SVT** documentation!
 
-The **S** ynthetic **V** ascular **T** oolkit ( **SVT** ) is a cross-platform (pure-python),
+The **S**\ ynthetic **V**\ ascular **T**\ oolkit (\ **SVT**\ ) is a cross-platform (pure-python),
 object-oriented synthetic vasculargeneration library. It is compatible with Python
 versions 3.6, 3.7, 3.8, and 3.9. It supports robust model creation and
 multi-fidelity computational fluid simulation for arbitrary perfusion domains.

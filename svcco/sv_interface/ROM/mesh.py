@@ -384,6 +384,7 @@ class Mesh(object):
         point_ids = np.where(branch == br)
 
         # get point arrays from centerline
+        print("Branch: {}".format(br))
         area_br = self.get_point_data(self.PointDataFields.AREA)[point_ids]
         path_br = self.get_point_data(self.PointDataFields.PATH)[point_ids]
 
@@ -614,21 +615,52 @@ def find_stenoses(area, path, params):
     Returns stenosis locations and coefficients along a branch
     """
     # find extrema
-    i_min = argrelextrema(area, np.less)[0]
-    i_max = argrelextrema(area, np.greater)[0]
+    i_min = argrelextrema(area, np.less)[0].tolist()
+    i_max = argrelextrema(area, np.greater)[0].tolist()
 
-    # truncate minima and maxima
-    a_0 = area[i_min]
-    a_s = area[i_max]
-    if len(a_0) > len(a_s):
+    # remove numerically close values from extrema lists
+    i_min_final = []
+    i_max_final = []
+    for idx in i_min:
+        if not np.isclose(area[idx],area[idx-1]) and not np.isclose(area[idx],area[idx+1]):
+            i_min_final.append(idx)
+    for idx in i_max:
+        if not np.isclose(area[idx],area[idx-1]) and not np.isclose(area[idx],area[idx+1]):
+            i_max_final.append(idx)
+
+    i_min = np.array(i_min_final)
+    i_max = np.array(i_max_final)
+    # truncate minima and maxima (don't understand the logic in this??)
+
+    if i_min.shape[0] > 0:
+        a_0 = area[i_min]
+    else:
+        a_0 = np.array([])
+
+    if i_max.shape[0] > 0:
+        a_s = area[i_max]
+    else:
+        a_s = np.array([])
+
+    if len(a_0) > len(a_s) and len(a_s) > 0:
         a_0 = a_0[:-1]
         i_min = i_min[:-1]
-    elif len(a_0) < len(a_s):
+    elif len(a_0) < len(a_s) and len(a_0) > 0:
         a_s = a_s[1:]
         i_max = i_max[1:]
 
+    if i_max.shape[0] > i_min.shape[0]:
+        len_unit = i_min.shape[0]
+    elif i_max.shape[0] < i_min.shape[0]:
+        len_unit = i_max.shape[0]
+    else:
+        len_unit = i_max.shape[0]
+
     # stenosis factor
-    f_sten = 1 / a_0 ** 2 * (a_0 / a_s - 1) ** 2
+    if len_unit > 0:
+        f_sten = 1 / a_0[:len_unit] ** 2 * (a_0[:len_unit] / a_s[:len_unit] - 1) ** 2
+    else:
+        f_sten = np.array([])
 
     # no stenosis
     sample_seg = np.array([0, 1])
