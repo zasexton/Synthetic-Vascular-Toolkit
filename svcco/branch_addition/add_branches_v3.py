@@ -324,11 +324,11 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                         mid_distal = mid_distal.flatten()
                         mid_terminal = mid_terminal.flatten()
                         if vessel != 0:
-                            if not tree.boundary.DD[0]((mid_proximal[0],mid_proximal[1],mid_proximal[2],len(tree.boundary.patches)//10)) < 0.1:
+                            if not tree.boundary.DD[0]((mid_proximal[0],mid_proximal[1],mid_proximal[2],2)) < 0.01:
                                 #print('proximal')
                                 include = False
                                 break
-                        val = tree.boundary.DD[0]((mid_distal[0],mid_distal[1],mid_distal[2],len(tree.boundary.patches)//10))
+                        val = tree.boundary.DD[0]((mid_distal[0],mid_distal[1],mid_distal[2],2))
                         if not val < 0.01:
                             #print(val)
                             #plotter = pv.Plotter()
@@ -340,7 +340,7 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                             #print('distal')
                             include = False
                             break
-                        if not tree.boundary.DD[0]((mid_terminal[0],mid_terminal[1],mid_terminal[2],len(tree.boundary.patches)//10)) < 0.01:
+                        if not tree.boundary.DD[0]((mid_terminal[0],mid_terminal[1],mid_terminal[2],2)) < 0.01:
                             #print('terminal')
                             include = False
                             break
@@ -370,8 +370,47 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
             #print("Finite difference: {} Value: {}".format(fd_point,fd_volume[fd_idx]))
             #start = time.time()
             start = perf_counter()
+            assert not np.any(np.isnan(tree.data[:,0])), "0 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,1])), "1 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,2])), "2 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,3])), "3 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,4])), "4 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,5])), "5 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,6])), "6 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,7])), "7 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,8])), "8 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,9])), "9 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,10])), "10 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,11])), "11 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,12])), "12 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,13])), "13 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,14])), "14 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,15])), "15 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,16])), "16 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,17])), "17 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,18])), "18 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,19])), "19 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,20])), "20 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,21])), "21 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,22])), "22 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,23])), "23 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,24])), "24 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,25])), "25 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,26])), "26 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,27])), "27 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,28])), "28 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,29])), "29 Nan found prior to local optimization"
+            assert not np.any(np.isnan(tree.data[:,30])), "30 Nan found prior to local optimization"
+
+            assert not np.any(np.isclose(tree.data[:,20],0)), "20 0 found prior to local optimization"
+            assert not np.any(np.isclose(tree.data[:,21],0)), "21 0 found prior to local optimization"
+            assert not np.any(np.isclose(tree.data[:,22],0)), "22 0 found prior to local optimization"
+            #assert not np.any(np.isclose(tree.data[:,23],0)), "23 Nan found prior to local optimization"
+            #assert not np.any(np.isclose(tree.data[:,24],0)), "24 Nan found prior to local optimization"
+            assert not np.any(np.isclose(tree.data[:,25],0)), "25 0 found prior to local optimization"
             results = fast_local_function(tree.data,points,terminal,
                                           vessel,gamma,nu,Qterm,Pperm,Pterm)
+            assert not np.any(np.isnan(results[0])), "Nan found after local optimization"
             brute_time = perf_counter()-start
             #truth_results = fast_local_function(tree.data,high_res_points,terminal,
             #                                    vessel,gamma,nu,Qterm,Pperm,Pterm)
@@ -381,6 +420,9 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
             brute = volume
             idx     = np.argmin(volume)
             bif     = results[5][idx]
+            #print('idx: {}'.format(idx))
+            #print(results[0])
+            #print(results[4])
             #truth_volume = np.pi*(truth_results[0]**lam)*(truth_results[1]**mu)
             #truth_idx = np.argmin(truth_volume)
             #truth_bif = truth_results[5][truth_idx]
@@ -396,6 +438,7 @@ def add_branch(tree,low,high,threshold_exponent=1.5,threshold_adjuster=0.75,
                 start = time.time()
                 data,sub_division_map,sub_division_index = add_bifurcation(tree,vessel,terminal,
                                                                            results,idx,isforest=isforest)
+                assert not np.any(np.isnan(data[:,21])), "Nan found after bifurcation addition"
                 #brute = np.sum(np.pi*data[:,21]**lam*data[:,20]**mu)
                 #print("Brute x: {} Value: {}".format(bif,brute[idx]))
                 #fig = plt.figure()

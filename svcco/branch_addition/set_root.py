@@ -161,6 +161,7 @@ def set_root(data, boundary, Qterm, gamma, nu,
                 #p1,_ = boundary.pick(homogeneous=True)
                 #lengths = [np.linalg.norm(p1-p0)]
                 if not isconvex:
+                    #print('setting root nonconvex with start points')
                     attempts = 0
                     threshold = (volume)**(1/3)
                     max_attempts = 10
@@ -204,16 +205,17 @@ def set_root(data, boundary, Qterm, gamma, nu,
                     while np.sum(lengths) < (volume)**(1/3):
                         p1,_ = boundary.pick(homogeneous=True)
                         lengths = [np.linalg.norm(p1-p0)]
-                lengths = [np.linalg.norm(start-p0)]
+                #lengths = [np.linalg.norm(start-p0)]
                 data[0, 0:3] = start
                 data[0, 3:6] = p1
+                length = np.linalg.norm(data[0,3:6] - data[0,0:3])
                 basis(data,0)
                 data[0, 15] = -1
                 data[0, 16] = -1
                 data[0, 17] = -1
                 data[0, 18] = 0
                 data[0, 19] = 1
-                data[0, 20] = np.sum(lengths)
+                data[0, 20] = length
                 data[0, 22] = Qterm
                 data[0, 26] = 0
                 data[0, 28] = 1.0

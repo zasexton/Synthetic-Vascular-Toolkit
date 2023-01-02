@@ -14,6 +14,10 @@ def close(data,point,N=20):
     return close_edges, distances
 
 #@nb.jit(nopython=True,cache=True,nogil=True)
+# this code can be optimized with reference to a working form of the
+# code presented in optimize_connection_v2 module for close_exact
+# the repeated list comprehensions likely slow down results
+# ~should be at least 7 times faster~
 def close_exact(data,point):
     line_direction = data[:,12:15]
     ss = np.array([np.dot(data[i,0:3] - point,line_direction[i,:]) for i in range(data.shape[0])])
@@ -25,6 +29,29 @@ def close_exact(data,point):
     line_distances = np.hypot(hh,cd)
     vessel = np.argsort(line_distances)
     return vessel, line_distances
+
+# Correct implementation of the JIT compiled exact distance test
+@nb.jit(nopython=True)
+def close_exact_v2(data,point):
+    line_direction = np.zeros((data.shape[0],3))
+    ss = np.zeros(data.shape[0])
+    tt = np.zeros(data.shape[0])
+    hh = np.zeros(data.shape[0])
+    cc = np.zeros((data.shape[0],3))
+    cd = np.zeros(data.shape[0])
+    line_distances = np.zeros(data.shape[0])
+    for i in range(data.shape[0]):
+        line_direction[i,:] = (data[i,3:6] - data[i,0:3])/np.linalg.norm(data[i,3:6] - data[i,0:3])
+        ss[i] = np.dot(data[i,0:3]-point,line_direction[i,:])
+        tt[i] = np.dot(point-data[i,3:6],line_direction[i,:])
+        d = np.array([ss[i],tt[i],0])
+        hh[i] = np.max(d)
+        diff = point - data[i,0:3]
+        cc[i,:] = np.cross(diff,line_direction[i,:])
+        cd[i] = np.linalg.norm(cc[i,:])
+        line_distances[i] = np.sqrt(hh[i]**2+cd[i]**2)
+    return line_distances
+
 """
 def close_exact(data,point):
     line_direction = data[:,12:15]
