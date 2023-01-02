@@ -324,6 +324,23 @@ class tree:
             self.sub_division_index = sub_division_index
 
     def n_add(self,n,method='L-BFGS-B'):
+        """
+        This method homogeneously appends a given number of vessels to the current
+        tree.
+
+        Parameters
+        ----------
+                  n : int
+                      an integer given the number of vessels to be appended to
+                      the tree.
+                  method : str (default = 'L-BFGS-B')
+                      string specifying the optimizer to use during bifurcation
+                      optimization. For more information on other optimizers
+                      refer to the method parameter for 'tree.add'.
+        Returns
+        -------
+                  None
+        """
         self.rng_points,_ = self.boundary.pick(size=40*n,homogeneous=True)
         self.rng_points = self.rng_points.tolist()
         for i in tqdm(range(n),desc='Adding vessels'):
@@ -353,6 +370,50 @@ class tree:
     def show(self,surface=False,vessel_colors='red',background_color='white',
              resolution=100,show_segments=True,save=False,name=None,show=True,
              surface_color='red',other_surface_color='blue'):
+        """
+        Renders the current vascular tree for visualization.
+
+        Parameters
+        ----------
+                  surface : bool (default = False)
+                           true/false flag for rendering the perfusion domain
+                           for the corresponding vascular tree
+                  vessel_colors : str (default = 'red')
+                           string specifying the surface color of the rendered
+                           vessels of the vascular tree. For more information on
+                           allowed strings for named colors, refer to
+                           http://htmlpreview.github.io/?https://github.com/lorensen/VTKExamples/blob/master/src/Python/Visualization/VTKNamedColorPatches.html
+                  background_color : str (default = 'white')
+                           string specifying the background color of the rendered
+                           scene of the vascular tree. For more information on
+                           allowed strings for named colors, refer to
+                           http://htmlpreview.github.io/?https://github.com/lorensen/VTKExamples/blob/master/src/Python/Visualization/VTKNamedColorPatches.html
+                  resolution : int (default = 100)
+                           integer specifying the number of sides to approximate
+                           the cylindrical vessels. Higher numbers have better
+                           visual accuracy but may take longer to render.
+                  show_segments : bool (default = True)
+                           true/false flag specifying if vessel data should be rendered
+                           (scheduled for depreciation)
+                  save : bool (default = False)
+                           true/false flag for saving a png of the current render
+                           screen
+                  name : str (default = None)
+                           name for saved png screen scene image
+                  show : bool (default = True)
+                           true/false flag for displaying the rendered object on
+                           screne. If false the rendered object is returned but not
+                           displayed.
+                  surface_color : str (default = 'red')
+                           string specifying the color of the perfusion domain object
+                           (if surface=true). For more information on allowed strings for
+                           named colors, refer to
+                           http://htmlpreview.github.io/?https://github.com/lorensen/VTKExamples/blob/master/src/Python/Visualization/VTKNamedColorPatches.html
+        Returns
+        -------
+                  models : list of vtkTube Objects
+                           list of vtk polydata tube filter objects
+        """
         models = []
         actors = []
         if not isinstance(vessel_colors,str):
@@ -454,6 +515,19 @@ class tree:
             return models
 
     def save(self,filename=None):
+        """
+        This method saves the current tree and perfusion boundary information to
+        be used at another time.
+
+        Parameters
+        ----------
+                   filename : str (default = None)
+                             string specifying the filename for the folder containing
+                             the corresponding tree and perfusion boundary data
+        Returns
+        -------
+                   None
+        """
         if filename is None:
             tag = time.gmtime()
             filename = 'network_{}'.format(str(tag.tm_year)+
@@ -475,6 +549,20 @@ class tree:
         file.close()
 
     def load(self,filename):
+        """
+        Reads a saved vascular tree project and loads the information into the
+        current object.
+
+        Parameters
+        ----------
+                   filename : str
+                             string specifying the path to the project folder
+                             containing the data files for the vascular tree and
+                             perfusion boundary
+        Returns
+        -------
+                   None
+        """
         file = open(filename+"/vessels.ccob",'rb')
         self.data = pickle.load(file)
         file.close()
@@ -485,7 +573,16 @@ class tree:
         self.boundary = pickle.loads(file)
         file.close()
 
-    def export(self,steady=True,apply_distal_resistance=True,gui=True,cylinders=False,make=True,global_edge_size=None,splines=False,splines_file_path='',spline_sample_points=100):
+    def export(self,steady=True,apply_distal_resistance=True,gui=True,
+               cylinders=False,make=True,global_edge_size=None,
+               splines=False,splines_file_path='',spline_sample_points=100):
+        """
+        This function exports multiple results from vascular tree objects.
+        These include SimVascular 3D simulation files and spline path points
+        for gCode generation.
+
+        
+        """
         if cylinders:
             pv_data = []
             models = self.show(show=False)
@@ -1274,8 +1371,6 @@ class forest:
             self.boundary.volume = volume
 
     def add(self,number_of_branches,network_id=0,radius_buffer=0.01,exact=True):
-        if self.compete:
-            network_id = -1
         if network_id == -1:
             exit_number = []
             active_networks = list(range(len(self.networks)))
@@ -1291,40 +1386,43 @@ class forest:
                     exit_number.append(self.networks[nid][0].parameters['edge_num'])
         for AN in active_networks:
             for ATr in range(self.trees_per_network[AN]):
-                self.networks[AN][ATr].rng_points,_ = self.boundary.pick(size=40*number_of_branches,homogeneous=True)
-                self.networks[AN][ATr].rng_points = self.networks[AN][ATr].rng_points.tolist()
-                if self.compete:
-                    # new
+                #self.networks[AN][ATr].rng_points,_ = self.boundary.pick(size=40*number_of_branches,homogeneous=True)
+                #self.networks[AN][ATr].rng_points = self.networks[AN][ATr].rng_points.tolist()
+                if not self.compete:
+                    self.networks[AN][ATr].rng_points,_ = self.boundary.pick(size=40*number_of_branches,homogeneous=True)
+                    self.networks[AN][ATr].rng_points = self.networks[AN][ATr].rng_points.tolist()
+                    # new (might be based on a bad assumption??)
                     #self.networks[AN][ATr].rng_points,_ = self.boundary.pick(size=len(self.boundary.tet_verts),homogeneous=True,replacement=False)
                     #self.networks[AN][ATr].rng_points = self.networks[AN][ATr].rng_points.tolist()
-                    for n in tqdm(range(len(self.networks[AN][ATr].rng_points))):
-                        pt = np.array(self.networks[AN][ATr].rng_points.pop(0))
-                        if exact:
-                            other_vessels,distances = close_exact(self.networks[AN][ATr].data,pt)
-                        else:
-                            other_vessels,distances = close(self.networks[AN][ATr].data,pt)
-                        minimum_distance = min(distances)
-                        #if minimum_distance < 4*forest.networks[nid][njd].data[other_vessels[0],21]:
-                        #    continue
-                        retry = False
-                        for idx in active_networks:
-                            for jdx in list(range(self.trees_per_network[idx])):
-                                if idx == AN:
-                                    continue
-                                if exact:
-                                    other_vessels,distances = close_exact(self.networks[idx][jdx].data,pt)
-                                else:
-                                    other_vessels,distances = close(self.networks[idx][jdx].data,pt)
-                                if min(distances) < minimum_distance:
-                                    retry = True
-                                    break
-                            if retry:
-                                break
-                        if retry:
-                            continue
-                        else:
-                            self.networks[AN][ATr].rng_points.insert(-1,pt.tolist())
+                    #for n in tqdm(range(len(self.networks[AN][ATr].rng_points))):
+                    #    pt = np.array(self.networks[AN][ATr].rng_points.pop(0))
+                    #    if exact:
+                    #        other_vessels,distances = close_exact(self.networks[AN][ATr].data,pt)
+                    #    else:
+                    #        other_vessels,distances = close(self.networks[AN][ATr].data,pt)
+                    #    minimum_distance = min(distances)
+                    #    #if minimum_distance < 4*forest.networks[nid][njd].data[other_vessels[0],21]:
+                    #    #    continue
+                    #    retry = False
+                    #    for idx in active_networks:
+                    #        for jdx in list(range(self.trees_per_network[idx])):
+                    #            if idx == AN:
+                    #                continue
+                    #            if exact:
+                    #                other_vessels,distances = close_exact(self.networks[idx][jdx].data,pt)
+                    #            else:
+                    #                other_vessels,distances = close(self.networks[idx][jdx].data,pt)
+                    #            if min(distances) < minimum_distance:
+                    #                retry = True
+                    #                break
+                    #        if retry:
+                    #            break
+                    #    if retry:
+                    #        continue
+                    #    else:
+                    #        self.networks[AN][ATr].rng_points.insert(-1,pt.tolist())
                     #new
+                    #pass
         if not self.compete:
             while len(active_networks) > 0:
                 for nid in active_networks:

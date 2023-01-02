@@ -27,8 +27,7 @@ def fast_local_function(data,mesh,terminal,edge,gamma,nu,Qterm,Pperm,Pterm):
     R_terminal_sister   = (8*nu/np.pi)*downstream_length + (data[edge,25]-(8*nu/np.pi)*data[edge,20])
     f_terminal          = (1+((data[edge,22]*R_terminal_sister)/(Qterm*R_terminal))**(gamma/4)) ** (-1/gamma)
     f_terminal_sister   = (1+((data[edge,22]*R_terminal_sister)/(Qterm*R_terminal))**(-gamma/4)) ** (-1/gamma)
-    R_0                 = (8*nu/np.pi)*upstream_length + ((f_terminal**4)/R_terminal +
-                          (f_terminal_sister**4)/R_terminal_sister)**-1
+    R_0                 = (8*nu/np.pi)*upstream_length + ((f_terminal**4)/R_terminal + (f_terminal_sister**4)/R_terminal_sister)**-1
     L_0                 = f_terminal ** 2 * terminal_length + f_terminal_sister ** 2 * (downstream_length + data[edge,27])
     reduced_resistances.append(R_0)
     reduced_lengths.append(L_0)
