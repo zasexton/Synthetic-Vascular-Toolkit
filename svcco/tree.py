@@ -1449,6 +1449,26 @@ class tree:
         return centerlines_all,polys
 
     def export_centerlines(self,outdir=None,folder="centerlines_tmp",num_points=100):
+        """
+        Export centerlines for the current vascular tree.
+
+        Parameters
+        ----------
+                    outdir : str (default = None)
+                           string specifying the output directory for the 0D simulation
+                           folder to be created
+                    folder : str (default = "centerlines_tmp")
+                           string specifying the folder name. This folder will store
+                           all the centerline files that are generated
+                    num_points : int (default = 100)
+                           integer specifying the number of sample points for each
+                           vessel in the vascular tree
+        Returns
+        -------
+                    polys : list of PyVista PolyData Objects
+                           PolyData centerline objects for each vessel in the
+                           vascular tree
+        """
         _,_,interp_xyzr = self.export(make=False)
 
         if outdir is None:
