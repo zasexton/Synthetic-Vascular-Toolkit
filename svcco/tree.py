@@ -581,7 +581,59 @@ class tree:
         These include SimVascular 3D simulation files and spline path points
         for gCode generation.
 
-        
+        Parameters
+        ----------
+                   steady : bool (default = True)
+                           true/false flag for assigning a time-varying inlet
+                           flow. If false, a flow waveform is assigned from
+                           empirical data taken from coronary arteries.
+                           Refer to svcco.sv_interface.waveform for more details
+                   apply_distal_resistance : bool (default = True)
+                           apply distal resistance boundary conditions to the
+                           vascular model. If false, the outlet boundary condition
+                           will have zero resistance.
+                   gui : bool (default = True)
+                           true/false flag for the SimVascular simulation file
+                           if intending to build the simulation from the SimVascular
+                           gui, this flag is necessary to correctly handle data storage
+                           in the repository.
+                           (scheduled for depreciation)
+                   cylinders : bool (default = False)
+                           return a marged set of cylinders as a pyvista polydata
+                           object.
+                   make : bool (default = True)
+                           construct the SimVascular simulation python code file
+                           for the current vascular tree
+                   global_edge_size : float (default = None)
+                            sets the minimum global edge size for the finite element
+                            mesh to be used during the simulation. By default this is
+                            automatically redetermined by the root and terminal radii
+                            of the vascular tree.
+                   splines : bool (default = False)
+                            true/false flag for calculating splines
+                   splines_file_path : str (default = '')
+                            string specifying the path to save the spline data file
+                   spline_sample_points : int (default = 100)
+                            integer specifying the number of points to sample each
+                            spline vessel along
+        Returns
+        -------
+                   merge : PyVista PolyData Object
+                            if the cylinders parameter is True then this method will
+                            only return the merged PolyData object of cylinders
+                            representing the vascular tree object. This merged
+                            polydata is not guarunteed to be watertight and should
+                            only be used for visualization.
+                    interp_xyz : list of ndarrays
+                            spine control points and knot vectors for the xyz coordinates
+                            defining each vessel within a vascular tree
+                    interp_r : list of ndarrays
+                            spine control points and knot vectors for the 1D spline
+                            defining the radius along each vessel within the vascular
+                            tree
+                    interp_xyzr :
+                            spine control points and knot vectors for the xyz coordinates
+                            and radius value defining each vessel within a vascular tree
         """
         if cylinders:
             pv_data = []
@@ -624,6 +676,61 @@ class tree:
         return interp_xyz,interp_r,interp_xyzr
 
     def export_truncated(self,steady=True,radius=None,indicies=None,apply_distal_resistance=True,gui=True,cylinders=False,make=True):
+        """
+        This function exports multiple results from vascular tree objects.
+        These include SimVascular 3D simulation files and spline path points
+        for gCode generation.
+
+        Parameters
+        ----------
+                   steady : bool (default = True)
+                           true/false flag for assigning a time-varying inlet
+                           flow. If false, a flow waveform is assigned from
+                           empirical data taken from coronary arteries.
+                           Refer to svcco.sv_interface.waveform for more details
+                   apply_distal_resistance : bool (default = True)
+                           apply distal resistance boundary conditions to the
+                           vascular model. If false, the outlet boundary condition
+                           will have zero resistance.
+                   gui : bool (default = True)
+                           true/false flag for the SimVascular simulation file
+                           if intending to build the simulation from the SimVascular
+                           gui, this flag is necessary to correctly handle data storage
+                           in the repository.
+                           (scheduled for depreciation)
+                   cylinders : bool (default = False)
+                           return a marged set of cylinders as a pyvista polydata
+                           object.
+                   make : bool (default = True)
+                           construct the SimVascular simulation python code file
+                           for the current vascular tree
+                   radius : float (default = None)
+                           radius threshold above which vessels are exported and below
+                           which vessels are omitted. If None, will default to average
+                           value
+                   indicies : numpy 1D array of int values
+                           index values of cylinders within the tree.data array
+                           that are to be kept. Unlisted index values will be
+                           removed from the truncated representation.
+        Returns
+        -------
+                   merge : PyVista PolyData Object
+                            if the cylinders parameter is True then this method will
+                            only return the merged PolyData object of cylinders
+                            representing the vascular tree object. This merged
+                            polydata is not guarunteed to be watertight and should
+                            only be used for visualization.
+                    interp_xyz : list of ndarrays
+                            spine control points and knot vectors for the xyz coordinates
+                            defining each vessel within a vascular tree
+                    interp_r : list of ndarrays
+                            spine control points and knot vectors for the 1D spline
+                            defining the radius along each vessel within the vascular
+                            tree
+                    interp_xyzr :
+                            spine control points and knot vectors for the xyz coordinates
+                            and radius value defining each vessel within a vascular tree
+        """
         if cylinders:
             pv_data = []
             models = self.show(show=False)
@@ -652,6 +759,27 @@ class tree:
         return interp_xyz,interp_r
 
     def show_truncated(self,radius=None,indicies=None):
+        """
+        Display a truncated vascular tree.
+
+        Parameters
+        ----------
+                   radius : float (default = None)
+                           radius threshold above which vessels are exported and below
+                           which vessels are omitted. If None, will default to average
+                           value
+                   indicies : numpy 1D array of int values (default = None)
+                           index values of cylinders within the tree.data array
+                           that are to be kept. Unlisted index values will be
+                           removed from the truncated representation.
+        Returns
+        -------
+                   plotter : PyVista Plotter Object
+                           plotting object with rendered cylinder models representing
+                           the truncated vascular tree. Vessels are red if not
+                           truncated and transparent blue if truncated.
+                           (red and blue coloring is currently hard-coded)
+        """
         large,small = truncate(self.data,radius=radius,indicies=indicies)
         combined = []
         plotter = pv.Plotter()
@@ -669,6 +797,31 @@ class tree:
         return plotter
 
     def export_3d_solid(self,outdir=None,folder="3d_tmp",watertight=False):
+        """
+        Export a solid 3D model of the vascular tree.
+
+        Parameters
+        ----------
+                    outdir : str (default = None)
+                            string specifying the output directory for the 3D solid
+                            folder to be created
+                    folder : str (default = '3d_tmp')
+                            string specifying the folder name. This folder will store
+                            all 3D solid files that are generated
+                    watertight : bool (default = False)
+                            true/false flag for requiring the 3D solid to be watertight.
+                            Note that this is a strict requirement of the solid and will
+                            involve more expensive computation to ensure. By default,
+                            this is false.
+        Returns
+        -------
+                    vessels : list of PolyData Tube Filter Objects
+                            list of vtk tube filters for all of the cylinders
+                            composing the vascular tree
+                    total_model : PyVista PolyData Object
+                             total PolyData solid model representing the vascular
+                             tree
+        """
         if outdir is None:
             outdir = os.getcwd()+os.sep+folder
         else:
@@ -737,12 +890,84 @@ class tree:
                       viscosity_model='constant',vivo=True,distal_pressure=0):
         """
         This script builds the 0D input file for running 0D simulation.
+
         Parameters:
         -----------
-        steady: bool, optional, [default=True]
-        outdir: str, optional, [default=None]
-        folder: str, optional, [default="tmp"]
-        number_cardiac_cycles: int, optional, [default=1]
+                    steady : bool (default = True)
+                           true/false flag for assigning a time-varying inlet
+                           flow. If false, a flow waveform is assigned from
+                           empirical data taken from coronary arteries.
+                           Refer to svcco.sv_interface.waveform for more details
+                    outdir : str (default = None)
+                           string specifying the output directory for the 0D simulation
+                           folder to be created
+                    folder : str (default = "0d_tmp")
+                           string specifying the folder name. This folder will store
+                           all 0D simulation files that are generated
+                    number_cardiac_cycles : int (default = 1)
+                           number of cardiac cycles to compute the 0D simulation.
+                           This can be useful for obtaining a stable solution.
+                    number_time_pts_per_cycle : int (default = 5)
+                           number of time points to evaluate during the 0D
+                           simulation. A default of 5 is good for steady flow cases;
+                           however, pulsatile flow will likely require a higher number
+                           of time points to adequetly capture the inflow waveform.
+                    density : float (default = 1.06)
+                           density of the fluid within the vascular tree to simulate.
+                           By deafult, the density of blood is used.
+                           Base Units are in centimeter-grame-second (CGS)
+                    viscosity : float (default = 0.04)
+                           viscosity of the fluid within the vascular tree to simulate.
+                           By default, the viscosity if blood is used.
+                           Base units are in centimeter-grame-second (CGS)
+                    material : str (default = "olufsen")
+                           string specifying the material model for the vascular
+                           wall. Options available: ("olufsen" and "linear")
+                    olufsen : dict
+                             material paramters for olufsen material model
+                                   'k1' : float (default = 0.0)
+                                   'k2' : float (default = -22.5267)
+                                   'k3' : float (default = 1.0e7)
+                                   'material exponent' : int (default = 2)
+                                   'material pressure' : float (default = 0.0)
+                             By default these parameters numerically yield a "rigid"
+                             material model.
+                    linear : dict
+                             material parameters for the linear material model
+                                   'material ehr' : float (default = 1e7)
+                                   'material pressure' : float (default = 0.0)
+
+                             By default these parameters numerically yield a "rigid"
+                             material model.
+                    get_0d_solver : bool (default = False)
+                             true/false flag to search for the 0D solver. If installed,
+                             the solver will be imported into the autogenerated
+                             simulation code. Depending on how large the disk-space
+                             is for the current machine, this search may be prohibitively
+                             expensive if no path is known.
+                    path_to_0d_solver : str (default = None)
+                             string specifying the path to the 0D solver
+                    viscosity_model : str (default = 'constant')
+                             string specifying the viscosity model of the fluid.
+                             This may be useful for multiphase fluids (like blood)
+                             which have different apparent viscosities at different
+                             characteristic length scales. By default, constant
+                             viscosity is used.
+
+                             Other viscosity option: 'modified viscosity law'
+                                  This option leverages work done by Secomb et al.
+                                  specifically for blood in near-capillary length
+                                  scales.
+                    vivo : bool (default = True)
+                             true/false flag for using in vivo blood viscosity hematocrit
+                             value. If false, in vitro model is used. (Note these
+                             are only used for the modified viscosity law model)
+                    distal_pressure : float (default = 0.0)
+                             apply a uniform distal pressure along outlets of the
+                             vascular tree
+        Returns
+        -------
+                    None
         """
         if outdir is None:
             outdir = os.getcwd()+os.sep+folder
@@ -896,6 +1121,45 @@ class tree:
 
     def export_1d_simulation(self,steady=True,outdir=None,folder="1d_tmp",number_cariac_cycles=1,num_points=1000,
                              distal_pressure=0,resistance_split=(1,0)):
+        """
+        Export 1D Simulation files for current vascular tree
+
+        Parameters
+        ----------
+                    steady : bool (default = True)
+                           true/false flag for assigning a time-varying inlet
+                           flow. If false, a flow waveform is assigned from
+                           empirical data taken from coronary arteries.
+                           Refer to svcco.sv_interface.waveform for more details
+                    outdir : str (default = None)
+                           string specifying the output directory for the 0D simulation
+                           folder to be created
+                    folder : str (default = "1d_tmp")
+                           string specifying the folder name. This folder will store
+                           all 0D simulation files that are generated
+                    number_cardiac_cycles : int (default = 1)
+                           number of cardiac cycles to compute the 0D simulation.
+                           This can be useful for obtaining a stable solution.
+                    num_points : int (default = 1000)
+                           the number of points sampled along the axial (centerline)
+                           direction of each vessel within the current vascular tree
+                    distal_pressure : float (default = 0.0)
+                           apply a uniform distal pressure along outlets of the
+                           vascular tree
+                    resistance_split : 2-float tuple (default = (1.0,0.0))
+                           split between total resistance proximal and distal within
+                           an RCR boundary condition. Sum of the two float values
+                           should add to 1. By default, all of the resistance is
+                           placed at the proximal resistor.
+        Returns
+        -------
+                     centerlines_all : PyVista PolyData Object
+                           merged and cleaned centerlines (in SimVascular format)
+                           necessary for 1D simulation.
+                     polys : list of PyVista PolyData Objects
+                           list of PolyData objects representing the centerlines
+                           for each vessel
+        """
         interp_xyz,interp_r,interp_xyzr = self.export(make=False)
         # Make Centerline Approximation Polydata
         #branches = get_branches(self.data)
@@ -1185,6 +1449,26 @@ class tree:
         return centerlines_all,polys
 
     def export_centerlines(self,outdir=None,folder="centerlines_tmp",num_points=100):
+        """
+        Export centerlines for the current vascular tree.
+
+        Parameters
+        ----------
+                    outdir : str (default = None)
+                           string specifying the output directory for the 0D simulation
+                           folder to be created
+                    folder : str (default = "centerlines_tmp")
+                           string specifying the folder name. This folder will store
+                           all the centerline files that are generated
+                    num_points : int (default = 100)
+                           integer specifying the number of sample points for each
+                           vessel in the vascular tree
+        Returns
+        -------
+                    polys : list of PyVista PolyData Objects
+                           PolyData centerline objects for each vessel in the
+                           vascular tree
+        """
         _,_,interp_xyzr = self.export(make=False)
 
         if outdir is None:
@@ -1228,9 +1512,37 @@ class tree:
         return polys
 
     def collision_free(self,outside_vessels,radius_buffer=0.01):
+        """
+        Determine if a set of vessels is collision free against the current vascular
+        tree. If so, return True; if there is a collision return False.
+
+        Parameters
+        ----------
+                   outside_vessels : ndarray of shape (N, 31)
+                                   an ndarray of vessels in the same format as the
+                                   tree.data structure is used to determine if at least
+                                   one collision exists between the two sets of vessels
+                   radius_buffer : float (default = 0.01)
+                                   the minimum buffer distance between any two vessels
+        Returns
+        -------
+                   no_collision : bool
+                                   if there are no collisions then the value will be True,
+                                   otherwise the value will be False
+        """
         return no_outside_collision(self,outside_vessels,radius_buffer=radius_buffer)
 
     def export_gcode(self):
+        """
+        Export the gCode for 3D fabrication of the current vascular tree.
+
+        Parameters
+        ----------
+                    None
+        Returns
+        -------
+                    None
+        """
         interp_xyz,interp_r,interp_n,frames,branches,interp_xyzr = get_interpolated_sv_data(self.data)
         points,radii,normals    = sv_data(interp_xyzr,interp_r,radius_buffer=self.radius_buffer)
         generate_gcode(points)
