@@ -7,7 +7,7 @@
 # Synthetic Vascular Toolkit
 
 
-![version](https://img.shields.io/badge/version-0.6.18-blue)
+![version](https://img.shields.io/badge/version-0.6.21-blue)
 ![Platform](https://img.shields.io/badge/platform-macOS%20|%20linux%20|%20windows-blue)
 
 <p align="left">
