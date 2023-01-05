@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="https://github.com/zasexton/Synthetic-Vascular-Toolkit/blob/main/docs/big_cco_cube.png" height="130">
+  <img src="https://github.com/zasexton/Synthetic-Vascular-Toolkit/blob/main/docs/big_cco_cube.png" height="300">
 </p>
 
 
