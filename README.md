@@ -3,9 +3,9 @@
   <img src="https://github.com/zasexton/Synthetic-Vascular-Toolkit/blob/main/docs/big_cco_cube.png" height="130">
 </p>
 
-<center>
+
 # Synthetic Vascular Toolkit
-</center>
+
 
 ![version](https://img.shields.io/badge/version-0.6.18-blue)
 ![Platform](https://img.shields.io/badge/platform-macOS%20|%20linux%20|%20windows-blue)
