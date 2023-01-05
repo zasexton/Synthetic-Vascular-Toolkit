@@ -52,7 +52,7 @@ def get():
 
 class tree:
     """
-    Create a synthetic tree object.
+    Create a synthetic vascular tree object.
 
     Parameters
     ----------
@@ -1557,34 +1557,85 @@ class forest:
         within one given perfusion domain.
 
         Parameters
-                   boundary: svcco.surface object
+        ----------
+                   boundary : svcco.surface object
                              perfusion domain object defined by svcco.surface
                              which will serve as a boundary for all networks
                              built for this forest object
-
                              For more information see:
                              >>>help(svcco.surface)
-
-                   number_of_networks: int
+                   number_of_networks : int (default = 1)
                              integer specifying the number of networks to be
                              built for the given forest object (default=1)
-
-                   trees_per_network: list of ints
+                   trees_per_network : list of ints (default = [2])
                              list of integers specifying the number of
                              interpenetrating trees per network. By definition
                              len(trees_per_network) = number_of_networks
-
-                   scale:
-                   start_points:
-                   directions:
-                   root_lengths_high:
-                   root_lengths_low:
-                   convex:
-                   compete:
-
-        Methods:
-                   set_roots
-                   add
+                   scale : float (default = None)
+                             scale value to rescale the size of the bonudary
+                             of the perfusion domain (scheduled for depreciation)
+                   start_points : list of list of ndarrays (default = None)
+                             seed points for all vascular trees across all networks
+                             within the current forest object. All seed points must
+                             be 1D arrays of 3 xyz coordinates.
+                   directions : list of list of ndarrays (default = None)
+                             normal vectors associated with each seed point across
+                             all networks within the current forest object. All
+                             directions must be unit vectors as 1D, 3-component
+                             arrays
+                   root_lengths_high : list of list of floats (default = None)
+                             maximum length ratio of root vessels which have
+                             perscribed seed points and directions.
+                   root_lengths_low : list of list of floats (default = None)
+                             mimimum length ratio of root vessels which have
+                             perscribed seed points and directions.
+                   convex : bool (default = False)
+                             true/false flag specifying if the boundary of the
+                             perfusion domain is convex. If so, computations are
+                             greatly accelerated due to simplifying topological
+                             assumptions (see Delaunay Hulls for more info).
+                   compete : bool (default = False)
+                             true/false flag to grow vascular networks to compete
+                             for perfusion territories. Each vascular network will
+                             occupy a unique sub-domain. This can greatly increase
+                             computation costs.
+        Attributes
+        ----------
+                   networks : list of list of svcco.tree objects
+                             data storage for the current set of vascular networks
+                             within the forest object
+                   connections : list of list of ndarrays
+                             connecting vessels among vascular trees within each
+                             network of a forest object.
+                   assignments : list of list of ndarrays
+                             index assignments among termainals of vascular trees
+                             within each network for which connections will be made
+                             (currently only working for convex domains)
+                   boundary : svcco.surface object
+                             perfusion domain boundary
+                   convex : bool
+                             flag signifying that the perfusion boundary domain
+                             is a convex topology
+                   compete : bool
+                             flag signifying that the vascular networks are in
+                             competition with one another
+                   number_of_networks : int
+                             integer specifying the number of networks for this
+                             forest object
+                   trees_per_network : list of ints
+                             number of trees per network within the forest object
+                   starting_points : list of list of ndarrays
+                             seed points for each tree within each network of the
+                             forest object
+                   directions : list of list of ndarrays
+                             direction of the root vessel of each tree within each
+                             network of the forest object
+                   root_lengths_high : list of list of floats
+                             maximum length ratio of root vessels which have
+                             perscribed seed points and directions
+                   root_lengths_low : list of list of floats
+                             mimimum length ratio of root vessels which have
+                             perscribed seed points and directions
         """
         self.networks    = []
         self.connections = []
@@ -1594,7 +1645,7 @@ class forest:
         self.convex      = convex
         self.compete     = compete
         self.number_of_networks = number_of_networks
-        self.trees_per_network = trees_per_network
+        self.trees_per_network  = trees_per_network
         if isinstance(start_points,type(None)):
             start_points = [[None for j in range(trees_per_network[i])] for i in range(number_of_networks)]
         if isinstance(directions,type(None)):
@@ -1621,6 +1672,21 @@ class forest:
         self.networks    = networks
 
     def set_roots(self,scale=None,bounds=None):
+        """
+        Set the root vessels of each tree within each network of the vascular
+        forest object
+
+        Parameters
+        ----------
+                    scale : float (default = None)
+                           scale the terminal flow rates (to be removed)
+                    bounds : ??? (default = None)
+                           boundary region for initial root selection
+                           (not implemented currently)
+        Returns
+        -------
+                    None
+        """
         if self.compete:
             volume = deepcopy(self.boundary.volume)
             self.boundary.volume = self.boundary.volume/self.number_of_networks
@@ -1683,6 +1749,32 @@ class forest:
             self.boundary.volume = volume
 
     def add(self,number_of_branches,network_id=0,radius_buffer=0.01,exact=True):
+        """
+        Add vessels to trees within the forest object
+
+        Parameters
+        ----------
+                    number_of_vessels : int
+                              the number of vessels to add
+                    network_id : int (default = 0)
+                              the network within which to add the given number of
+                              vessels to each tree. By default, this will be the
+                              network at index zero. If network_id is -1, then the
+                              given number of vessels will be added to each tree in
+                              each network of the entire forest object
+                    radius_buffer : float (default = 0.01)
+                              the minimum amount of clearance space between any
+                              two vessels among trees within the forest object
+                    exact : bool (default = True)
+                              true/false flag for determining vessel proximities.
+                              If false, the proximity subroutines rely on midpoint
+                              approximatations for increased evaluation speeds at
+                              penalty of decreased accuracy (not recommended for
+                              networks intended for 3D fabrication)
+        Returns
+        -------
+                    None
+        """
         if network_id == -1:
             exit_number = []
             active_networks = list(range(len(self.networks)))
@@ -1777,6 +1869,39 @@ class forest:
                 compete_add(self,network_ids=network_id,radius_buffer=radius_buffer)
 
     def show(self,show=True,resolution=100,final=False,merged_trees=False,background='white',off_screen=False):
+        """
+        Render the current vascular forest object
+
+        Parameters
+        ----------
+                    show : bool (default = True)
+                           true/false flag specifying if the vascular forest should
+                           be rendered
+                    resolution : int (default = 100)
+                           the number of sides to use when rendering cylindrical
+                           constituents of vascular networks. Higher resolution
+                           will yield better visual approximations at the cost of
+                           increased time during rendering
+                    final : bool (default = False)
+                           (unused and scheduled for depreciation)
+                    merged_trees : bool (default = False)
+                           true/false flag specifying if a list of all PolyData
+                           cylinders should be included upon return
+                    background : str (default = "white")
+                           string specifying the color of the background in the
+                           rendering window.
+                    off_screen : bool (default = False)
+                           initialize the renderer to render off_screen
+        Returns
+        -------
+                    plotter : PyVista Plotter Object
+                             rendering object with the associated vascular mesh
+                             information
+                    merged_list : list of lists of Pyvista PolyData objects
+                             PolyData mesh information for all vessel segments
+                             with each tree within each network of the vascular
+                             forest object
+        """
         if merged_trees:
             colors = ['r','b','g','y']
             plotter = pv.Plotter()
@@ -1864,15 +1989,45 @@ class forest:
             return plot
 
     def connect(self,network_id=-1,buffer=None,curve_sample_size_min=5,curve_sample_size_max=11,curve_degree=3):
+        """
+        Connect vascular trees within each network of the forest object.
+
+        Parameters
+        ----------
+                    network_id : int (default = -1)
+                        the integer specifying the networks for which to connect
+                        vascular trees. If network_id is -1, vascular trees within
+                        each network will be connected
+                    buffer : float (default = None)
+                        minimum distance among connecting vessels and any other
+                        vessel within the forest object
+        Returns
+        -------
+                    None
+        """
         self.forest_copy = self.copy()
         self.forest_copy.connections,self.forest_copy.assignments = connect(self.forest_copy,network_id=network_id,buffer=buffer)
         #self.forest_copy.connections,self.forest_copy.connected_forest,self.splines = smooth(self.forest_copy,curve_sample_size_min=curve_sample_size_min,curve_sample_size_max=curve_sample_size_max,curve_degree=curve_degree)
         self.forest_copy.connections,_,_ = link(self.forest_copy)
 
     def assign(self):
+        """
+        Assign the connecting terminal vessels among trees within networks of the
+        forest object
+
+        Parameters
+        ----------
+                    None
+        Returns
+        -------
+                    None
+        """
         self.connections,self.assignments = connect(self)
 
     def rotate(self):
+        """
+        Depreciated (to be removed)
+        """
         forest_copy = self.copy()
         forest_copy.assign()
         comb,pts = rotate_terminals(forest_copy)
@@ -1880,6 +2035,17 @@ class forest:
         return comb,pts
 
     def copy(self):
+        """
+        Copy the current forest object
+
+        Parameters
+        ----------
+                      None
+        Returns
+        -------
+                      forest_copy : svcco.forest
+                           a copy of the current forest object
+        """
         forest_copy = forest(boundary=self.boundary,number_of_networks=self.number_of_networks,
                              trees_per_network=self.trees_per_network,scale=None,convex=self.convex,
                              compete=self.compete)
@@ -1894,6 +2060,46 @@ class forest:
         return forest_copy
 
     def export_solid(self,outdir=None,folder="3d_tmp",shell=False,variable_thickness=False,shell_thickness=0.01):
+        """
+        Export solid object representations of the current forest object
+
+        Parameters
+        ----------
+                    outdir : str (default = None)
+                           string specifying the output directory for the solid export
+                           folder to be created
+                    folder : str (default = "3d_tmp")
+                           string specifying the folder name. This folder will store
+                           all solid object files that are generated
+                    shell : bool (default = False)
+                           true/false flag specifying if shells of the vascular
+                           wall should be generated
+                    variable_thickness : bool (default = False)
+                           true/false flag specifying if shell thickness should
+                           vary as a function of vessel radius
+                    shell_thickness : float (default = 0.01)
+                           thickness at the root of a vascular tree
+                           Base Units centimeter-grame-second (CGS)
+                           Default thickness is 0.01 cm (100 microns)
+        Returns
+        -------
+                    ALL_vessels : list of lists of PolyData
+                           PyVista PolyData objects for each vessel within each
+                           network of the vascular forest
+                    ALL_tets : list of lists of volume meshs
+                           tetgen volume meshes for each vessel within each network
+                           of the vascular forest
+                    ALL_surfs : list of lists of PolyData
+                           PyVista PolyData objects of the extracted surface meshes
+                           from the volume meshes
+                    P : PyVista Plotter Object
+                           renderer containing the rendered representations of the
+                           vascular forest object
+                    unioned : PyVista PolyData object
+                           the total union of all vessels within each network within
+                           the current vascular forest
+
+        """
         if outdir is None:
             outdir = os.getcwd()+os.sep+folder
         else:
@@ -2094,7 +2300,62 @@ class forest:
         else:
             return ALL_vessels,ALL_tets,ALL_surfs,P,unioned
 
-    def export(self,make=False,spline=False,write_splines=False,spline_sample_points=100,steady=True,apply_distal_resistance=False,gui=False):
+    def export(self,make=False,spline=False,write_splines=False,
+               spline_sample_points=100,steady=True,
+               apply_distal_resistance=False,gui=False):
+        """
+        Generate the 3D simulation file for SimVascular and/or spline representation
+        of the vascular forest
+
+        Parameters
+        ----------
+                    make : bool (default = False)
+                          true/false flag specifying construction of the SimVascular
+                          simulation file
+                    splines : bool (default = False)
+                          true/false flag specifying generation of the spline point
+                          files representing the centerline paths of the vascular
+                          networks within the current forest object
+                    write_splines : bool (default = False)
+                          true/false flag for writing spline points into files
+                    spline_sample_points : int (default = 100)
+                          the number of sample points to take along each vessel
+                          within each tree of each network within the forest
+                          object
+                    steady : bool (default = True)
+                          true/false flag specifying if the simulation will have
+                          a time-varying waveform. If false, a wave will be generated
+                          with an average flow-rate matched to the current vascular
+                          networks within the forest
+                    apply_distal_resistance : bool (default = False)
+                          true/false flag specifying if distal resistance boundary
+                          conditions should be applied to vascular networks
+                    gui : bool (default = False)
+                          true/false flag specifying if the SimVascular code file
+                          will be run in the gui. If true, this flag allows for
+                          proper data management.
+        Returns
+        -------
+                    final_points : list of lists of ndarrays
+                          vessel points along the centerlines of each vessel in
+                          each network of the forest object
+                    final_radii : list of lists of ndarrays
+                          vessel point radii information matched to final_points
+                          locations. Radii information is stored as 1D arrays
+                    final_normals : list of lists of ndarrays
+                          vessel centerline tangent vectors (cross-section normal
+                          vectors) matched to each final_points along vessel
+                          centerlines
+                    CONNECTED_COPY : list of lists of ndarrays
+                          copy of the network vessel data along with the connecting
+                          vessel data
+                    ALL_INTERP_XYZ : list of lists of ndarrays
+                          spline centerline approximation points
+                    ALL_INTERP_RADII : list of lists of ndarrays
+                          1D arrays approximating the cross-section along the
+                          centerlines
+                    ALL_SPLINES : list of lists of
+        """
         ALL_POINTS  = []
         ALL_RADII   = []
         ALL_NORMALS = []
