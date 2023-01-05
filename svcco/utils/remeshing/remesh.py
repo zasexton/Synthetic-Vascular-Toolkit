@@ -24,13 +24,13 @@ def remesh_surface(pv_polydata_object,auto=True,hausd=0.01,verbosity=1):
         try:
             subprocess.check_call([_EXE_,"tmp.mesh","-hausd",str(hausd),"-v",str(verbosity)],stdout=devnull,stderr=devnull)
         except:
-            os.chmod(_EXE_,stat.S_IXUSR|stat.S_IXGRP|stat.S_IXOTH)
+            os.chmod(_EXE_,stat.S_IRUSR|stat.S_IWUSR|stat.S_IXUSR)
             subprocess.check_call([_EXE_,"tmp.mesh","-hausd",str(hausd),"-v",str(verbosity)],stdout=devnull,stderr=devnull)
     else:
         try:
             subprocess.check_call([_EXE_,"tmp.mesh","-hausd",str(hausd),"-v",str(verbosity)])
         except:
-            os.chmod(_EXE_,stat.S_IXUSR|stat.S_IXGRP|stat.S_IXOTH)
+            os.chmod(_EXE_,stat.S_IRUSR|stat.S_IWUSR|stat.S_IXUSR)
             subprocess.check_call([_EXE_,"tmp.mesh","-hausd",str(hausd),"-v",str(verbosity)])
     clean_medit("tmp.o.mesh")
     remeshed = pv.read("tmp.o.mesh")
