@@ -27,7 +27,7 @@ pip install svcco
 '''
 #from __future__ import annotations
 
-__version__ = "0.6.21"
+__version__ = "0.6.24"
 
 import traceback
 import warnings

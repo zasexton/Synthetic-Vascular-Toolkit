@@ -24,7 +24,7 @@ long_description = (here / "README.md").read_text("utf8")
 #VERSION = re.search(
 #    r'__version__ = "(.+?)"', (here / "svcco" / "__init__.py").read_text("utf8")
 #).group(1)
-VERSION = '0.6.21'
+VERSION = '0.6.24'
 
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'License :: OSI Approved :: MIT License',

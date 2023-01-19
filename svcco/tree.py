@@ -1671,7 +1671,8 @@ class forest:
             networks.append(network)
         self.networks    = networks
 
-    def set_roots(self,scale=None,bounds=None):
+    def set_roots(self,scale=None,bounds=None,number_of_consecutive_collisions=5,
+                  minimum_distance=None):
         """
         Set the root vessels of each tree within each network of the vascular
         forest object
@@ -1696,57 +1697,74 @@ class forest:
         networks = []
         connections = []
         backup = []
+        # create an ordered list of network and tree tuples to proceed with
+        root_queue = []
+        total_trees = 0
         for idx in range(self.number_of_networks):
-            network = []
-            if not isinstance(self.trees_per_network,list):
-                print("trees_per_network must be list of ints"+
-                      " with length equal to number_of_networks")
-            for jdx in range(self.trees_per_network[idx]):
-                #tmp = tree()
-                tmp = self.networks[idx][jdx]
-                #tmp.set_assumptions(convex=self.convex)
-                #if self.directions[idx][jdx] is not None:
-                #    tmp.clamped_root = True
-                #tmp.set_boundary(self.boundary)
-                if scale is not None:
-                    tmp.parameters['Qterm'] *= scale
-                if idx == 0 and jdx == 0:
-                    collisions = [True]
-                else:
-                    collisions = [True]
-                while any(collisions):
-                    if bounds is None:
-                        tmp.set_root(start=self.starting_points[idx][jdx],
-                                     direction=self.directions[idx][jdx],
-                                     limit_high=self.root_lengths_high[idx][jdx],
-                                     limit_low=self.root_lengths_low[idx][jdx])
-                    else:
-                        print("Not implemented yet!")
-                    collisions = []
-                    repeat = False
-                    for net in networks:
-                        for t in net:
-                            collisions.append(not t.collision_free(tmp.data[0,:].reshape(1,-1)))
-                            if collisions[-1]:
-                                repeat = True
-                                break
-                        if repeat:
-                            break
-                    for t in network:
-                        collisions.append(not t.collision_free(tmp.data[0,:].reshape(1,-1)))
-                        if collisions[-1]:
-                            repeat = True
-                            break
-                    #print(collisions)
-                network.append(tmp)
-            networks.append(network)
+            networks.append([])
             connections.append(None)
             backup.append(None)
+            for jdx in range(self.trees_per_network[idx]):
+                root_queue.append(tuple([idx,jdx]))
+                networks[idx].append(None)
+                total_trees += 1
+        # enter main loop for root setting
+        pbar = tqdm(total=total_trees,desc='Setting Roots')
+        current_progress = 0
+        while len(root_queue) > 0:
+            idx,jdx  = root_queue.pop(0)
+            tmp_tree = self.networks[idx][jdx]
+            collisions = [True] # True to start the collision checking loop
+            last_collision = {}
+            #print(current_progress)
+            while any(collisions):
+                tmp_tree.set_root(start=self.starting_points[idx][jdx],
+                                  direction=self.directions[idx][jdx],
+                                  limit_high=self.root_lengths_high[idx][jdx],
+                                  limit_low=self.root_lengths_low[idx][jdx])
+                collisions = []
+                repeat     = False
+                for ndx in range(self.number_of_networks):
+                    for tdx in range(self.trees_per_network[ndx]):
+                        if ndx == idx and jdx == tdx:
+                            collisions.append(False)
+                            continue
+                        if not networks[ndx][tdx] is None:
+                            collisions.append(not networks[ndx][tdx].collision_free(tmp_tree.data[0,:].reshape(1,-1)))
+                        else:
+                            collisions.append(False)
+                        if collisions[-1]:
+                            repeat = True
+                            if (ndx,tdx) in last_collision.keys():
+                                last_collision[(ndx,tdx)] += 1
+                            else:
+                                last_collision[(ndx,tdx)] = 1
+                            break
+                    if repeat:
+                       break
+                if repeat:
+                    collision_values = list(last_collision.values())
+                    if any(val == number_of_consecutive_collisions for val in collision_values):
+                        key_index = collision_values.index(number_of_consecutive_collisions)
+                        key = list(last_collision.keys())[key_index]
+                        networks[key[0]][key[1]] = None
+                        root_queue.insert(0,(idx,jdx))
+                        root_queue.insert(0,key)
+                        current_progress -= 1
+                        pbar.reset()
+                        pbar.update(current_progress)
+                        _ = pbar.refresh()
+                        break
+                else:
+                    networks[idx][jdx] = tmp_tree
+                    current_progress += 1
+                    pbar.update(1)
+                    _ = pbar.refresh()
         self.networks    = networks
         self.connections = connections
         self.backup      = backup
         if self.compete:
-            self.boundary.volume = volume
+            self.boundary.volume = volume/self.number_of_networks
 
     def add(self,number_of_branches,network_id=0,radius_buffer=0.01,exact=True):
         """
@@ -1865,7 +1883,7 @@ class forest:
                     if self.networks[nid][0].parameters['edge_num'] >= exit_number[nid]:
                         active_networks.remove(nid)
         else:
-            for i in tqdm(range(number_of_branches),desc="Adding branches"):
+            for i in tqdm(range(number_of_branches),desc="Adding branches",leave=True,position=0):
                 compete_add(self,network_ids=network_id,radius_buffer=radius_buffer)
 
     def show(self,show=True,resolution=100,final=False,merged_trees=False,background='white',off_screen=False):

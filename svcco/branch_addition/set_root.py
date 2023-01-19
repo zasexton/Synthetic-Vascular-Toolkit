@@ -187,7 +187,9 @@ def set_root(data, boundary, Qterm, gamma, nu,
                                     cell_list = list(cell_list_outter.difference(cell_list_inner))
                                 ball_size *= 1.1
                         #p1,_ = boundary.pick(homogeneous=True)
-                        cell_id = cell_list.pop(0)
+                        cell_list_range = list(range(len(cell_list)))
+                        random_index = np.random.choice(cell_list_range)
+                        cell_id = cell_list.pop(random_index)
                         p1,_ = boundary.pick_in_cell(cell_id)
                         lengths = [np.linalg.norm(p1-p0)]
                         subdivisions = 8
