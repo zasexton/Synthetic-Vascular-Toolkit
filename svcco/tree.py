@@ -1709,7 +1709,7 @@ class forest:
                 networks[idx].append(None)
                 total_trees += 1
         # enter main loop for root setting
-        pbar = tqdm(total=total_trees)
+        pbar = tqdm(total=total_trees,desc='Setting Roots')
         current_progress = 0
         while len(root_queue) > 0:
             idx,jdx  = root_queue.pop(0)
@@ -1764,7 +1764,7 @@ class forest:
         self.connections = connections
         self.backup      = backup
         if self.compete:
-            self.boundary.volume = volume
+            self.boundary.volume = volume/self.number_of_networks
 
     def add(self,number_of_branches,network_id=0,radius_buffer=0.01,exact=True):
         """
@@ -1883,7 +1883,7 @@ class forest:
                     if self.networks[nid][0].parameters['edge_num'] >= exit_number[nid]:
                         active_networks.remove(nid)
         else:
-            for i in tqdm(range(number_of_branches),desc="Adding branches"):
+            for i in tqdm(range(number_of_branches),desc="Adding branches",leave=True,position=0):
                 compete_add(self,network_ids=network_id,radius_buffer=radius_buffer)
 
     def show(self,show=True,resolution=100,final=False,merged_trees=False,background='white',off_screen=False):
