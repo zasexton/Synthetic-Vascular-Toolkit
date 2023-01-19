@@ -15,5 +15,5 @@ The Synthetic Vascular Toolkit (SVT) an open-source API for automated vascular g
 </p>
 
 * **Website:** https://www.synthetic-vascular-toolkit.org
-* **Wiki:** 
+* **PyPi:** https://pypi.org/project/svcco/
 * **Source code:** https://github.com/zasexton/Synthetic-Vascular-Toolkit
