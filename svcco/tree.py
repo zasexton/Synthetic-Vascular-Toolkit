@@ -2006,7 +2006,7 @@ class forest:
             #plot.close()
             return plot
 
-    def connect(self,network_id=-1,buffer=None,curve_sample_size_min=5,curve_sample_size_max=11,curve_degree=3):
+    def connect(self,network_id=-1,radius_buffer=0,curve_sample_size_min=5,curve_sample_size_max=11,curve_degree=3):
         """
         Connect vascular trees within each network of the forest object.
 
@@ -2016,7 +2016,7 @@ class forest:
                         the integer specifying the networks for which to connect
                         vascular trees. If network_id is -1, vascular trees within
                         each network will be connected
-                    buffer : float (default = None)
+                    radius_buffer : float (default = None)
                         minimum distance among connecting vessels and any other
                         vessel within the forest object
         Returns
@@ -2024,9 +2024,9 @@ class forest:
                     None
         """
         self.forest_copy = self.copy()
-        self.forest_copy.connections,self.forest_copy.assignments = connect(self.forest_copy,network_id=network_id,buffer=buffer)
+        self.forest_copy.connections,self.forest_copy.assignments = connect(self.forest_copy,network_id=network_id,buffer=radius_buffer)
         #self.forest_copy.connections,self.forest_copy.connected_forest,self.splines = smooth(self.forest_copy,curve_sample_size_min=curve_sample_size_min,curve_sample_size_max=curve_sample_size_max,curve_degree=curve_degree)
-        self.forest_copy.connections,_,_ = link(self.forest_copy)
+        self.forest_copy.connections,_,_ = link(self.forest_copy,radius_buffer=radius_buffer)
 
     def assign(self):
         """

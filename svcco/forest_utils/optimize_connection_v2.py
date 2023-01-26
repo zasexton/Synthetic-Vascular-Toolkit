@@ -35,12 +35,28 @@ def get_radius(curve):
         rad.append(value)
     return rad
 
+def get_bounds(bounds,sample_pts):
+    bounds_score = 0
+    for i in range(sample_pts.shape[0]):
+        if sample_pts[i,0] < bounds[0][0]:
+            bounds_score += 10e4*tanh((sample_pts[i,0]**2 - bounds[0][0]**2)**(1/2))
+        elif sample_pts[i,0] > bounds[0][1]:
+            bounds_score += 10e4*tanh((sample_pts[i,0]**2 - bounds[0][1]**2)**(1/2))
+        if sample_pts[i,1] < bounds[1][0]:
+            bounds_score += 10e4*tanh((sample_pts[i,1]**2 - bounds[1][0]**2)**(1/2))
+        elif sample_pts[i,1] > bounds[1][1]:
+            bounds_score += 10e4*tanh((sample_pts[i,1]**2 - bounds[1][1]**2)**(1/2))
+        if sample_pts[i,2] < bounds[2][0]:
+            bounds_score += 10e4*tanh((sample_pts[i,2]**2 - bounds[2][0]**2)**(1/2))
+        elif sample_pts[i,2] > bounds[2][1]:
+            bounds_score += 10e4*tanh((sample_pts[i,2]**2 - bounds[2][1]**2)**(1/2))
+    return bounds_score
 
 @nb.jit(nopython=True)
-def get_collisions(collision_vessels,R,sample_pts):
+def get_collisions(collision_vessels,R,sample_pts,radius_buffer):
     collisions = 0
     for i in range(sample_pts.shape[0]):
-        dist = close_exact(collision_vessels,sample_pts[i,:])
+        dist = close_exact(collision_vessels,sample_pts[i,:],radius_buffer)
         if np.any(dist<R):
             collisions += 10e8*tanh((R - min(dist))*(1/10))
     return collisions
@@ -50,7 +66,7 @@ def get_collisions(collision_vessels,R,sample_pts):
 def are_collisions(collision_vessels,R,sample_pts):
     collisions = False
     for i in range(sample_pts.shape[0]):
-        dist = close_exact(collision_vessels,sample_pts[i,:])
+        dist = close_exact(collision_vessels,sample_pts[i,:],radius_buffer)
         if np.any(dist<R):
             collisions = True
             break
@@ -58,7 +74,7 @@ def are_collisions(collision_vessels,R,sample_pts):
 
 
 @nb.jit(nopython=True)
-def close_exact(data,point):
+def close_exact(data,point,radius_buffer):
     line_direction = np.zeros((data.shape[0],3))
     ss = np.zeros(data.shape[0])
     tt = np.zeros(data.shape[0])
@@ -75,7 +91,7 @@ def close_exact(data,point):
         diff = point - data[i,0:3]
         cc[i,:] = np.cross(diff,line_direction[i,:])
         cd[i] = np.linalg.norm(cc[i,:])
-        line_distances[i] = np.sqrt(hh[i]**2+cd[i]**2) - data[i,6]
+        line_distances[i] = np.sqrt(hh[i]**2+cd[i]**2) - data[i,6] - radius_buffer
     return line_distances
 
 def connect_bezier(P1,P2,P3,P4,R,collision_vessels,degree=5):
@@ -102,13 +118,13 @@ def connect_bezier(P1,P2,P3,P4,R,collision_vessels,degree=5):
         curve.degree = degree
         curve.ctrlpts = CTR
         curve.knotvector = utilities.generate_knot_vector(curve.degree,len(curve.ctrlpts))
-        curve.sample_size = 40
+        curve.sample_size = 20
         curve.evaluate()
         return curve
     return create_bezier
 
 
-def bezier_cost(data,grad,create_curve=None,R=None,P1=None,P3=None,collision_vessels=None):
+def bezier_cost(data,grad,create_curve=None,R=None,P1=None,P3=None,collision_vessels=None,radius_buffer=0,bounds=None):
     curve = create_curve(data)
     pts   = np.array(curve.evalpts)
     spline_length = np.sum(np.linalg.norm(np.diff(pts,axis=0),axis=1))
@@ -119,9 +135,10 @@ def bezier_cost(data,grad,create_curve=None,R=None,P1=None,P3=None,collision_ves
     sample_pts_for_vec = np.vstack((P1,sample_pts,P3))
     vec = np.diff(sample_pts_for_vec,axis=0)
     if collision_vessels is not None:
-        collisions = get_collisions(collision_vessels,R,sample_pts)
+        collisions = get_collisions(collision_vessels,R,sample_pts,radius_buffer)
     else:
         collisions = 0
+    bound_score = get_bounds(bounds,sample_pts)
     #vec = vec/np.linalg.norm(vec,axis=0)
     #angles = get_vecs(vec)
     curve_rads = np.array(get_radius(curve))
@@ -132,12 +149,12 @@ def bezier_cost(data,grad,create_curve=None,R=None,P1=None,P3=None,collision_ves
     if np.isclose(a_sum,0) or any(angles < 90):
         if np.any(angles < 90):
             a_sum = np.sum(1/angles)*10e8
-    return collisions+a_sum*spline_length
+    return bound_score+collisions #+a_sum*spline_length
 
 
-def find_optimum_connection(P1,P2,P3,P4,R,collision_vessels):
+def find_optimum_connection(P1,P2,P3,P4,R,collision_vessels,bounds=None,radius_buffer=0):
     create_curve = connect_bezier(P1,P2,P3,P4,R,collision_vessels)
-    cost = lambda d: bezier_cost(d,None,create_curve=create_curve,R=R,P1=P1,P3=P3,collision_vessels=collision_vessels)
+    cost = lambda d: bezier_cost(d,None,create_curve=create_curve,R=R,P1=P1,P3=P3,collision_vessels=collision_vessels,radius_buffer=radius_buffer,bounds=bounds)
     success = False
     x0 = np.zeros(8)
     max_time = 25
@@ -148,10 +165,32 @@ def find_optimum_connection(P1,P2,P3,P4,R,collision_vessels):
     best = np.inf
     while not success:
         #print('Linking Optimization Path Search {} Level {}'.format(count,attempt))
+        # add convex constraints to lower bound from boundary object
+        #if bounds is None:
         lb = np.ones((2)*3+2)*(-L) + x0
         lb[0] = 0
         lb[1] = 0
+        # add convex constraints to upper bound from boundary object
         ub = np.ones((2)*3+2)*(L) + x0
+        #else:
+        #    lb = np.ones(8)
+        #    lb[0] = 0
+        #    lb[1] = 0
+        #    lb[2] = bounds[0][0]
+        #    lb[3] = bounds[1][0]
+        #    lb[4] = bounds[2][0]
+        #    lb[5] = bounds[0][0]
+        #    lb[6] = bounds[1][0]
+        #    lb[7] = bounds[2][0]
+        #    ub = np.ones(8)
+        #    ub[0] = 1
+        #    ub[1] = 1
+        #    ub[2] = bounds[0][1]
+        #    ub[3] = bounds[1][1]
+        #    ub[4] = bounds[2][1]
+        #    ub[5] = bounds[0][1]
+        #    ub[6] = bounds[1][1]
+        #    ub[7] = bounds[2][1]
         bounds = []
         for b in range(len(lb)):
             bounds.append([lb[b],ub[b]])
@@ -161,7 +200,8 @@ def find_optimum_connection(P1,P2,P3,P4,R,collision_vessels):
         #o.set_upper_bounds(ub)
         #o.set_maxtime(max_time)
         #xopt = o.optimize(x0)
-        res = optimize.shgo(cost,bounds=bounds,options={'maxtime':max_time})
+        res = optimize.shgo(cost,bounds=bounds,options={'maxtime':max_time,'disp':True})
+        print(res)
         xopt = res.x
         curve = create_curve(xopt)
         vis_comp = VisMPL.VisCurve3D()
@@ -198,8 +238,8 @@ def find_optimum_connection(P1,P2,P3,P4,R,collision_vessels):
     return curve
 
 
-def get_optimum_link_points(P1,P2,P3,P4,R,collision_vessels):
-    curve = find_optimum_connection(P1,P2,P3,P4,R,collision_vessels)
+def get_optimum_link_points(P1,P2,P3,P4,R,collision_vessels,bounds=None,radius_buffer=0):
+    curve = find_optimum_connection(P1,P2,P3,P4,R,collision_vessels,bounds=bounds,radius_buffer=radius_buffer)
     pts   = np.array(curve.evalpts)
     spline_length = np.sum(np.linalg.norm(np.diff(pts,axis=0),axis=1))
     num = int(spline_length // R)+2

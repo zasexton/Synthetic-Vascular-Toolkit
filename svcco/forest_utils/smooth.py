@@ -4,7 +4,7 @@ from geomdl import utilities
 from geomdl.visualization import VisMPL
 import numpy as np
 from copy import deepcopy
-from .optimize_connection_v2 import *
+from .optimize_connection_v3 import *
 from tqdm import trange
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -24,7 +24,7 @@ def get_initial_vectors(forest,network,assignment,tree,edge):
     return V1,V2,P4
 
 
-def link(forest):
+def link(forest,radius_buffer=0):
     all_connections = []
     all_network_vessels = np.zeros((1,7))
     for network in range(forest.number_of_networks):
@@ -81,7 +81,8 @@ def link(forest):
                     collision_vessels_idx = np.array(list(collision_vessels_idx - ignore))
                     collision_vessels = all_network_vessels[collision_vessels_idx,:]
                 if tree == 0:
-                    link_pts = get_optimum_link_points(P1,P2,P3,P4,R,collision_vessels)
+                    bounds = np.array([forest.boundary.x_range,forest.boundary.y_range,forest.boundary.z_range])
+                    link_pts = get_optimum_link_points(P1,P2,P3,P4,R,collision_vessels,bounds=bounds,radius_buffer=radius_buffer)
                     num_pts  = link_pts.shape[0]
                     mid_num  = int(num_pts // 2)
                     link_pts_1 = link_pts[1:mid_num+1]
@@ -94,7 +95,7 @@ def link(forest):
                         tmp = np.zeros(forest.networks[network][tree].data.shape[1])
                         tmp[0:3] = link_pts_1[i,:]
                         tmp[3:6] = link_pts_1[i+1,:]
-                        tmp[21]  = R #forest.networks[network][tree].data[assignment[edge],21]
+                        tmp[21]  = forest.networks[network][tree].data[assignment_1[edge],21]
                         tmp[20]  = np.linalg.norm(link_pts_1[i+1]-link_pts_1[i])
                         tmp[12:15] = (link_pts_1[i+1]-link_pts_1[i])/tmp[20]
                         tmp[26] = forest.networks[network][tree].data[assignment_1[edge],26]+i+1
@@ -116,7 +117,7 @@ def link(forest):
                         tmp = np.zeros(forest.networks[network][tree].data.shape[1])
                         tmp[0:3] = link_pts_2[i,:]
                         tmp[3:6] = link_pts_2[i+1,:]
-                        tmp[21]  = R_tree_1 #forest.networks[network][tree].data[assignment[edge],21]
+                        tmp[21]  = forest.networks[network][tree].data[assignment_2[edge],21]
                         tmp[20]  = np.linalg.norm(link_pts_2[i+1]-link_pts_2[i])
                         tmp[12:15] = (link_pts_2[i+1]-link_pts_2[i])/tmp[20]
                         tmp[26] = forest.networks[network][1].data[assignment_2[edge],26]+i+1
@@ -135,7 +136,8 @@ def link(forest):
                         all_network_mid_points = np.vstack((all_network_mid_points,tmp_mid.reshape(1,3)))
                         tree_connections_2.append(tmp.tolist())
                 else:
-                    link_pts = get_optimum_link_points(P1,P2,P3,P4,R,collision_vessels)
+                    bounds = np.array([forest.boundary.x_range,forest.boundary.y_range,forest.boundary.z_range])
+                    link_pts = get_optimum_link_points(P1,P2,P3,P4,R,collision_vessels,bounds=bounds,radius_buffer=radius_buffer)
                     link_pts = link_pts[1:-1,:]
                     link_pts = np.vstack((P2,link_pts,P4))
                     for i in range(link_pts.shape[0]-1):
