@@ -1934,7 +1934,7 @@ class forest:
             model_trees = []
             for tree_id,network_tree in enumerate(network):
                 model = []
-                for edge in range(network_tree.parameters['edge_num']):
+                for edge in range(network_tree.data.shape[0]):
                     #if network_tree.data[edge,15]==-1 and network_tree.data[edge,16]==-1 and edge != 0:
                     #    dis_point = (network_tree.data[edge,0:3] + network_tree.data[edge,3:6])/2
                     #    vessel_length = network_tree.data[edge,20]/2
@@ -1958,16 +1958,16 @@ class forest:
                         model.append(pv.Cylinder(radius=radius,height=vessel_length,
                                                  center=center,direction=direction,
                                                  resolution=resolution))
-                    #for edge in range(len(self.connections[net_id][0])):
-                    #    term = network_tree.data[self.assignments[net_id][tree_id][edge],:]
-                    #    conn = self.connections[net_id][0][edge]
-                    #    center = tuple((term[3:6] + conn)/2)
-                    #    radius = term[21]
-                    #    direction = tuple(conn-term[3:6])
-                    #    vessel_length = np.linalg.norm(conn-term[3:6])
-                    #    model.append(pv.Cylinder(radius=radius,height=vessel_length,
-                    #                             center=center,direction=direction,
-                    #                             resolution=resolution))
+                #    #for edge in range(len(self.connections[net_id][0])):
+                #    #    term = network_tree.data[self.assignments[net_id][tree_id][edge],:]
+                #    #    conn = self.connections[net_id][0][edge]
+                #    #    center = tuple((term[3:6] + conn)/2)
+                #    #    radius = term[21]
+                #    #    direction = tuple(conn-term[3:6])
+                #    #    vessel_length = np.linalg.norm(conn-term[3:6])
+                #    #    model.append(pv.Cylinder(radius=radius,height=vessel_length,
+                #    #                             center=center,direction=direction,
+                #    #                             resolution=resolution))
                 model_trees.append(model)
             model_networks.append(model_trees)
         """
@@ -2006,7 +2006,7 @@ class forest:
             #plot.close()
             return plot
 
-    def connect(self,network_id=-1,radius_buffer=0,curve_sample_size_min=5,curve_sample_size_max=11,curve_degree=3):
+    def connect(self,network_id=0,tree_idx=0,tree_jdx=1,radius_buffer=0):
         """
         Connect vascular trees within each network of the forest object.
 
@@ -2024,10 +2024,11 @@ class forest:
                     None
         """
         self.forest_copy = self.copy()
-        self.forest_copy.connections,self.forest_copy.assignments = connect(self.forest_copy,network_id=network_id,buffer=radius_buffer)
+        self.forest_copy.connections,self.forest_copy.assignments = connect(self.forest_copy,network_id=-1,buffer=radius_buffer)
         #self.forest_copy.connections,self.forest_copy.connected_forest,self.splines = smooth(self.forest_copy,curve_sample_size_min=curve_sample_size_min,curve_sample_size_max=curve_sample_size_max,curve_degree=curve_degree)
-        self.forest_copy.connections,_,_ = link(self.forest_copy,radius_buffer=radius_buffer)
-
+        #self.forest_copy.connections,_,_ = link(self.forest_copy,radius_buffer=radius_buffer)
+        #print(self.forest_copy.assignments)
+        self.forest_copy.connections,_,_ = link_v2(self.forest_copy,network_id,tree_idx,tree_jdx,radius_buffer)
     def assign(self):
         """
         Assign the connecting terminal vessels among trees within networks of the

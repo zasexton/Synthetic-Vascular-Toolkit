@@ -214,7 +214,6 @@ class connection:
         self.edge_1   = forest.networks[self.network][self.tree_idx].data[self.edge_idx,:]
         self.edge_2   = forest.networks[self.network][self.tree_jdx].data[self.edge_jdx,:]
         self.tree_idx_last_index = int(np.max(forest.networks[self.network][self.tree_idx].data[:,-1]))+1
-        self.tree_idx_last_index_conn = int(np.max(forest.connection))
         self.tree_jdx_last_index = int(np.max(forest.networks[self.network][self.tree_jdx].data[:,-1]))+1
         self.P1       = self.edge_1[0:3]
         self.P2       = self.edge_1[3:6]
@@ -228,31 +227,19 @@ class connection:
         self.number_vessels = number_vessels
         self.generator = connect_bezier(self.P1,self.P2,self.P3,self.P4,clamp_first=clamp_first,clamp_second=clamp_second,number_vessels=number_vessels)
         self.boundary = forest.boundary.pv_polydata
-        tree_idx_data = forest.networks[self.network][self.tree_idx].data
-        tree_jdx_data = forest.networks[self.network][self.tree_jdx].data
+        tree_idx_data_indicies = np.argwhere(forest.networks[self.network][self.tree_idx].data[:,15]>-1).flatten()
+        tree_jdx_data_indicies = np.argwhere(forest.networks[self.network][self.tree_jdx].data[:,15]>-1).flatten()
+        tree_idx_data = forest.networks[self.network][self.tree_idx].data[tree_idx_data_indicies,:]
+        tree_jdx_data = forest.networks[self.network][self.tree_jdx].data[tree_jdx_data_indicies,:]
         self.upstream_tree_idx = [self.edge_1]
         self.upstream_tree_jdx = [self.edge_2]
-        parent_tree_idx = int(self.edge_1[17])
-        parent_tree_jdx = int(self.edge_2[17])
-        while parent_tree_idx > -1:
-            parent = tree_idx_data[parent_tree_idx,:]
-            self.upstream_tree_idx.append(parent)
-            parent_tree_idx = int(parent[17])
-        while parent_tree_jdx > -1:
-            parent = tree_jdx_data[parent_tree_jdx,:]
-            self.upstream_tree_jdx.append(parent)
-            parent_tree_jdx = int(parent[17])
-        self.collision_vessels = np.zeros((tree_idx_data.shape[0]+tree_jdx_data.shape[0]-2,7))
-        first_chunk  = tree_idx_data[:self.edge_idx,:]
-        second_chunk = tree_idx_data[self.edge_idx+1:,:]
-        third_chunk  = tree_jdx_data[:self.edge_jdx,:]
-        fourth_chunk = tree_jdx_data[self.edge_jdx+1:,:]
-        proximal_points = np.vstack((first_chunk[:,0:3],second_chunk[:,0:3],third_chunk[:,0:3],fourth_chunk[:,0:3]))
-        distal_points   = np.vstack((first_chunk[:,3:6],second_chunk[:,3:6],third_chunk[:,3:6],fourth_chunk[:,3:6]))
-        radii           = np.vstack((first_chunk[:,21].reshape(-1,1),second_chunk[:,21].reshape(-1,1),third_chunk[:,21].reshape(-1,1),fourth_chunk[:,21].reshape(-1,1)))
-        self.collision_vessels[:,0:3] = proximal_points
-        self.collision_vessels[:,3:6] = distal_points
-        self.collision_vessels[:,6] = radii.T
+        self.collision_vessels = np.zeros((tree_idx_data.shape[0]+tree_jdx_data.shape[0],7))
+        self.collision_vessels[:tree_idx_data.shape[0],0:3]  = tree_idx_data[:,0:3]
+        self.collision_vessels[tree_idx_data.shape[0]:,0:3]  = tree_jdx_data[:,0:3]
+        self.collision_vessels[:tree_idx_data.shape[0],3:6]  = tree_idx_data[:,3:6]
+        self.collision_vessels[tree_idx_data.shape[0]:,3:6]  = tree_jdx_data[:,3:6]
+        self.collision_vessels[:tree_idx_data.shape[0],6]    = tree_idx_data[:,21]
+        self.collision_vessels[tree_idx_data.shape[0]:,6]    = tree_jdx_data[:,21]
         self.radius_buffer = radius_buffer
         self.clamp_first = clamp_first
         self.clamp_second = clamp_second
@@ -324,6 +311,7 @@ class connection:
         tree_2_vessels = []
         connection_vessels = []
         other_vessels = []
+        """
         for vessel in range(len(self.upstream_tree_idx)):
             center    = (self.upstream_tree_idx[vessel][0:3] + self.upstream_tree_idx[vessel][3:6])/2
             direction = self.upstream_tree_idx[vessel][3:6] - self.upstream_tree_idx[vessel][0:3]
@@ -340,27 +328,15 @@ class connection:
             length    = self.upstream_tree_jdx[vessel][20]
             cylinder  = pv.Cylinder(center=center,direction=direction,radius=radius,height=length)
             tree_2_vessels.append(cylinder)
-        if not self.xopt is None:
-            curve = self.generator(self.xopt)
-            pts   = np.array(curve.evalpts)
-            print(pts.shape)
-            centers    = (pts[1:,:] + pts[:-1,:])/2
-            directions = (pts[1:,:] - pts[:-1,:])
-            print('directions done')
-            lengths    = np.linalg.norm(directions,axis=1).reshape(-1,1)
-            print(lengths.shape)
-            print('lengths done')
-            directions = directions/lengths
-            print('division done')
-            if self.seperate_connection:
-                num = len(lengths)//2
-            for i in range(len(lengths)):
-                if self.seperate_connection:
-                    if i < num:
-                        cylinder = pv.Cylinder(center=centers[i,:],direction=directions[i,:],radius=self.R1,height=lengths[i])
-                    else:
-                        cylinder = pv.Cylinder(center=centers[i,:],direction=directions[i,:],radius=self.R2,height=lengths[i])
-                connection_vessels.append(cylinder)
+        """
+        plotter = pv.Plotter()
+        if not self.vessels is None:
+            colors = ['r','b']
+            for i in range(len(self.vessels)):
+                for j in range(self.vessels[i].shape[0]):
+                    center = (self.vessels[i][j,0:3] + self.vessels[i][j,3:6])/2
+                    cylinder = pv.Cylinder(center=center,direction=self.vessels[i][j,12:15],radius=self.vessels[i][j,21],height=self.vessels[i][j,20])
+                    plotter.add_mesh(cylinder,color=colors[i])
         for vessel in range(self.collision_vessels.shape[0]):
             center = (self.collision_vessels[vessel,0:3] + self.collision_vessels[vessel,3:6])/2
             direction = self.collision_vessels[vessel,3:6] - self.collision_vessels[vessel,0:3]
@@ -368,36 +344,53 @@ class connection:
             direction = direction/length
             radius = self.collision_vessels[vessel,-1]
             cylinder  = pv.Cylinder(center=center,direction=direction,radius=radius,height=length)
-            other_vessels.append(cylinder)
-        plotter = pv.Plotter()
-        for vessel in tree_1_vessels:
-            plotter.add_mesh(vessel,color='red')
-        for vessel in tree_2_vessels:
-            plotter.add_mesh(vessel,color='blue')
-        for vessel in connection_vessels:
-            plotter.add_mesh(vessel,color='green')
-        for vessel in other_vessels:
-            plotter.add_mesh(vessel,color='black')
+            plotter.add_mesh(cylinder,color='black')
         plotter.add_mesh(self.boundary,opacity=0.25)
         plotter.show()
-    def vessels(self):
+    def build_vessels(self):
         curve = self.create_curve(self.xopt)
         curve.sample_size = self.number_vessels
         curve.evaluate()
-        pts   = np.array(curve.evalpts)
-        pts = np.vstack((self.P1,pts,self.P3))
-        vessels = np.zeros((pts.shape[0]-1,7))
-        vessels[:,0:3] = pts[:-1,:]
-        vessels[:,3:6] = pts[1:,:]
-        vessels[:,6]  = max(self.R1,self.R2)
-        # Now construct the real vessels
-        real_vessels = np.zeros((pts.shape[0]-1,self.edge_1.shape))
-        real_vessels[:,0:3] = pts[:-1,:]
-        real_vessels[:,3:6] = pts[1:,:]
-
-        return vessels
+        pts     = np.array(curve.evalpts)
+        pts     = np.vstack((self.P1,pts,self.P3))
+        if self.seperate_connection:
+            sep     = (pts.shape[0]-1)//2
+            vessels_tree_idx = np.ones((sep,self.edge_1.shape[0]))*-1
+            vessels_tree_jdx = np.ones(((pts.shape[0]-1)-sep,self.edge_1.shape[0]))*-1
+            tree_idx_pts     = pts[:sep+1,:]
+            tree_jdx_pts     = np.flip(pts[sep:,:],axis=0)
+            vessels_tree_idx[:,0:3] = tree_idx_pts[:-1,:]
+            vessels_tree_idx[:,3:6] = tree_idx_pts[1:,:]
+            vessels_tree_jdx[:,0:3] = tree_jdx_pts[:-1,:]
+            vessels_tree_jdx[:,3:6] = tree_jdx_pts[1:,:]
+            tree_idx_directions     = (tree_idx_pts[1:] - tree_idx_pts[:-1])
+            tree_jdx_directions     = (tree_jdx_pts[1:] - tree_jdx_pts[:-1])
+            vessels_tree_idx[:,20]  = np.linalg.norm(tree_idx_directions,axis=1)
+            vessels_tree_jdx[:,20]  = np.linalg.norm(tree_jdx_directions,axis=1)
+            vessels_tree_idx[:,12:15] = tree_idx_directions/np.linalg.norm(tree_idx_directions,axis=1).reshape(-1,1)
+            vessels_tree_jdx[:,12:15] = tree_jdx_directions/np.linalg.norm(tree_jdx_directions,axis=1).reshape(-1,1)
+            vessels_tree_idx[:,21]  = self.R1
+            vessels_tree_jdx[:,21]  = self.R2
+            vessels_tree_idx[:,22]  = self.edge_1[22]
+            vessels_tree_jdx[:,22]  = self.edge_2[22]
+            self.vessels = [vessels_tree_idx,vessels_tree_jdx]
+        else:
+            vessels = np.ones((pts.shape[0]-1,self.edge_1.shape[0]))*-1
+            vessels[:,0:3]    = pts[:-1,:]
+            vessels[:,3:6]    = pts[1:,:]
+            vessels[:,21]     = max(self.R1,self.R2)
+            vessel_directions = pts[1:] - pts[:-1]
+            vessels[:,20]     = np.linalg.norm(vessel_directions,axis=1)
+            vessels[:,12:15]  = vessel_directions/np.linalg.norm(vessel_directions,axis=1).reshape(-1,1)
+            vessels[:,22]     = self.edge_1[22]
+            self.vessels = [vessels]
+        return
     def add_collision_vessels(self,connection_object):
-        other_connection_vessels = connection_object.vessels()
-        self.collision_vessels = np.vstack((self.collision_vessels,other_connection_vessels))
+        connection_object.build_vessels()
+        for vessel_group in connection_object.vessels:
+            tmp = np.zeros((vessel_group.shape[0],7))
+            tmp[:,0:6] = vessel_group[:,0:6]
+            tmp[:,6] = vessel_group[:,21]
+            self.collision_vessels = np.vstack((self.collision_vessels,tmp))
     def replace_terminals(self,forest):
         pass
