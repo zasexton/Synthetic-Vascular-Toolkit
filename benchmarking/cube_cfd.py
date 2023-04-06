@@ -15,9 +15,9 @@ from tqdm import trange
 # Code for Building Surfaces
 ###########################################
 q = 4
-resolution = 120
+resolution = 40
 
-cu = pv.Cube(x_length=10,y_length=10,z_length=10).triangulate().subdivide(5)
+cu = pv.Cube(x_length=3.7,y_length=3.7,z_length=3.7).triangulate().subdivide(5)
 cube = svcco.surface()
 cube.set_data(cu.points,cu.point_normals)
 cube.solve()
@@ -37,4 +37,4 @@ t.set_root()
 t.n_add(1000)
 #t.export(gui=False,global_edge_size=0.1)
 
-t.export_0d_simulation(steady=False)
+t.export_0d_simulation()

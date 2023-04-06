@@ -26,26 +26,27 @@ for idx in tqdm(range(len(data['time'])),desc="Building Timeseries ",position=0)
         direction = (geom_data[vessel,3:6] - geom_data[vessel,0:3])/np.linalg.norm(geom_data[vessel,3:6] - geom_data[vessel,0:3])
         length    = geom_data[vessel,6]
         radius    = geom_data[vessel,7]
-        number_segments = len(data['flow'][jdx]) - 1 #assume only 1 segment right now
-        number_points   = len(data['flow'][jdx])
+        number_segments = len(data['flow'][vessel]) - 1 #assume only 1 segment right now
+        number_points   = len(data['flow'][vessel])
+        vdx = vessel
         for kdx in range(number_segments):
             center = (1/2)*direction*length + start
             vessel = pv.Cylinder(center=center,direction=direction,height=length,radius=radius)
-            vessel = vessel.elevation(low_point=end,high_point=start,scalar_range=[data['pressure'][jdx][kdx+1][idx]/1333.33, data['pressure'][jdx][kdx][idx]/1333.33])
-            if data['pressure'][jdx][kdx][idx]/1333.33 > max_pressure:
-                max_pressure = data['pressure'][jdx][kdx][idx]/1333.33
-            if data['pressure'][jdx][kdx+1][idx]/1333.33 < min_pressure:
-                min_pressure = data['pressure'][jdx][kdx+1][idx]/1333.33
+            vessel = vessel.elevation(low_point=end,high_point=start,scalar_range=[data['pressure'][vdx][kdx+1][idx]/1333.33, data['pressure'][vdx][kdx][idx]/1333.33])
+            if data['pressure'][vdx][kdx][idx]/1333.33 > max_pressure:
+                max_pressure = data['pressure'][vdx][kdx][idx]/1333.33
+            if data['pressure'][vdx][kdx+1][idx]/1333.33 < min_pressure:
+                min_pressure = data['pressure'][vdx][kdx+1][idx]/1333.33
             vessel.rename_array('Elevation','Pressure [mmHg]',preference='point')
-            vessel.cell_data['Flow [mL/s]'] = data['flow'][jdx][kdx][idx]
-            re = (1.06*2*radius*((data['flow'][jdx][kdx][idx]/(np.pi*radius**2))/2))/0.04
+            vessel.cell_data['Flow [mL/s]'] = data['flow'][vdx][kdx][idx]
+            re = (1.06*2*radius*((data['flow'][vdx][kdx][idx]/(np.pi*radius**2))/2))/0.04
             fd = 64/re
-            wss = ((data['flow'][jdx][kdx][idx]/(np.pi*radius**2))/2)*fd*1.06
+            wss = ((data['flow'][vdx][kdx][idx]/(np.pi*radius**2))/2)*fd*1.06
             vessel.cell_data['WSS [dyne/cm^2]']  = wss
-            if max_flow < data['flow'][jdx][kdx][idx]:
-                max_flow = data['flow'][jdx][kdx][idx]
-            if min_flow > data['flow'][jdx][kdx][idx]:
-                min_flow = data['flow'][jdx][kdx][idx]
+            if max_flow < data['flow'][vdx][kdx][idx]:
+                max_flow = data['flow'][vdx][kdx][idx]
+            if min_flow > data['flow'][vdx][kdx][idx]:
+                min_flow = data['flow'][vdx][kdx][idx]
             if max_wss < wss:
                 max_wss = wss
             if min_wss > wss:

@@ -4,8 +4,9 @@ from geomdl import utilities
 from geomdl.visualization import VisMPL
 import numpy as np
 from copy import deepcopy
-from .optimize_connection_v3 import *
-from .optimize_connection_v4 import *
+#from .optimize_connection_v3 import *
+#from .optimize_connection_v4 import *
+from .optimize_connection_v5 import *
 from tqdm import trange
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -23,6 +24,89 @@ def get_initial_vectors(forest,network,assignment,tree,edge):
     V2 = P4 - P3
     V2 = V2/np.linalg.norm(V2)
     return V1,V2,P4
+
+def link_v3(forest,network_id,tree_1,tree_2,radius_buffer):
+    tmp_tree_connections = tree_connections(forest,network_id,tree_1,tree_2,radius_buffer)
+    tmp_tree_connections.solve()
+    tmp_tree_connections.build_vessels()
+    count_1 = 0
+    count_2 = 0
+    tree_1_connections = []
+    tree_2_connections = []
+    for i in range(len(tmp_tree_connections.connection_solutions)):
+        forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id,0:3] = tmp_tree_connections.connection_solutions[i].vessels[0][0,0:3]
+        forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id,3:6] = tmp_tree_connections.connection_solutions[i].vessels[0][0,3:6]
+        forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id,12:15] = tmp_tree_connections.connection_solutions[i].vessels[0][0,12:15]
+        forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id,20] = tmp_tree_connections.connection_solutions[i].vessels[0][0,20]
+        tmp_tree_connections.connection_solutions[i].vessels[0][0,21] = forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id,21]
+        tmp_tree_connections.connection_solutions[i].vessels[0][0,22] = forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id,22]
+        tmp_tree_connections.connection_solutions[i].vessels[0][0,26] = forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id,26]
+        tmp_tree_connections.connection_solutions[i].vessels[0][0,28] = forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id,28]
+        parent_vessel_index = int(tmp_tree_connections.connection_solutions[i].vessel_1_id)
+        next_vessel_index_1   = int(max(forest.networks[network_id][tree_1].data[:,-1]))+1+count_1
+        previous_node_index = int(forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id,19])
+        next_node_index     = int(max(forest.networks[network_id][tree_1].data[:,19]))+1
+        forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id, 15] = next_vessel_index_1 #added
+        forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id, 23] = 1 # added
+        forest.networks[network_id][tree_1].data[tmp_tree_connections.connection_solutions[i].vessel_1_id, 24] = 0 # added
+        for vdx in range(1,tmp_tree_connections.connection_solutions[i].vessels[0].shape[0]):
+            tmp_tree_connections.connection_solutions[i].vessels[0][vdx,-1] = next_vessel_index_1
+            tmp_tree_connections.connection_solutions[i].vessels[0][vdx,17] = parent_vessel_index
+            tmp_tree_connections.connection_solutions[i].vessels[0][vdx,18] = previous_node_index
+            tmp_tree_connections.connection_solutions[i].vessels[0][vdx,19] = next_node_index
+            tmp_tree_connections.connection_solutions[i].vessels[0][vdx,21] = tmp_tree_connections.connection_solutions[i].vessels[0][vdx-1,21]
+            tmp_tree_connections.connection_solutions[i].vessels[0][vdx,22] = tmp_tree_connections.connection_solutions[i].vessels[0][vdx-1,22]
+            tmp_tree_connections.connection_solutions[i].vessels[0][vdx,26] = tmp_tree_connections.connection_solutions[i].vessels[0][vdx-1,26]+1
+            tmp_tree_connections.connection_solutions[i].vessels[0][vdx,28] = tmp_tree_connections.connection_solutions[i].vessels[0][vdx-1,28]
+            tmp_tree_connections.connection_solutions[i].vessels[0][vdx-1,15] = next_vessel_index_1
+            tmp_tree_connections.connection_solutions[i].vessels[0][vdx-1,23] = 1
+            tmp_tree_connections.connection_solutions[i].vessels[0][vdx-1,24] = 0
+            parent_vessel_index = next_vessel_index_1
+            next_vessel_index_1 += 1
+            previous_node_index = next_node_index
+            next_node_index += 1
+            count_1 += 1
+        forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,0:3] = tmp_tree_connections.connection_solutions[i].vessels[1][0,0:3]
+        forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,3:6] = tmp_tree_connections.connection_solutions[i].vessels[1][0,3:6]
+        forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,12:15] = tmp_tree_connections.connection_solutions[i].vessels[1][0,12:15]
+        forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,20] = tmp_tree_connections.connection_solutions[i].vessels[1][0,20]
+        tmp_tree_connections.connection_solutions[i].vessels[1][0,21] = forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,21]
+        tmp_tree_connections.connection_solutions[i].vessels[1][0,22] = forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,22]
+        tmp_tree_connections.connection_solutions[i].vessels[1][0,26] = forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,26]
+        tmp_tree_connections.connection_solutions[i].vessels[1][0,28] = forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,28]
+        parent_vessel_index = int(tmp_tree_connections.connection_solutions[i].vessel_2_id)
+        next_vessel_index_2   = int(max(forest.networks[network_id][tree_2].data[:,-1]))+1+count_2
+        previous_node_index = int(forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,19])
+        next_node_index     = int(max(forest.networks[network_id][tree_2].data[:,19]))+1
+        forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id, 15] = next_vessel_index_2 #added
+        forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id, 23] = 1  # added
+        forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id, 24] = 0 # added
+        for vdx in range(1,tmp_tree_connections.connection_solutions[i].vessels[1].shape[0]):
+            tmp_tree_connections.connection_solutions[i].vessels[1][vdx,-1] = next_vessel_index_2
+            tmp_tree_connections.connection_solutions[i].vessels[1][vdx,17] = parent_vessel_index
+            tmp_tree_connections.connection_solutions[i].vessels[1][vdx,18] = previous_node_index
+            tmp_tree_connections.connection_solutions[i].vessels[1][vdx,19] = next_node_index
+            tmp_tree_connections.connection_solutions[i].vessels[1][vdx,21] = tmp_tree_connections.connection_solutions[i].vessels[1][vdx-1,21]
+            tmp_tree_connections.connection_solutions[i].vessels[1][vdx,22] = tmp_tree_connections.connection_solutions[i].vessels[1][vdx-1,22]
+            tmp_tree_connections.connection_solutions[i].vessels[1][vdx,26] = tmp_tree_connections.connection_solutions[i].vessels[1][vdx-1,26]+1
+            tmp_tree_connections.connection_solutions[i].vessels[1][vdx,28] = tmp_tree_connections.connection_solutions[i].vessels[1][vdx-1,28]
+            tmp_tree_connections.connection_solutions[i].vessels[1][vdx-1,15] = next_vessel_index_2
+            tmp_tree_connections.connection_solutions[i].vessels[1][vdx-1,23] = 1
+            tmp_tree_connections.connection_solutions[i].vessels[1][vdx-1,24] = 0
+            parent_vessel_index = next_vessel_index_2
+            next_vessel_index_2 += 1
+            previous_node_index = next_node_index
+            next_node_index += 1
+            count_2 += 1
+        tree_1_connections.append(tmp_tree_connections.connection_solutions[i].vessels[0][1:,:])
+        tree_2_connections.append(tmp_tree_connections.connection_solutions[i].vessels[1][1:,:])
+    for i in range(1,len(tmp_tree_connections.connection_solutions)):
+        tree_1_connections[0] = np.vstack((tree_1_connections[0],tree_1_connections[i]))
+        tree_2_connections[0] = np.vstack((tree_2_connections[0],tree_2_connections[i]))
+    tree_1_connections = tree_1_connections[0]
+    tree_2_connections = tree_2_connections[0]
+    all_connections = [[tree_1_connections,tree_2_connections]]
+    return all_connections, None, None
 
 def link_v2(forest,network_id,tree_idx,tree_jdx,radius_buffer=0):
     """

@@ -18,7 +18,7 @@ from tqdm import trange
 # Code for Building Surfaces
 ###########################################
 q = 4
-resolution = 40
+resolution = 120
 
 
 cu = pv.Cube(x_length=3.72,y_length=3.72,z_length=3.72).triangulate().subdivide(5)
@@ -27,13 +27,14 @@ cube.set_data(cu.points,cu.point_normals)
 cube.solve()
 cube.build(q=q,resolution=resolution)
 print('cube constructed')
+
 """
 heart = svcco.surface()
 heart_points = np.genfromtxt('D:\\svcco\\svcco\\implicit\\tests\\heart_points_unique.csv',delimiter=',')
 heart_normals = np.genfromtxt('D:\\svcco\\svcco\\implicit\\tests\\heart_normals_unique.csv',delimiter=',')
 heart.set_data(heart_points,heart_normals)
 heart.solve()
-heart.build(q=4,resolution=120,k=2,buffer=5)
+heart.build(q=4,resolution=resolution,k=2,buffer=5)
 print('heart constructed')
 
 
@@ -74,12 +75,16 @@ cube_tree.set_root()
 cube_tree.n_add(vessel_number)
 
 cube_tree_models = cube_tree.show(show=False)
-cube_tree_plot   = pv.Plotter()
+#cube_tree_plot   = pv.Plotter()
 #cube_tree_plot.add_mesh(cube_tree.boundary.pv_polydata,opacity=0.25,color='red')
 cube_reynolds    = svcco.reynolds.reynolds(cube_tree)
+
+"""
+
 for i,model in enumerate(cube_tree_models):
     tmp = model.GetOutput()
     data  = pv.PolyData(tmp)
+    merged = merged.merge(tmp)
     data['reynolds'] = cube_reynolds[i]*np.ones(data.points.shape[0])
     _ = cube_tree_plot.add_mesh(data,scalars='reynolds')
 cube_tree_plot.set_background(color='white')
@@ -91,12 +96,29 @@ cube_tree_plot.open_gif("cube_reynolds_orbit.gif")
 cube_tree_plot.orbit_on_path(path,write_frames=True)
 # Export SVG of Tree and surface
 """
+"""
 cylinder_tree = svcco.tree()
 cylinder_tree.set_boundary(cylinder)
 cylinder_tree.set_root()
 cylinder_tree.n_add(vessel_number)
-
 cylinder_tree_models = cylinder_tree.show(show=False)
+cylinder_reynolds = svcco.reynolds.reynolds(cylinder_tree)
+
+heart_tree = svcco.tree()
+heart_tree.set_boundary(heart)
+heart_tree.set_root()
+heart_tree.n_add(vessel_number)
+heart_tree_models = heart_tree.show(show=False)
+heart_reynolds = svcco.reynolds.reynolds(heart_tree)
+
+gyrus_tree = svcco.tree()
+gyrus_tree.set_boundary(gyrus)
+gyrus_tree.set_root()
+gyrus_tree.n_add(vessel_number)
+gyrus_tree_models = gyrus_tree.show(show=False)
+gyrus_reynolds = svcco.reynolds.reynolds(gyrus_tree)
+print('done')
+
 cylinder_tree_plot   = pv.Plotter()
 cylinder_tree_plot.add_mesh(cylinder_tree.boundary.pv_polydata,opacity=0.25,color='red')
 for model in cylinder_tree_models:

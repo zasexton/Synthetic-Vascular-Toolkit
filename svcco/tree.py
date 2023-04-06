@@ -537,18 +537,19 @@ class tree:
                                            str(tag.tm_min) +
                                            str(tag.tm_sec))
         os.mkdir(filename)
-        file = open(filename+"/vessels.ccob",'wb')
+        file = open(filename+os.sep+"vessels.ccob",'wb')
         pickle.dump(self.data,file)
         file.close()
-        file = open(filename+"/parameters.ccob",'wb')
+        file = open(filename+os.sep+"parameters.ccob",'wb')
         parameters = (self.parameters,self.fraction,self.homogeneous,self.directed,self.convex)
         pickle.dump(parameters,file)
         file.close()
-        file = open(filename+"/boundary.ccob",'wb')
-        pickle.dumps(self.boundary,file)
+        boundary_data = (self.boundary.points,self.boundary.normals)
+        file = open(filename+os.sep+"boundary.ccob",'wb')
+        pickle.dump(boundary_data,file)
         file.close()
 
-    def load(self,filename):
+    def load(self,filename,compute_boundary=False):
         """
         Reads a saved vascular tree project and loads the information into the
         current object.
@@ -559,23 +560,37 @@ class tree:
                              string specifying the path to the project folder
                              containing the data files for the vascular tree and
                              perfusion boundary
+                   compute_boundary : bool
+                             rebuild the perfusion boundary for the loaded vascular
+                             tree. (default = False) This adds overhead to loading
+                             a vascular tree but is neccessary if further vessel
+                             addition is desired.
         Returns
         -------
                    None
         """
-        file = open(filename+"/vessels.ccob",'rb')
+        file = open(filename+os.sep+"vessels.ccob",'rb')
         self.data = pickle.load(file)
         file.close()
-        file = open(filename+"/parameters.ccob",'rb')
+        file = open(filename+os.sep+"parameters.ccob",'rb')
         self.parameters,self.fraction,self.homogeneous,self.directed,self.convex = pickle.load(file)
         file.close()
-        file = open(filename+"/boundary.ccob",'rb')
-        self.boundary = pickle.loads(file)
+        file = open(filename+os.sep+"boundary.ccob",'rb')
+        boundary_data = pickle.load(file)
+        boundary = surface()
+        boundary.set_data(boundary_data[0],boundary_data[1])
+        if compute_boundary:
+            boundary.solve()
+            boundary.build()
+            self.set_boundary(boundary)
+        else:
+            self.boundary = boundary
         file.close()
 
     def export(self,steady=True,apply_distal_resistance=True,gui=True,
                cylinders=False,make=True,global_edge_size=None,
-               splines=False,splines_file_path='',spline_sample_points=100):
+               splines=False,splines_file_path='',spline_sample_points=100,
+               spline_density=None):
         """
         This function exports multiple results from vascular tree objects.
         These include SimVascular 3D simulation files and spline path points
@@ -616,6 +631,9 @@ class tree:
                    spline_sample_points : int (default = 100)
                             integer specifying the number of points to sample each
                             spline vessel along
+                   spline_density : float (default = None)
+                            number of points per unit length to interpolate along
+                            the spline
         Returns
         -------
                    merge : PyVista PolyData Object
@@ -666,10 +684,17 @@ class tree:
         if splines:
             spline_file = open(splines_file_path+'b_splines.txt','w+')
             for ind,spline in enumerate(interp_xyzr):
-                spline_file.write('Vessel: {}, Number of Points: {}\n\n'.format(ind,spline_sample_points))
                 n = np.linspace(0,1,spline_sample_points)
                 spline_data = splev(n,spline[0])
-                for j in range(spline_sample_points):
+                if spline_density is not None:
+                    x = np.array(spline_data[0])
+                    y = np.array(spline_data[1])
+                    z = np.array(spline_data[2])
+                    spline_length = np.sum(np.linalg.norm(np.diff(np.array([x,y,z]),axis=0),axis=1))
+                    n = np.linspace(0,1,max(int(spline_length/spline_density),4))
+                    spline_data = splev(n,spline[0])
+                spline_file.write('Vessel: {}, Number of Points: {}\n\n'.format(ind, len(n)))
+                for j in range(len(n)):
                     spline_file.write('{}, {}, {}\n'.format(spline_data[0][j],spline_data[1][j],spline_data[2][j]))
                 spline_file.write('\n')
             spline_file.close()
@@ -2028,7 +2053,8 @@ class forest:
         #self.forest_copy.connections,self.forest_copy.connected_forest,self.splines = smooth(self.forest_copy,curve_sample_size_min=curve_sample_size_min,curve_sample_size_max=curve_sample_size_max,curve_degree=curve_degree)
         #self.forest_copy.connections,_,_ = link(self.forest_copy,radius_buffer=radius_buffer)
         #print(self.forest_copy.assignments)
-        self.forest_copy.connections,_,_ = link_v2(self.forest_copy,network_id,tree_idx,tree_jdx,radius_buffer)
+        self.forest_copy.connections,_,_ = link_v3(self.forest_copy,network_id,tree_idx,tree_jdx,radius_buffer)
+
     def assign(self):
         """
         Assign the connecting terminal vessels among trees within networks of the
@@ -2078,7 +2104,8 @@ class forest:
         forest_copy.assignments = deepcopy(self.assignments)
         return forest_copy
 
-    def export_solid(self,outdir=None,folder="3d_tmp",shell=False,variable_thickness=False,shell_thickness=0.01):
+    def export_solid(self,outdir=None,folder="3d_tmp",shell=False,variable_thickness=False,
+                     shell_thickness=0.01,use_spline=True,spline_interp_number=100):
         """
         Export solid object representations of the current forest object
 
@@ -2140,7 +2167,7 @@ class forest:
         ALL_vessel_shells = []
         ALL_tet_shells = []
         ALL_surf_shells = []
-        t_list = np.linspace(0,1,num=1000)
+        t_list = np.linspace(0,1,num=spline_interp_number)
         P = self.show()
         for net_id in range(len(final_points)):
             for tree in range(self.trees_per_network[net_id]-1):
@@ -2154,14 +2181,18 @@ class forest:
                     tet_shells    = []
                     surf_shells   = []
                 for vessel_id in range(len(self.ALL_POINTS[net_id][tree])):
-                    #x,y,z = splev(t_list,interp_xyz[vessel_id][0])
-                    #_,r = splev(t_list,interp_r[vessel_id][0])
-                    #points = np.zeros((len(t_list),3))
-                    #points[:,0] = x
-                    #points[:,1] = y
-                    #points[:,2] = z
-                    points = np.array(self.ALL_POINTS[net_id][tree][vessel_id])
-                    r = np.array(self.ALL_RADII[net_id][tree][vessel_id])
+                    if not use_spline:
+                        print(interp_xyz)
+                        print(interp_r)
+                        x,y,z = splev(t_list,interp_xyz[vessel_id][0])
+                        _,r = splev(t_list,interp_r[vessel_id][0])
+                        points = np.zeros((len(t_list),3))
+                        points[:,0] = x
+                        points[:,1] = y
+                        points[:,2] = z
+                    else:
+                        points = np.array(self.ALL_POINTS[net_id][tree][vessel_id])
+                        r = np.array(self.ALL_RADII[net_id][tree][vessel_id])
                     #print("Points: {}".format(points))
                     #print("Radii:  {}".format(r))
                     if shell:
@@ -2392,13 +2423,13 @@ class forest:
             network_copy = []
             for tr in range(self.trees_per_network[network]):
                 tree_copy = deepcopy(self.networks[network][tr].data)
-                tree_copy_terminals = tree_copy[np.argwhere(tree_copy[:,15]==-1).flatten(),:]
-                tree_copy_terminals = tree_copy_terminals[np.argwhere(tree_copy_terminals[:,16]==-1).flatten(),-1].astype(int)
-                tree_copy[tree_copy_terminals,3:6] = (tree_copy[tree_copy_terminals,0:3] + tree_copy[tree_copy_terminals,3:6])/2
-                tree_copy[tree_copy_terminals,20] = tree_copy[tree_copy_terminals,20]/2
-                max_vessel_id = max(tree_copy[:,-1])
-                conn_parents = np.argwhere(self.connections[network][tr][:,17] <= max_vessel_id).flatten()
-                tree_copy[self.connections[network][tr][conn_parents,17].astype(int),15] = self.connections[network][tr][conn_parents,-1]
+                #tree_copy_terminals = tree_copy[np.argwhere(tree_copy[:,15]==-1).flatten(),:]
+                #tree_copy_terminals = tree_copy_terminals[np.argwhere(tree_copy_terminals[:,16]==-1).flatten(),-1].astype(int)
+                #tree_copy[tree_copy_terminals,3:6] = (tree_copy[tree_copy_terminals,0:3] + tree_copy[tree_copy_terminals,3:6])/2
+                #tree_copy[tree_copy_terminals,20] = tree_copy[tree_copy_terminals,20]/2
+                #max_vessel_id = max(tree_copy[:,-1])
+                #conn_parents = np.argwhere(self.connections[network][tr][:,17] <= max_vessel_id).flatten()
+                #tree_copy[self.connections[network][tr][conn_parents,17].astype(int),15] = self.connections[network][tr][conn_parents,-1]
                 tree_copy = np.vstack((tree_copy,self.connections[network][tr]))
                 network_copy.append(tree_copy)
                 #tmp_tree = tree()
@@ -2541,6 +2572,335 @@ class forest:
                 spline_file.close()
                 ALL_SPLINES.append(network_splines)
         return final_points,final_radii,final_normals,CONNECTED_COPY,ALL_INTERP_XYZ,ALL_INTERP_RADII,ALL_SPLINES
+
+    def export_0d_simulation(self,network_id,inlets,steady=True,outdir=None,folder="0d_tmp",number_cardiac_cycles=1,
+                            number_time_pts_per_cycle=5,density=1.06,viscosity=0.04,material="olufsen",
+                            olufsen={'k1':0.0,'k2':-22.5267,'k3':1.0e7,'material exponent':2.0,'material pressure':0.0},
+                            linear={'material ehr':1e7,'material pressure':0.0},get_0d_solver=False,path_to_0d_solver=None,
+                            viscosity_model='constant',vivo=True,distal_pressure=0):
+        """
+        Method for exporting 0d simulations for generic forest
+        objects.
+
+        Parameters
+        ----------
+                    network_id : int
+                           the index of the network 
+                    steady : bool (default = True)
+                           true/false flag for assigning a time-varying inlet
+                           flow. If false, a flow waveform is assigned from
+                           empirical data taken from coronary arteries.
+                           Refer to svcco.sv_interface.waveform for more details
+                    outdir : str (default = None)
+                           string specifying the output directory for the 0D simulation
+                           folder to be created
+                    folder : str (default = "0d_tmp")
+                           string specifying the folder name. This folder will store
+                           all 0D simulation files that are generated
+                    number_cardiac_cycles : int (default = 1)
+                           number of cardiac cycles to compute the 0D simulation.
+                           This can be useful for obtaining a stable solution.
+                    number_time_pts_per_cycle : int (default = 5)
+                           number of time points to evaluate during the 0D
+                           simulation. A default of 5 is good for steady flow cases;
+                           however, pulsatile flow will likely require a higher number
+                           of time points to adequetly capture the inflow waveform.
+                    density : float (default = 1.06)
+                           density of the fluid within the vascular tree to simulate.
+                           By deafult, the density of blood is used.
+                           Base Units are in centimeter-grame-second (CGS)
+                    viscosity : float (default = 0.04)
+                           viscosity of the fluid within the vascular tree to simulate.
+                           By default, the viscosity if blood is used.
+                           Base units are in centimeter-grame-second (CGS)
+                    material : str (default = "olufsen")
+                           string specifying the material model for the vascular
+                           wall. Options available: ("olufsen" and "linear")
+                    olufsen : dict
+                             material paramters for olufsen material model
+                                   'k1' : float (default = 0.0)
+                                   'k2' : float (default = -22.5267)
+                                   'k3' : float (default = 1.0e7)
+                                   'material exponent' : int (default = 2)
+                                   'material pressure' : float (default = 0.0)
+                             By default these parameters numerically yield a "rigid"
+                             material model.
+                    linear : dict
+                             material parameters for the linear material model
+                                   'material ehr' : float (default = 1e7)
+                                   'material pressure' : float (default = 0.0)
+
+                             By default these parameters numerically yield a "rigid"
+                             material model.
+                    get_0d_solver : bool (default = False)
+                             true/false flag to search for the 0D solver. If installed,
+                             the solver will be imported into the autogenerated
+                             simulation code. Depending on how large the disk-space
+                             is for the current machine, this search may be prohibitively
+                             expensive if no path is known.
+                    path_to_0d_solver : str (default = None)
+                             string specifying the path to the 0D solver
+                    viscosity_model : str (default = 'constant')
+                             string specifying the viscosity model of the fluid.
+                             This may be useful for multiphase fluids (like blood)
+                             which have different apparent viscosities at different
+                             characteristic length scales. By default, constant
+                             viscosity is used.
+
+                             Other viscosity option: 'modified viscosity law'
+                                  This option leverages work done by Secomb et al.
+                                  specifically for blood in near-capillary length
+                                  scales.
+                    vivo : bool (default = True)
+                             true/false flag for using in vivo blood viscosity hematocrit
+                             value. If false, in vitro model is used. (Note these
+                             are only used for the modified viscosity law model)
+                    distal_pressure : float (default = 0.0)
+                             apply a uniform distal pressure along outlets of the
+                             vascular tree
+        Returns
+        -------
+                    None
+        """
+        if outdir is None:
+            outdir = os.getcwd()+os.sep+folder
+        else:
+            outdir = outdir+os.sep+folder
+        if not os.path.isdir(outdir):
+            os.mkdir(folder)
+        if get_0d_solver:
+            if path_to_0d_solver is None:
+                path_to_0d_solver = locate_0d_solver()
+            else:
+                path_to_0d_solver = locate_0d_solver(windows_drive=path_to_0d_solver,linux_drive=path_to_0d_solver)
+        else:
+            path_to_0d_solver = None
+        input_file = {'description':{'description of case':None,
+                                     'analytical results':None},
+                      'boundary_conditions':[],
+                      'junctions':[],
+                      'simulation_parameters':{},
+                      'vessels':[]}
+        simulation_parameters = {}
+        simulation_parameters["number_of_cardiac_cycles"]             = number_cardiac_cycles
+        simulation_parameters["number_of_time_pts_per_cardiac_cycle"] = number_time_pts_per_cycle
+        input_file['simulation_parameters']                           = simulation_parameters
+        def build_vessel_segment(data,idx,shift,network_id,tree_id,material=material,viscosity_model=viscosity_model):
+            vessel_segment = {}
+            vessel_segment['vessel_id']           = int(data[idx,-1]) + shift
+            vessel_segment['vessel_length']       = data[idx,20]
+            vessel_segment['vessel_name']         = 'branch'+str(int(data[idx,-1]) + shift)+'_seg0'
+            vessel_segment['zero_d_element_type'] = 'BloodVessel'
+            if material == 'olufsen':
+                material_stiffness = olufsen['k1']*np.exp(olufsen['k2']*data[idx,21])+olufsen['k3']
+            else:
+                material_stiffness = linear['material ehr']
+            if viscosity_model == 'constant':
+                nu = self.networks[network_id][tree_id].parameters['nu']
+            elif viscosity_model == 'modified viscosity law':
+                W  = 1.1
+                lam = 0.5
+                D  = self.networks[network_id][tree_id].data[idx,21]*2*(10000)
+                nu_ref = self.networks[network_id][tree_id].parameters['nu']
+                Hd = 0.45 #discharge hematocrit (dimension-less)
+                C  = lambda d: (0.8+np.exp(-0.075))*(-1+(1/(1+10**(-11)*d**12)))+(1/(1+10**(-11)*d**12))
+                nu_vitro_45 = lambda d: 220*np.exp(-1.3*d) + 3.2-2.44*np.exp(-0.06*d**0.645)
+                nu_vivo_45  = lambda d: 6*np.exp(-0.085*d)+3.2-2.44*np.exp(-0.06*d**0.645)
+                if vivo == True:
+                    nu_45 = nu_vivo_45
+                else:
+                    nu_45 = nu_vitro_45
+                nu_mod   =   lambda d: (1+(nu_45 - 1)*(((1-Hd)**C-1)/((1-0.45)**C-1))*(d/(d-W))**(4*lam))*(d/(d-W))**(4*(1-lam))
+                ref = nu_ref - nu_mod(10000) # 1cm (units given in microns)
+                nu  = nu_mod(D) + ref
+            zero_d_element_values = {}
+            zero_d_element_values["R_poiseuille"] = ((8*nu/np.pi)*data[idx,20])/data[idx,21]**4
+            zero_d_element_values["C"] = (3*data[idx,20]*np.pi*data[idx,21]**2)/(2*material_stiffness)
+            zero_d_element_values["L"] = (data[idx,20]*density)/(np.pi*data[idx,21]**2)
+            zero_d_element_values["stenosis_coefficient"] = 0.0
+            vessel_segment['zero_d_element_values'] = zero_d_element_values
+            return vessel_segment
+
+        # BUILD TREE VESSEL SEGMENTS
+        vessel_shift = 0
+        for tree_id in range(self.trees_per_network[network_id]):
+            for vessel_id in range(self.networks[network_id][tree_id].data.shape[0]):
+                vessel_segment = build_vessel_segment(self.networks[network_id][tree_id].data,vessel_id,vessel_shift,network_id,tree_id)
+                if vessel_id == 0:
+                    if inlets[tree_id]:
+                        bc = {}
+                        bc['bc_name'] = "INFLOW"
+                        bc['bc_type'] = "FLOW"
+                        bc_values = {}
+                        if steady:
+                            bc_values["Q"] = [self.networks[network_id][tree_id].data[vessel_id,22], self.networks[network_id][tree_id].data[vessel_id,22]]
+                            bc_values["t"] = [0, 1]
+                            with open(outdir+os.sep+"inflow.flow","w") as file:
+                                for i in range(len(bc_values["t"])):
+                                    file.write("{}  {}\n".format(bc_values["t"][i],bc_values["Q"][i]))
+                            file.close()
+                        else:
+                            time,flow = wave(self.networks[network_id][tree_id].data[vessel,22],self.networks[network_id][tree_id].data[vessel,21]*2) # changed wave function
+                            bc_values["Q"] = flow.tolist()
+                            bc_values["t"] = time.tolist()
+                            bc_values["Q"][-1] = bc_values["Q"][0]
+                            simulation_parameters["number_of_time_pts_per_cardiac_cycle"] = len(bc_values["Q"])
+                            with open(outdir+os.sep+"inflow.flow","w") as file:
+                                for i in range(len(bc_values["t"])):
+                                    file.write("{}  {}\n".format(bc_values["t"][i],bc_values["Q"][i]))
+                            file.close()                               
+                        bc['bc_values'] = bc_values
+                        input_file['boundary_conditions'].append(bc)
+                        vessel_segment['boundary_conditions'] = {'inlet':'INFLOW'}
+                    else:
+                        bc = {}
+                        bc['bc_name'] = 'OUT'+str(vessel_id+vessel_shift)
+                        bc['bc_type'] = "RESISTANCE"
+                        bc_values = {}
+                        bc_values["Pd"] = 0 #self.parameters["Pterm"]
+                        bc_values["R"] = 0  #total_resistance*(total_outlet_area/(np.pi*self.networks[network_id][tree_id].data[vessel_id,21]**2))
+                        bc['bc_values'] = bc_values
+                        input_file['boundary_conditions'].append(bc)
+                        vessel_segment['boundary_conditions'] = {'outlet':'OUT'+str(vessel_id+vessel_shift)}                  
+                input_file['vessels'].append(vessel_segment)
+            vessel_shift += self.connections[network_id][tree_id].shape[0]+self.networks[network_id][tree_id].data.shape[0]
+        # BUILD CONNECTING VESSEL SEGMENTS
+        vessel_shift = 0
+        vessel_shifts = [0]
+        for tree_id in range(len(self.connections[network_id])):
+            for connection_vessel_id in range(self.connections[network_id][tree_id].shape[0]):
+                vessel_segment = build_vessel_segment(self.connections[network_id][tree_id],connection_vessel_id,vessel_shift,network_id,tree_id)
+                input_file['vessels'].append(vessel_segment)
+            vessel_shift += self.connections[network_id][tree_id].shape[0]+self.networks[network_id][tree_id].data.shape[0]
+            vessel_shifts.append(int(vessel_shift))
+
+        # BUILD JUNCTIONS FOR TREES
+        junction_count = 0
+        for tree_id in range(self.trees_per_network[network_id]):
+            for vessel_id in range(self.networks[network_id][tree_id].data.shape[0]):
+                if self.networks[network_id][tree_id].data[vessel_id,15] > 0 and self.networks[network_id][tree_id].data[vessel_id,16] > 0:
+                    junction = {}
+                    junction['junction_name'] = "J"+str(junction_count)
+                    junction['junction_type'] = "NORMAL_JUNCTION"
+                    if inlets[tree_id]:
+                        junction['inlet_vessels']  = [int(self.networks[network_id][tree_id].data[vessel_id,-1])+vessel_shifts[tree_id]] 
+                        junction['outlet_vessels'] = [int(self.networks[network_id][tree_id].data[vessel_id,15])+vessel_shifts[tree_id],
+                                                      int(self.networks[network_id][tree_id].data[vessel_id,16])+vessel_shifts[tree_id]]
+                    else:
+                        junction['inlet_vessels']  = [int(self.networks[network_id][tree_id].data[vessel_id,15])+vessel_shifts[tree_id],
+                                                      int(self.networks[network_id][tree_id].data[vessel_id,16])+vessel_shifts[tree_id]]
+                        junction['outlet_vessels'] = [int(self.networks[network_id][tree_id].data[vessel_id,-1])+vessel_shifts[tree_id]]
+                    input_file['junctions'].append(junction)
+                    junction_count += 1
+                else:
+                    junction = {}
+                    junction['junction_name'] = "J"+str(junction_count)
+                    junction['junction_type'] = "NORMAL_JUNCTION"
+                    if inlets[tree_id]:
+                        junction['inlet_vessels']  = [int(self.networks[network_id][tree_id].data[vessel_id,-1])+vessel_shifts[tree_id]]
+                        connection_id              = np.argwhere(self.connections[network_id][tree_id][:,17]==self.networks[network_id][tree_id].data[vessel_id,-1]).flatten()[0]
+                        junction['outlet_vessels'] = [int(self.connections[network_id][tree_id][connection_id,-1])+vessel_shifts[tree_id]]
+                    else:
+                        connection_id              = np.argwhere(self.connections[network_id][tree_id][:,17]==self.networks[network_id][tree_id].data[vessel_id,-1]).flatten()[0]
+                        junction['inlet_vessels']  = [int(self.connections[network_id][tree_id][connection_id,-1])+vessel_shifts[tree_id]]
+                        junction['outlet_vessels'] = [int(self.networks[network_id][tree_id].data[vessel_id,-1])+vessel_shifts[tree_id]]
+                    input_file['junctions'].append(junction)
+                    junction_count += 1
+        # BUILD JUNCTIONS FOR CONNECTING VESSELS WITHOUT CONNECTIONS
+        for tree_id in range(len(self.connections[network_id])):
+            for vessel_id in range(self.connections[network_id][tree_id].shape[0]):
+                if self.connections[network_id][tree_id][vessel_id,15] > 0:
+                    junction = {}
+                    junction['junction_name'] = "J"+str(junction_count)
+                    junction['junction_type'] = "NORMAL_JUNCTION"
+                    if inlets[tree_id]:
+                        junction['inlet_vessels']  = [int(self.connections[network_id][tree_id][vessel_id,-1] +vessel_shifts[tree_id])]
+                        junction['outlet_vessels'] = [int(self.connections[network_id][tree_id][vessel_id,15])+vessel_shifts[tree_id]]
+                    else:
+                        junction['inlet_vessels']  = [int(self.connections[network_id][tree_id][vessel_id,15])+vessel_shifts[tree_id]]
+                        junction['outlet_vessels'] = [int(self.connections[network_id][tree_id][vessel_id,-1] +vessel_shifts[tree_id])]
+                    input_file['junctions'].append(junction)
+                    junction_count += 1
+        # BUILD CONNECTING JUNCTIONS
+        for junction_id in range(self.assignments[network_id][0].shape[0]):
+            inlet_vessels  = []
+            outlet_vessels = []
+            for tree_id in range(self.trees_per_network[network_id]):
+                idx = np.argwhere(self.connections[network_id][tree_id][:,17] == self.assignments[network_id][tree_id][junction_id]).flatten()[0]
+                while self.connections[network_id][tree_id][idx,15] > 0:
+                    idx = np.argwhere(self.connections[network_id][tree_id][:,-1] == self.connections[network_id][tree_id][idx,15]).flatten()[0]
+                if inlets[tree_id]:
+                    inlet_vessels.append(int(self.connections[network_id][tree_id][idx,-1]+vessel_shifts[tree_id]))
+                else:
+                    outlet_vessels.append(int(self.connections[network_id][tree_id][idx,-1]+vessel_shifts[tree_id]))
+            junction = {}
+            junction['junction_name']  = "J"+str(junction_count)
+            junction['junction_type']  = "NORMAL_JUNCTION"
+            junction['inlet_vessels']  = inlet_vessels
+            junction['outlet_vessels'] = outlet_vessels
+            input_file['junctions'].append(junction)
+            junction_count += 1
+            
+        obj = json.dumps(input_file,indent=4)
+        with open(outdir+os.sep+"solver_0d.in","w") as file:
+            file.write(obj)
+        file.close()
+
+        with open(outdir+os.sep+"plot_0d_results_to_3d.py","w") as file:
+            file.write(make_results)
+        file.close()
+
+        with open(outdir+os.sep+"plot_0d_results_at_slices.py","w") as file:
+            file.write(view_plots)
+        file.close()
+
+        with open(outdir+os.sep+"run.py","w") as file:
+            if platform.system() == "Windows":
+                if path_to_0d_solver is not None:
+                    solver_path = path_to_0d_solver.replace(os.sep,os.sep+os.sep)
+                else:
+                    solver_path = path_to_0d_solver
+                    print("WARNING: Solver location will have to be given manually")
+                    print("Current solver path is: {}".format(solver_path))
+                solver_file = (outdir+os.sep+"solver_0d.in").replace(os.sep,os.sep+os.sep)
+            else:
+                if path_to_0d_solver is not None:
+                    solver_path = path_to_0d_solver
+                else:
+                    solver_path = path_to_0d_solver
+                    print("WARNING: Solver location will have to be given manually")
+                    print("Current solver path is: {}".format(solver_path))
+                solver_file = outdir+os.sep+"solver_0d.in"
+            file.write(run_0d_script.format(solver_path,solver_file))
+        file.close()
+        # DETERMINE NUMBER OF ROWS FOR GEOM
+        geoms = []
+        for tree_id in range(self.trees_per_network[network_id]):
+            geom_tree = np.zeros((self.networks[network_id][tree_id].data.shape[0],8))
+            if inlets[tree_id]:
+                geom_tree[:,0:3] = self.networks[network_id][tree_id].data[:,0:3]
+                geom_tree[:,3:6] = self.networks[network_id][tree_id].data[:,3:6]
+            else:
+                geom_tree[:,0:3] = self.networks[network_id][tree_id].data[:,3:6]
+                geom_tree[:,3:6] = self.networks[network_id][tree_id].data[:,0:3]   
+            geom_tree[:,6]  = self.networks[network_id][tree_id].data[:,20]
+            geom_tree[:,7]  = self.networks[network_id][tree_id].data[:,21]
+            geom_conn = np.zeros((self.connections[network_id][tree_id].shape[0],8))
+            if inlets[tree_id]:
+                geom_conn[:,0:3] = self.connections[network_id][tree_id][:,0:3]
+                geom_conn[:,3:6] = self.connections[network_id][tree_id][:,3:6]
+            else:
+                geom_conn[:,0:3] = self.connections[network_id][tree_id][:,3:6]
+                geom_conn[:,3:6] = self.connections[network_id][tree_id][:,0:3]        
+            geom_conn[:,6]  = self.connections[network_id][tree_id][:,20]
+            geom_conn[:,7]  = self.connections[network_id][tree_id][:,21]
+            geom = np.vstack((geom_tree,geom_conn))
+            geoms.append(geom)
+
+        total_geom = geoms[0]
+        for geom_id in range(1,len(geoms)):
+            total_geom = np.vstack((total_geom,geoms[geom_id]))
+        np.savetxt(outdir+os.sep+"geom.csv",total_geom,delimiter=",")
 
 def perfusion_territory(tree,subdivisions=0,mesh_file=None,tree_file=None):
     terminals = tree.data[tree.data[:,15]<0,:]

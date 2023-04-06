@@ -35,4 +35,4 @@ t.set_boundary(heart)
 t.set_root()
 t.n_add(1000)
 
-t.export_0d_simulation(steady=False)
+t.export_0d_simulation()

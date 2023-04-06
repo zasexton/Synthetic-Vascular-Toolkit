@@ -41,7 +41,7 @@ def close_exact(data,point,radius_buffer):
 
 def cost_angles(angles):
     #func = lambda x: np.tanh(-(x+np.arctanh(np.log(2))))+np.log(1+np.exp(-x))
-    func = lambda x: np.log(1+np.exp(-x))
+    func = lambda x: np.log(1+np.exp(-x*100))
     return np.sum(func(angles))
 
 def get_all_vectors(pts):
@@ -67,10 +67,21 @@ def get_collisions(collision_vessels,R,sample_pts,radius_buffer):
     collisions = 0
     #func = lambda x: np.tanh((x-np.arctanh(np.log(2))))+np.log(1+np.exp(x))
     #func = lambda x: np.log(1+np.exp(x))
+
+    # Check for collisions with other vessels
     func = lambda x: 0.5*np.tanh(x*100)+0.5
     for i in range(sample_pts.shape[0]):
         dist = close_exact(collision_vessels,sample_pts[i,:],radius_buffer)
         collisions += np.sum(func(R + radius_buffer - dist))
+    # Check for collisions for vessel with itself
+    #same_vessel = np.zeros((sample_pts.shape[0]-1,7))
+    #same_vessel[:,0:3] = sample_pts[:-1,:]
+    #same_vessel[:,3:6] = sample_pts[1:,:]
+    #same_vessel[:,6]   = R
+    #mid_points = (sample_pts[:-1,:] - sample_pts[1:,:])/2
+    #for i in range(mid_points.shape[0]):
+    #    if i <= 
+    #    subset_same_vessels = 
     return collisions
 
 def connect_bezier(P1,P2,P3,P4,clamp_first=True,clamp_second=True,number_vessels=20):
