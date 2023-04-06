@@ -5,6 +5,11 @@ pts = np.genfromtxt('D:\\Tree\\Tree_7-0\\svcco\\implicit\\tests\\heart_points_un
 n =  np.genfromtxt('D:\\Tree\\Tree_7-0\\svcco\\implicit\\tests\\heart_normals_unique.csv',delimiter=',')
 
 s = svcco.surface()
-s.set_data(pts,normals=n)
+s.set_data(pts,n)
 s.solve()
-s.build(q=2,resolution=40,k=20,buffer=2)
+s.build(q=4,resolution=120,buffer=2)
+
+t = svcco.tree()
+t.set_boundary(s)
+t.set_root()
+t.n_add(1000)

@@ -23,7 +23,7 @@ def get_cube():
     cube = svcco.surface()
     cube.set_data(cu.points,cu.point_normals)
     cube.solve()
-    cube.build(q=q,resolution=resolution)
+    cube.build(q=4,resolution=25)
     print('cube constructed')
     return cube
 
@@ -33,7 +33,7 @@ def get_heart():
     heart_normals = np.genfromtxt('D:\\svcco\\svcco\\implicit\\tests\\heart_normals_unique.csv',delimiter=',')
     heart.set_data(heart_points,heart_normals)
     heart.solve()
-    heart.build(q=4,resolution=120,k=2,buffer=5)
+    heart.build(q=4,resolution=60,k=2,buffer=5)
     print('heart constructed')
     return heart
 
@@ -121,7 +121,7 @@ def build_work(blocks,tmpdir,graph):
     work = tuple(work)
     return work
 
-def precompute_graph_predecessors(surface_object,block_num=10,parallel_num=1):
+def precompute_graph_predecessors(surface_object,block_num=10,parallel_num=10):
     file_dir  = 'D:'+os.sep
     tmp_dir   = TemporaryDirectory(dir=file_dir)
     #print(tmp_dir.name)
@@ -161,6 +161,7 @@ def precompute_graph_predecessors(surface_object,block_num=10,parallel_num=1):
             tmp = [len(blocks)-1,surface_object.cell_center_closest_point[-1] - blocks[-1][0]]
         tet_vert_map.append(tmp)
     surface_object.tet_vert_map = tet_vert_map
+    p.close()
     return
 
 @nb.jit(nopython=True)
@@ -193,11 +194,15 @@ def perfusion_geodesic(tree,perfusion_volume):
         linear_distances     = []
         center = perfusion_volume.cell_centers[idx,:] #perfusion_volume.tet.grid.cell_centers().points[idx,:]
         cell_id = perfusion_volume.cell_center_closest_point[idx] #perfusion_volume.tet.grid.find_closest_point(center)
+        tmp_ds = np.array(perfusion_volume.ds['mats'][perfusion_volume.tet_vert_map[idx][0]][perfusion_volume.tet_vert_map[idx][1],:])
+        tmp_Pr = np.array(perfusion_volume.Pr['mats'][perfusion_volume.tet_vert_map[idx][0]][perfusion_volume.tet_vert_map[idx][1],:])
         for jdx in range(len(terminal_ids)):
             #tmp_ds = perfusion_volume.graph_predecessor_distan[cell_id]
             #tmp_Pr = perfusion_volume.graph_predecessor_id[cell_id]
-            tmp_ds = np.array(perfusion_volume.ds['mats'][perfusion_volume.tet_vert_map[idx][0]][perfusion_volume.tet_vert_map[idx][1],:])
-            tmp_Pr = np.array(perfusion_volume.Pr['mats'][perfusion_volume.tet_vert_map[idx][0]][perfusion_volume.tet_vert_map[idx][1],:])
+            #tmp_ds = np.array(perfusion_volume.ds['mats'][perfusion_volume.tet_vert_map[idx][0]][perfusion_volume.tet_vert_map[idx][1],:])
+            #tmp_Pr = np.array(perfusion_volume.Pr['mats'][perfusion_volume.tet_vert_map[idx][0]][perfusion_volume.tet_vert_map[idx][1],:])
+            #tmp_ds = perfusion_volume.ds['mats'][perfusion_volume.tet_vert_map[idx][0]][perfusion_volume.tet_vert_map[idx][1],:]
+            #tmp_Pr = perfusion_volume.Pr['mats'][perfusion_volume.tet_vert_map[idx][0]][perfusion_volume.tet_vert_map[idx][1],:]
             _,L,_ = get_path(terminal_ids[jdx],tmp_ds,tmp_Pr)
             L = sum(L)
             tmp_geodesic_lengths.append(L)
@@ -214,11 +219,13 @@ def perfusion_geodesic(tree,perfusion_volume):
             absolute_min = min_geodesic_instances[absolute_min]
             territory_id.append(absolute_min)
             territory_volumes[absolute_min] += vol[idx]
+        del tmp_ds
+        del tmp_Pr
     territory_id = np.array(territory_id)
     perfusion_volume.tet.grid['perfusion_territory_id'] = territory_id
     return territory_id,territory_volumes/np.sum(vol),perfusion_volume.tet
 
-def test(surf_object,size=50,restarts=50,name='default'):
+def test(surf_object,size=10,restarts=10,name='default'):
     t = svcco.tree()
     t.set_boundary(surf_object)
     perfusion_folder = os.getcwd()+os.sep+name+os.sep
@@ -322,6 +329,9 @@ print('preprocessing cells')
 precompute_graph_predecessors(heart)
 print('heart constructed')
 
+heart = get_heart()
+precompute_graph_predecessors(heart,block_num=100,parallel_num=16)
+results = test(heart,size=50,restarts=50,name='heart')
 
 disk = pv.Disc(inner=2.8,outer=4,r_res=20,c_res=100)
 cyl  = disk.extrude([0,0,2],capping=True).triangulate()
