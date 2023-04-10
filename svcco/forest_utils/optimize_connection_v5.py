@@ -257,6 +257,11 @@ class connection:
         filter_1.extend(filter_1_y)
         filter_1.extend(filter_1_z)
         filter_1 = np.array(list(set(filter_1)))
+        if len(filter_1) == 0:
+            self.collision_vessels = None
+            self.collision_centers = None
+            self.collision_lengths = None
+            return
         collision_vessels = collision_vessels[filter_1,:]
         filter_2_x = np.argwhere(collision_vessels[:, 0] != self.P3[0]).flatten().tolist()
         filter_2_y = np.argwhere(collision_vessels[:, 1] != self.P3[1]).flatten().tolist()
@@ -266,6 +271,11 @@ class connection:
         filter_2.extend(filter_2_y)
         filter_2.extend(filter_2_z)
         filter_2 = np.array(list(set(filter_2)))
+        if len(filter_2) == 0:
+            self.collision_vessels = None
+            self.collision_centers = None
+            self.collision_lengths = None
+            return
         collision_vessels = collision_vessels[filter_2,:]
         filter_3_x = np.argwhere(collision_vessels[:, 3] != self.P1[0]).flatten().tolist()
         filter_3_y = np.argwhere(collision_vessels[:, 4] != self.P1[1]).flatten().tolist()
@@ -275,6 +285,11 @@ class connection:
         filter_3.extend(filter_3_y)
         filter_3.extend(filter_3_z)
         filter_3 = np.array(list(set(filter_3)))
+        if len(filter_3) == 0:
+            self.collision_vessels = None
+            self.collision_centers = None
+            self.collision_lengths = None
+            return
         collision_vessels = collision_vessels[filter_3,:]
         filter_4_x = np.argwhere(collision_vessels[:, 3] != self.P3[0]).flatten().tolist()
         filter_4_y = np.argwhere(collision_vessels[:, 4] != self.P3[1]).flatten().tolist()
@@ -284,10 +299,15 @@ class connection:
         filter_4.extend(filter_4_y)
         filter_4.extend(filter_4_z)
         filter_4 = np.array(list(set(filter_4)))
-        collision_vessels = collision_vessels[filter_4,:]
-        self.collision_vessels = collision_vessels
-        self.collision_centers = (collision_vessels[:,0:3]+collision_vessels[:,3:6])/2
-        self.collision_lengths = np.linalg.norm(collision_vessels[:,3:6]-collision_vessels[:,0:3],axis=1)
+        if len(filter_4) == 0:
+            self.collision_vessels = None
+            self.collision_centers = None
+            self.collision_lengths = None
+        else:
+            collision_vessels = collision_vessels[filter_4,:]
+            self.collision_vessels = collision_vessels
+            self.collision_centers = (collision_vessels[:,0:3]+collision_vessels[:,3:6])/2
+            self.collision_lengths = np.linalg.norm(collision_vessels[:,3:6]-collision_vessels[:,0:3],axis=1)
         return
     def solve(self,*args,clamp_first=True,clamp_second=True,sample_size=20,radius_buffer=0.01):
         start = perf_counter()
