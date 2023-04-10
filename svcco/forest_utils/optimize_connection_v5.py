@@ -554,12 +554,19 @@ class tree_connections:
             for j in range(len(connection_solutions)):
                 if connection_solutions[j].seperate:
                     collision_vessels = tmp_connection.conn.collision_vessels
-                    collision_vessels = np.vstack((collision_vessels,connection_solutions[j].vessels_1,
-                                                   connection_solutions[j].vessels_2))
+                    if collision_vessels is None or collision_vessels.shape[0] == 0:
+                        collision_vessels = np.vstack((connection_solutions[j].vessels_1,
+                                                       connection_solutions[j].vessels_2))
+                    else:
+                        collision_vessels = np.vstack((collision_vessels,connection_solutions[j].vessels_1,
+                                                       connection_solutions[j].vessels_2))
                     tmp_connection.conn.set_collision_vessels(collision_vessels)
                 else:
                     collision_vessels = tmp_connection.conn.collision_vessels
-                    collision_vessels = np.vstack((collision_vessels,connection_solutions[j].vessels_1))
+                    if collision_vessels is None or collision_vessels.shape[0] == 0:
+                        collision_vessels = connection_solutions[j].vessels_1
+                    else:
+                        collision_vessels = np.vstack((collision_vessels,connection_solutions[j].vessels_1))
                     tmp_connection.conn.set_collision_vessels(collision_vessels)
             if self.extra_collision_vessels is not None:
                 collision_vessels = tmp_connection.conn.collision_vessels
