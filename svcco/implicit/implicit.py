@@ -1057,6 +1057,9 @@ def marching_cubes_pv(surface_object,resolution=20,k=2,level=0,visualize=False,
                         compute_gradients=compute_gradients,
                         compute_normals=compute_normals)
     mesh.set_active_scalars(mesh.array_names[0])
+    fix = pymeshfix.MeshFix(mesh)
+    fix.repair(verbose=verbose)
+    mesh = fix.mesh
     tet = tetgen.TetGen(mesh)
     tet.make_manifold(verbose=verbose)
     nodes, verts = tet.tetrahedralize(order=1,mindihedral=20,minratio=1.5,verbose=tetgen_verbose)
