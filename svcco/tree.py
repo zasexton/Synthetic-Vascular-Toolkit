@@ -2352,7 +2352,7 @@ class forest:
 
     def export(self,make=False,spline=False,write_splines=False,
                spline_sample_points=100,steady=True,
-               apply_distal_resistance=False,gui=False):
+               apply_distal_resistance=False,gui=False,seperate=True):
         """
         Generate the 3D simulation file for SimVascular and/or spline representation
         of the vascular forest
@@ -2567,7 +2567,14 @@ class forest:
                             t = np.linspace(0,1,num=spline_sample_points)
                             data = deepcopy(vessel_spline(t))
                             for k in range(spline_sample_points):
-                                spline_file.write('{}, {}, {}, {}\n'.format(data[0][k],data[1][k],data[2][k],data[3][k]))
+                                if k > spline_sample_points // 2:
+                                    label = 1
+                                else:
+                                    label = 0
+                                if seperate:
+                                    spline_file.write('{}, {}, {}, {}, {}\n'.format(data[0][k],data[1][k],data[2][k],data[3][k],label))
+                                else:
+                                    spline_file.write('{}, {}, {}, {}\n'.format(data[0][k],data[1][k],data[2][k],data[3][k]))
                         spline_file.write('\n')
                 spline_file.close()
                 ALL_SPLINES.append(network_splines)
