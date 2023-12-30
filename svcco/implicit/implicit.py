@@ -627,6 +627,7 @@ class surface:
         self.cell_lookup = cKDTree(self.tet.grid.cell_centers().points)
         self.pv_polydata = pv.PolyData(var_inp=self.polydata)
         self.pv_polydata_surf = self.pv_polydata.extract_surface()
+        self.tet_point_lookup = cKDTree(self.tet_pts)
         nodes_check = set([])
         nodes = []
         idx = [[0,1],[1,2],[2,3],[3,1]]
@@ -662,6 +663,12 @@ class surface:
             for jdx in range(len(path)-1):
                 lines.append([path[jdx],path[jdx+1]])
             return path,lengths,lines
+        def get_geodesic(pt1,pt2):
+            i = self.tet_point_lookup.query(pt1)[1]
+            j = self.tet_point_lookup.query(pt2)[1]
+            path,lengths,lines = get_path(i,j)
+            return path,lengths,lines
+        self.get_geodesic = get_geodesic
         def get_cells(path,grid=self.tet.grid):
             cells = []
             cell_sets = []

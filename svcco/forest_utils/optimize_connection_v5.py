@@ -136,15 +136,19 @@ def get_all_vectors(pts):
 def cost_angles(angles, func=lambda x:-x*(x<0)):
     return np.sum(func(angles))
 
-def cost_bounds(bounds, pts, func=lambda x:max(0,x)):
+def cost_bounds(bounds, pts, func=lambda x:max(0,x), boundary_func=None, bounds_k=2):
     bounds_score = 0.0
-    for i in range(pts.shape[0]):
-        bounds_score += func(bounds[0, 0] - pts[i, 0])
-        bounds_score += func(pts[i, 0] - bounds[0, 1])
-        bounds_score += func(bounds[1, 0] - pts[i, 1])
-        bounds_score += func(pts[i, 1] - bounds[1, 1])
-        bounds_score += func(bounds[2, 0] - pts[i, 2])
-        bounds_score += func(pts[i, 2] - bounds[2, 1])
+    if boundary_func is None:
+        for i in range(pts.shape[0]):
+            bounds_score += func(bounds[0, 0] - pts[i, 0])
+            bounds_score += func(pts[i, 0] - bounds[0, 1])
+            bounds_score += func(bounds[1, 0] - pts[i, 1])
+            bounds_score += func(pts[i, 1] - bounds[1, 1])
+            bounds_score += func(bounds[2, 0] - pts[i, 2])
+            bounds_score += func(pts[i, 2] - bounds[2, 1])
+    else:
+        for i in range(pts.shape[0]):
+            bounds_score += func(boundary_func([pts[i, 0], pts[i, 1], pts[i, 2], bounds_k]))
     return bounds_score
 
 @nb.jit(nopython=True)
@@ -191,7 +195,7 @@ def cost_collisions(collision_vessels, r, pts, radius_buffer):
 def cost(data,curve_generator=None,r=None,p1=None,p2=None,p3=None,p4=None,collision_vessels=None,
          radius_buffer=None,bounds=None,sample_size=None,clamp_first=None,
          clamp_second=None,length_threshold=1.1,angle_threshold=110,collision_centers=None,
-         collision_lengths=None):
+         collision_lengths=None,boundary_func=None,bounds_k=2):
     curve = curve_generator(data, c1=clamp_first, c2=clamp_second)
     curve.sample_size = sample_size
     curve.evaluate()
@@ -202,7 +206,7 @@ def cost(data,curve_generator=None,r=None,p1=None,p2=None,p3=None,p4=None,collis
         #collision_cost = cost_collisions(collision_vessels, r, cpts, radius_buffer)
     else:
         collision_cost = 0
-    bounds_cost = cost_bounds(bounds, pts)
+    bounds_cost = cost_bounds(bounds, pts, boundary_func=boundary_func, bounds_k=bounds_k)
     vectors = get_all_vectors(pts)
     angles = get_all_angles(vectors)
     angle_cost = cost_angles(angles-angle_threshold)
@@ -224,6 +228,8 @@ class connection:
         self.bounds = None
         self.xopt = None
         self.plotting_vessels = None
+        self.nonconvex_path_func = None
+        self.boundary_func = None
     def set_solver(self, method='basinhopping'):
         if method == 'basinhopping':
             self.solver = optimize.basinhopping
@@ -244,8 +250,13 @@ class connection:
             self.P4 = p2
             self.R2 = r
         return
-    def set_bounds(self,bounds):
+    def set_bounds(self, bounds, boundary_func=None, bounds_k=2):
         self.bounds = bounds
+        self.boundary_func = boundary_func
+        self.bounds_k = bounds_k
+        return
+    def set_nonconvex_path_func(self, func):
+        self.nonconvex_path_func = func
         return
     def set_collision_vessels(self,collision_vessels):
         self.plotting_vessels = collision_vessels
@@ -322,7 +333,8 @@ class connection:
                                           collision_vessels=self.collision_vessels,radius_buffer=radius_buffer,
                                           sample_size=sample_size,bounds=self.bounds,clamp_first=clamp_first,
                                           clamp_second=clamp_second,collision_centers=self.collision_centers,
-                                          collision_lengths=self.collision_lengths)
+                                          collision_lengths=self.collision_lengths,boundary_func=self.boundary_func,
+                                          bounds_k=self.bounds_k)
         if clamp_first and clamp_second:
             clamp_number = 2
         elif clamp_first or clamp_second:
@@ -331,6 +343,9 @@ class connection:
             clamp_number = 0
         #if self.xopt is None:
         self.xopt = np.zeros(clamp_number+3*number_free_points)
+        if self.nonconvex_path_func is not None:
+            xopt = self.nonconvex_path_func(np.linspace(0, 1, 2+number_free_points)[1:-1]).flatten()
+            self.xopt[clamp_number:] = xopt
         #if not self.xopt.shape[0] == clamp_number+3*number_free_points:
         #self.xopt = np.zeros(clamp_number+3*number_free_points)
         shortest_length = np.linalg.norm(self.P2-self.P4)
@@ -468,6 +483,8 @@ class simple_connection:
         self.tree_2 = tree_2
         self.vessel_1_id = forest.assignments[network][tree_1][connection_id]
         self.vessel_2_id = forest.assignments[network][tree_2][connection_id]
+        if not forest.convex:
+            self.conn.set_nonconvex_path_func(forest.connections[network][tree_1][tree_2][connection_id])
         vessel_1 = forest.networks[network][tree_1].data[self.vessel_1_id]
         vessel_2 = forest.networks[network][tree_2].data[self.vessel_2_id]
         self.conn.set_vessel(1,vessel_1[0:3],vessel_1[3:6],vessel_1[21])
@@ -490,12 +507,16 @@ class simple_connection:
         self.clamp_second = clamp_second
         self.conn.set_collision_vessels(collision_vessels)
         self.bounds = np.array([forest.boundary.x_range, forest.boundary.y_range, forest.boundary.z_range])
+        if not self.forest.convex:
+            self.boundary_func = forest.boundary.DD[0]
+        else:
+            self.boundary_func = None
         self.seperate = seperate
         self.edge_1 = vessel_1
         self.edge_2 = vessel_2
     def set_solver(self,*args,method='basinhopping'):
         self.conn.set_solver(method=method)
-        self.conn.set_bounds(self.bounds)
+        self.conn.set_bounds(self.bounds,boundary_func=self.boundary_func)
     def solve(self,*args):
         if len(args) > 0:
             number_ctl_points = args[0]
@@ -529,6 +550,8 @@ class simple_connection:
             self.vessels = [vessels_tree_1,vessels_tree_2]
         else:
             print('not implemented yet')
+
+
 class tree_connections:
     def __init__(self,forest,network,tree_1,tree_2,radius_buffer,clamp_first=True,clamp_second=True,seperate=True):
         self.forest = forest
@@ -617,6 +640,7 @@ class tree_connections:
         for i in range(len(self.connection_solutions)):
             self.connection_solutions[i].export_vessels()
 
+
 class network_connections:
     def __init__(self,forest,network,radius_buffer):
         self.forest = forest
@@ -667,6 +691,7 @@ class network_connections:
                     tmp_tree_connections.add_collision_vessels(vessels)
                 tmp_tree_connections.solve()
             solutions.append(tmp_tree_connections)
+
 
 """
 pts = np.array([[-2,0,0],[-1,0,0],[2,0,0],[1,0,0]])

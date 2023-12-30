@@ -75,7 +75,7 @@ def link_v3(forest,network_id,tree_1,tree_2,radius_buffer):
         tmp_tree_connections.connection_solutions[i].vessels[1][0,26] = forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,26]
         tmp_tree_connections.connection_solutions[i].vessels[1][0,28] = forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,28]
         parent_vessel_index = int(tmp_tree_connections.connection_solutions[i].vessel_2_id)
-        next_vessel_index_2   = int(max(forest.networks[network_id][tree_2].data[:,-1]))+1+count_2
+        next_vessel_index_2 = int(max(forest.networks[network_id][tree_2].data[:,-1]))+1+count_2
         previous_node_index = int(forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id,19])
         next_node_index     = int(max(forest.networks[network_id][tree_2].data[:,19]))+1
         forest.networks[network_id][tree_2].data[tmp_tree_connections.connection_solutions[i].vessel_2_id, 15] = next_vessel_index_2 #added

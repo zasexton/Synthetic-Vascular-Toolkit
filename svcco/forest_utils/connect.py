@@ -1,6 +1,8 @@
 # Script for connecting trees of closed vascular networks
 from scipy.spatial.distance import cdist
 from scipy.optimize import linear_sum_assignment
+from scipy.interpolate import splprep, splev
+from tqdm import tqdm
 import numpy as np
 
 def connect(forest,network_id=-1,buffer=None):
@@ -58,6 +60,102 @@ def connect(forest,network_id=-1,buffer=None):
                         C = C + W
                     _,assignment = linear_sum_assignment(C)
                     network_assignments.append(terminals_n_ind[assignment])
+            connections.append(network_connections)
+            assignments.append(network_assignments)
+    return connections, assignments
+
+def connect_nonconvex(forest,network_id=-1):
+    connections = []
+    assignments = []
+    if network_id == -1:
+        for network in range(forest.number_of_networks):
+            network_connections = []
+            network_assignments = []
+            tree_0 = forest.networks[network][0].data
+            tree_1 = forest.networks[network][1].data
+            terminals_0 = tree_0[np.argwhere(tree_0[:,15]==-1).flatten(),:]
+            terminals_0 = terminals_0[np.argwhere(terminals_0[:,16]==-1).flatten(),:]
+            terminals_0_ind = terminals_0[:,-1].astype(int).flatten()
+            terminals_0_pts = terminals_0[:,3:6]
+            terminals_1 = tree_1[np.argwhere(tree_1[:,15]==-1).flatten(),:]
+            terminals_1 = terminals_1[np.argwhere(terminals_1[:,16]==-1).flatten(),:]
+            terminals_1_ind = terminals_1[:,-1].astype(int).flatten()
+            terminals_1_pts = terminals_1[:,3:6]
+            network_assignments.append(terminals_0_ind)
+            C = np.zeros((terminals_0_pts.shape[0],terminals_1_pts.shape[0]))
+            M = [[[]]*terminals_1_pts.shape[0]]*terminals_0_pts.shape[0]
+            for i in tqdm(range(terminals_0_pts.shape[0]), desc='Calculating geodesics'):
+                for j in range(terminals_1_pts.shape[0]):
+                    indices,lengths,_ = forest.boundary.get_geodesic(terminals_0_pts[i,:],terminals_1_pts[j,:])
+                    C[i,j] = np.sum(lengths)
+                    path_pts = forest.boundary.tet_pts[indices,:]
+                    path_pts = np.vstack((terminals_0_pts[i, :], path_pts, terminals_1_pts[j, :]))
+                    if path_pts.shape[0] > 3:
+                        k = 3
+                    elif path_pts.shape[0] > 2:
+                        k = 2
+                    else:
+                        k = 1
+                    tck = splprep(path_pts.T, s=0, k=k)
+                    M[i][j] = lambda t: np.array(splev(t, tck[0])).T
+            # this would be if we wanted to add a field penalty for
+            # connection assignment (maybe that connections stay within the
+            # same layer?)
+            #C = cdist(terminals_0_pts,terminals_1_pts)
+            #if not forest.convex:
+            #    W = np.zeros(C.shape)
+            #    penalty = np.max(C)
+            #    for i in range(C.shape[0]):
+            #        for j in range(C.shape[1]):
+            #            mid = (terminals_0_pts[i] + terminals_1_pts[j])/2
+            #            mid = mid.flatten()
+            #            if not forest.boundary.within(mid[0],mid[1],mid[2],2):
+            #                W[i,j] = penalty
+            #    C = C + W
+            _,assignment = linear_sum_assignment(C)
+            midpoints = [M[i][j] for i,j in enumerate(assignment)]
+            network_assignments.append(terminals_1_ind[assignment])
+            network_connections.append([midpoints,midpoints])
+            if forest.trees_per_network[network] > 2:
+                for N in range(2,forest.trees_per_network[network]):
+                    tree_n = forest.networks[network][N].data
+                    terminals_n = tree_n[np.argwhere(tree_n[:,15]==-1).flatten(),:]
+                    terminals_n = terminals_n[np.argwhere(terminals_n[:,16]==-1).flatten(),:]
+                    terminals_n_ind = terminals_n[:,-1].astype(int).flatten()
+                    terminals_n_pts = terminals_n[:,3:6]
+                    C = np.zeros((terminals_0_pts.shape[0], terminals_1_pts.shape[0]))
+                    M = np.zeros((terminals_0_pts.shape[0], terminals_1_pts.shape[0]), dtype=int)
+                    for i in range(terminals_0_pts.shape[0]):
+                        for j in range(i, terminals_1_pts.shape[0]):
+                            midpoint = midpoints[i](0.5)
+                            indices, lengths, _ = forest.boundary.get_geodesic(midpoint,
+                                                                               terminals_n_pts[j, :])
+                            C[i, j] = np.sum(lengths)
+                            path_pts = forest.boundary.tet_pts[indices, :]
+                            path_pts = np.vstack((midpoint,path_pts,terminals_n_pts[j,:]))
+                            if path_pts.shape[0] > 3:
+                                k = 3
+                            elif path_pts.shape[0] > 2:
+                                k = 2
+                            elif path_pts.shape[0] > 1:
+                                k = 1
+                            tck = splprep(path_pts.T, s=0, k=k)
+                            M[i][j] = lambda t: np.array(splev(t, tck[0])).T
+                    # C = cdist(midpoints,terminals_n_pts)
+                    #if not forest.convex:
+                    #    W = np.zeros(c.shape)
+                    #    penalty = np.max(C)
+                    #    for i in range(C.shape[0]):
+                    #        for j in range(C.shape[1]):
+                    #            mid = (midpoints[i] + terminals_n_pts[j])/2
+                    #            mid = mid.flatten()
+                    #            if not forest.boundary.within(mid[0],mid[1],mid[2],2):
+                    #                W[i,j] = penalty
+                    #    C = C + W
+                    _,assignment = linear_sum_assignment(C)
+                    n_midpoints = [M[i][j] for i, j in enumerate(assignment)]
+                    network_assignments.append(terminals_n_ind[assignment])
+                    network_connections.extend([midpoints])
             connections.append(network_connections)
             assignments.append(network_assignments)
     return connections, assignments

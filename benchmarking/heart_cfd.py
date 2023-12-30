@@ -31,6 +31,7 @@ print('heart constructed')
 ############################################
 
 t = svcco.tree()
+t.set_parameters()
 t.set_boundary(heart)
 t.set_root()
 t.n_add(1000)

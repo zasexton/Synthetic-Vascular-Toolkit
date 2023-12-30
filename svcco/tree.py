@@ -2049,7 +2049,10 @@ class forest:
                     None
         """
         self.forest_copy = self.copy()
-        self.forest_copy.connections,self.forest_copy.assignments = connect(self.forest_copy,network_id=-1,buffer=radius_buffer)
+        if self.forest_copy.convex:
+            self.forest_copy.connections,self.forest_copy.assignments = connect(self.forest_copy,network_id=-1,buffer=radius_buffer)
+        else:
+            self.forest_copy.connections,self.forest_copy.assignments = connect_nonconvex(self.forest_copy,network_id=-1)
         #self.forest_copy.connections,self.forest_copy.connected_forest,self.splines = smooth(self.forest_copy,curve_sample_size_min=curve_sample_size_min,curve_sample_size_max=curve_sample_size_max,curve_degree=curve_degree)
         #self.forest_copy.connections,_,_ = link(self.forest_copy,radius_buffer=radius_buffer)
         #print(self.forest_copy.assignments)
@@ -2144,7 +2147,7 @@ class forest:
                     unioned : PyVista PolyData object
                            the total union of all vessels within each network within
                            the current vascular forest
-
+        # there is an indexing error with more than two trees per network
         """
         if outdir is None:
             outdir = os.getcwd()+os.sep+folder
